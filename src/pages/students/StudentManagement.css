@@ -17,7 +17,7 @@
 .text-success    { color: var(--success); }
 .text-danger     { color: var(--danger); }
 .text-warning-c  { color: var(--warning); }
-.gradient-text   { background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.gradient-text   { background: var(--primary-gradient); background-clip: text; -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
 /* ── Table Wrapper ── */
 .table-wrapper { overflow: hidden; }
