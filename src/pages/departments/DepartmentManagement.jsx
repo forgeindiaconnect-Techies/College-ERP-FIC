@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, Building2 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Plus, Search, Edit2, Trash2, X, Building2, Users, UserCircle, ArrowRight } from 'lucide-react';
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from '../../api/index';
 import './DepartmentManagement.css';
 
@@ -21,6 +22,7 @@ const DepartmentManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchDepartments();
@@ -116,78 +118,81 @@ const DepartmentManagement = () => {
         </div>
       </div>
 
-      {/* Table Section */}
-      <div className="glass-card table-wrapper">
-        <div className="filters-row">
+      {/* Cards Section */}
+      <div className="dept-cards-wrapper">
+        <div className="filters-row mb-4">
           <div className="search-box">
             <Search size={18} className="text-muted" />
             <input 
               type="text" 
-              placeholder="Search by name or code..." 
+              placeholder="Search departments..." 
               value={search} 
               onChange={e => setSearch(e.target.value)} 
             />
           </div>
         </div>
 
-        <div className="table-container">
-          <table>
-            <thead>
-              <tr>
-                <th>#</th>
-                <th>Department Name</th>
-                <th>Department Code</th>
-                <th>HOD Name</th>
-                <th>Total Students</th>
-                <th>Total Staff</th>
-                <th>Status</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {loading ? (
-                Array.from({ length: 5 }).map((_, i) => (
-                  <tr key={i}>
-                    {Array.from({ length: 8 }).map((_, j) => (
-                      <td key={j}>
-                        <div className="skeleton" style={{ height: '16px', borderRadius: '4px', width: j === 1 ? '160px' : '60px' }}></div>
-                      </td>
-                    ))}
-                  </tr>
-                ))
-              ) : filtered.length === 0 ? (
-                <tr>
-                  <td colSpan={8} className="text-center text-muted" style={{ padding: '2rem' }}>
-                    No departments match your query.
-                  </td>
-                </tr>
-              ) : (
-                filtered.map((dept, idx) => (
-                  <tr key={dept.id}>
-                    <td className="text-muted">{idx + 1}</td>
-                    <td className="font-semibold">{dept.name}</td>
-                    <td><span className="code-pill">{dept.code}</span></td>
-                    <td>{dept.hod || 'Not Assigned'}</td>
-                    <td><span className="font-semibold">{Number(dept.students).toLocaleString()}</span></td>
-                    <td><span className="font-semibold">{dept.staff}</span></td>
-                    <td>
-                      <span className={`status-badge ${dept.status === 'Active' ? 'badge-active' : 'badge-inactive'}`}>
-                        {dept.status || 'Active'}
-                      </span>
-                    </td>
-                    <td>
-                      <div className="action-buttons">
-                        <button className="btn-icon" onClick={() => openEdit(dept)}><Edit2 size={15} /></button>
-                        <button className="btn-icon btn-icon-danger" onClick={() => handleDelete(dept.id)}><Trash2 size={15} /></button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-        {!loading && <div className="table-footer">Showing {filtered.length} of {depts.length} departments</div>}
+        {loading ? (
+          <div className="dept-cards-grid">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className="dept-card glass-card skeleton-card" style={{ height: '220px' }}></div>
+            ))}
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="glass-card text-center text-muted" style={{ padding: '3rem' }}>
+            No departments match your query.
+          </div>
+        ) : (
+          <div className="dept-cards-grid">
+            {filtered.map(dept => (
+              <div key={dept.id} className="dept-card glass-card">
+                <div className="dept-card-header">
+                  <div className="dept-title-area">
+                    <div className="dept-icon-box"><Building2 size={24} className="text-primary" /></div>
+                    <div>
+                      <h3 className="dept-name">{dept.name}</h3>
+                      <span className="dept-code">{dept.code}</span>
+                    </div>
+                  </div>
+                  <span className={`status-badge ${dept.status === 'Active' ? 'badge-active' : 'badge-inactive'}`}>
+                    {dept.status || 'Active'}
+                  </span>
+                </div>
+
+                <div className="dept-card-body">
+                  <div className="dept-hod-info">
+                    <UserCircle size={18} className="text-muted" />
+                    <span className="hod-name">{dept.hod ? dept.hod : <span className="text-danger">No HOD Assigned</span>}</span>
+                  </div>
+                  
+                  <div className="dept-stats-row">
+                    <div className="dept-stat-box">
+                      <span className="stat-label">Students</span>
+                      <span className="stat-number">{Number(dept.students).toLocaleString()}</span>
+                    </div>
+                    <div className="dept-stat-box">
+                      <span className="stat-label">Staff</span>
+                      <span className="stat-number">{dept.staff}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="dept-actions">
+                  <button 
+                    className="btn-outline flex-1" 
+                    onClick={() => navigate(`/admin/departments/${dept._id || dept.id}`)}
+                  >
+                    View Details <ArrowRight size={16} />
+                  </button>
+                  <div className="action-buttons">
+                    <button className="btn-icon" onClick={() => openEdit(dept)} title="Edit"><Edit2 size={16} /></button>
+                    <button className="btn-icon btn-icon-danger" onClick={() => handleDelete(dept.id)} title="Delete"><Trash2 size={16} /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Modal */}

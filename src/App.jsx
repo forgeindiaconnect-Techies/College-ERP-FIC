@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard';
 import StudentManagement from './pages/students/StudentManagement';
 import StaffManagement from './pages/staff/StaffManagement';
 import DepartmentManagement from './pages/departments/DepartmentManagement';
+import DepartmentDashboard from './pages/departments/DepartmentDashboard';
 import AttendanceManagement from './pages/attendance/AttendanceManagement';
 import CgpaManagement from './pages/cgpa/CgpaManagement';
 import FeesManagement from './pages/fees/FeesManagement';
@@ -182,6 +183,7 @@ function App() {
             <Route index element={<Navigate to="/admin/dashboard" replace />} />
             <Route path="dashboard"     element={<Dashboard />} />
             <Route path="departments"   element={<DepartmentManagement />} />
+            <Route path="departments/:id" element={<DepartmentDashboard />} />
             <Route path="hods"          element={<HodManagement />} />
             <Route path="students"      element={<StudentManagement />} />
             <Route path="staff"         element={<StaffManagement />} />
