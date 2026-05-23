@@ -1,0 +1,498 @@
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import {
+  BookOpen, Users, CalendarCheck, BookOpenCheck,
+  ClipboardList, Calendar, FileText, CheckCircle, Clock,
+  ArrowRight, Activity, Plus, AlertCircle
+} from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getStudents, getAllMarks, getAllAttendance } from '../../api/index';
+import './StaffDashboard.css';
+
+// Fallback session
+const DEFAULT_SESSION = {
+  id: 'STF001',
+  name: 'Dr. Ananya Rao',
+  dept: 'Computer Science',
+  deptCode: 'CS',
+  role: 'Staff',
+  email: 'ananya@college.edu',
+  subjects: ['Data Structures', 'DBMS']
+};
+
+const SUBJECT_TO_CLASS = {
+  'Data Structures': 'Sem 3',
+  'DBMS': 'Sem 6',
+  'OS': 'Sem 4',
+  'Machine Learning': 'Sem 6',
+  'Circuits': 'Sem 4',
+  'Networks': 'Sem 4',
+  'Thermodynamics': 'Sem 2',
+  'Fluid Mechanics': 'Sem 2',
+  'Structural Analysis': 'Sem 8'
+};
+
+const MOCK_LEAVES = [
+  { id: '1', staffId: 'STF001', staffName: 'Dr. Ananya Rao', type: 'Sick Leave', startDate: '2026-05-10', endDate: '2026-05-11', reason: 'Medical emergency, doctor advised rest.', status: 'Approved' },
+  { id: '2', staffId: 'STF001', staffName: 'Dr. Ananya Rao', type: 'Casual Leave', startDate: '2026-06-05', endDate: '2026-06-06', reason: 'Personal family emergency.', status: 'Pending' }
+];
+
+const MOCK_ASSIGNMENTS = [
+  { id: '1', subject: 'Data Structures', class: 'Sem 3', title: 'Implement Binary Search Tree', description: 'Write a Java program to implement a BST with insert, delete, and search operations.', dueDate: '2026-05-28', submissionsCount: 12, faculty: 'Dr. Ananya Rao' },
+  { id: '2', subject: 'DBMS', class: 'Sem 6', title: 'SQL Join Queries Practice', description: 'Complete the SQL exercises sheet on nested queries and multi-table joins.', dueDate: '2026-05-25', submissionsCount: 8, faculty: 'Dr. Ananya Rao' }
+];
+
+const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+const StaffDashboard = () => {
+  const navigate = useNavigate();
+  const [animate, setAnimate] = useState(false);
+  const [staffSession, setStaffSession] = useState(DEFAULT_SESSION);
+
+  // States for DB
+  const [students, setStudents] = useState([]);
+  const [timetable, setTimetable] = useState([]);
+  const [marks, setMarks] = useState([]);
+  const [attendanceLogs, setAttendanceLogs] = useState({});
+  const [assignments, setAssignments] = useState([]);
+  const [leaves, setLeaves] = useState([]);
+
+  // Leave Form State
+  const [leaveModalOpen, setLeaveModalOpen] = useState(false);
+  const [leaveForm, setLeaveForm] = useState({ type: 'Casual Leave', startDate: '', endDate: '', reason: '' });
+  const [leaveSuccess, setLeaveSuccess] = useState(false);
+
+  useEffect(() => {
+    // 1. Session check
+    const session = sessionStorage.getItem('staff_session');
+    let activeStaff = DEFAULT_SESSION;
+    if (session) {
+      activeStaff = JSON.parse(session);
+      setStaffSession(activeStaff);
+    } else {
+      navigate('/staff/login');
+      return;
+    }
+
+    const loadDashboardData = async () => {
+      try {
+        const [studRes, marksRes, attRes] = await Promise.all([
+          getStudents(),
+          getAllMarks(),
+          getAllAttendance()
+        ]);
+
+        if (studRes?.data) setStudents(studRes.data);
+        if (marksRes?.data) {
+          const mappedMarks = marksRes.data.map(m => ({
+            id: m.studentId,
+            name: m.studentName,
+            dept: m.department,
+            sem: m.semester,
+            internal: m.internalMarks,
+            external: m.semesterMarks,
+            arrears: m.arrearStatus === 'Arrear' ? 1 : 0
+          }));
+          setMarks(mappedMarks);
+        }
+        if (attRes?.data) {
+          const dailyMap = {};
+          attRes.data.forEach(record => {
+            const dateStr = new Date(record.date).toLocaleDateString('en-CA');
+            if (!dailyMap[dateStr]) {
+              dailyMap[dateStr] = {};
+            }
+            dailyMap[dateStr][record.studentId] = record.status?.toLowerCase() || 'present';
+          });
+          setAttendanceLogs(dailyMap);
+        }
+      } catch (err) {
+        console.error('Failed to load live staff dashboard data:', err);
+      }
+    };
+
+    loadDashboardData();
+
+    // Timetable Setup
+    const timetableRaw = localStorage.getItem('erp_timetable');
+    if (timetableRaw) setTimetable(JSON.parse(timetableRaw));
+
+    // Assignments Setup
+    const assignRaw = localStorage.getItem('erp_assignments');
+    if (assignRaw) {
+      setAssignments(JSON.parse(assignRaw));
+    } else {
+      localStorage.setItem('erp_assignments', JSON.stringify(MOCK_ASSIGNMENTS));
+      setAssignments(MOCK_ASSIGNMENTS);
+    }
+
+    // Leaves Setup
+    const leaveRaw = localStorage.getItem('erp_leave_requests');
+    if (leaveRaw) {
+      setLeaves(JSON.parse(leaveRaw));
+    } else {
+      localStorage.setItem('erp_leave_requests', JSON.stringify(MOCK_LEAVES));
+      setLeaves(MOCK_LEAVES);
+    }
+
+    // Trigger animations
+    const t = setTimeout(() => setAnimate(true), 100);
+    return () => clearTimeout(t);
+  }, [navigate]);
+
+  // Calculations scoped to current staff member
+  const staffName = staffSession.name;
+  const staffId = staffSession.id || 'STF001';
+  const staffDept = staffSession.dept;
+
+  // 1. Subjects they teach (from staff profile or timetable assignments)
+  const mySubjects = staffSession.subjects || ['Data Structures', 'DBMS'];
+
+  // 2. Classes they teach (e.g. Sem 3, Sem 6)
+  const myClasses = mySubjects.map(sub => ({
+    subject: sub,
+    sem: SUBJECT_TO_CLASS[sub] || 'Sem 3',
+    dept: staffDept
+  }));
+
+  // 3. Timetable filter
+  const myTimetable = timetable.filter(slot => slot.faculty === staffName);
+  const totalClasses = myTimetable.length;
+
+  const todayName = DAYS[new Date().getDay()] || 'Monday';
+  const todayClasses = myTimetable.filter(slot => slot.day?.toLowerCase() === todayName.toLowerCase()).length;
+
+  // 4. Students Assigned (Unique students in their department and target semesters)
+  const targetSems = myClasses.map(c => c.sem);
+  const myStudents = students.filter(s => s.dept === staffDept && targetSems.includes(s.sem));
+  const studentsAssignedCount = myStudents.length;
+
+  // 5. Attendance Pending (If attendance for today's date hasn't been logged for their students)
+  const todayDateStr = new Date().toLocaleDateString('en-CA');
+  const todayAttendance = attendanceLogs[todayDateStr] || {};
+  const attendanceLoggedCount = myStudents.filter(s => todayAttendance[s.id] !== undefined).length;
+  const attendancePending = myStudents.length > 0 && attendanceLoggedCount < myStudents.length;
+
+  // 6. Marks Pending (Students taught by them who do not have grades entered in erp_marks)
+  const myMarks = marks.filter(m => m.dept === staffDept && targetSems.includes(m.sem));
+  // Let's check how many have internal/external marks unset or zero
+  const marksPendingCount = myMarks.filter(m => m.internal === 0 || m.external === 0).length;
+
+  // 7. Assignments Given (Assignments created by this staff member)
+  const myAssignments = assignments.filter(a => a.faculty === staffName);
+  const assignmentsGivenCount = myAssignments.length;
+
+  // 8. Leave requests for this staff
+  const myLeaves = leaves.filter(l => l.staffId === staffId);
+
+  // Leave Form Submission
+  const handleApplyLeave = (e) => {
+    e.preventDefault();
+    const newLeave = {
+      id: String(Date.now()),
+      staffId: staffId,
+      staffName: staffName,
+      type: leaveForm.type,
+      startDate: leaveForm.startDate,
+      endDate: leaveForm.endDate,
+      reason: leaveForm.reason,
+      status: 'Pending'
+    };
+    const updatedLeaves = [...leaves, newLeave];
+    setLeaves(updatedLeaves);
+    localStorage.setItem('erp_leave_requests', JSON.stringify(updatedLeaves));
+    setLeaveSuccess(true);
+    setTimeout(() => {
+      setLeaveModalOpen(false);
+      setLeaveForm({ type: 'Casual Leave', startDate: '', endDate: '', reason: '' });
+      setLeaveSuccess(false);
+    }, 1000);
+  };
+
+  // Chart: Mock performance average across subjects taught
+  const chartData = [
+    { name: 'Unit 1', avg: 74 },
+    { name: 'Unit 2', avg: 78 },
+    { name: 'Internal 1', avg: 82 },
+    { name: 'Unit 3', avg: 80 },
+    { name: 'Internal 2', avg: 85 },
+    { name: 'Model Exam', avg: 88 },
+  ];
+
+  return (
+    <div className={`staff-dashboard ${animate ? 'animate-fade-in' : ''}`}>
+      {/* Welcome Banner */}
+      <div className="staff-welcome-banner">
+        <div className="staff-welcome-text">
+          <div className="staff-welcome-tag">
+            <Activity size={14} /> Faculty Session Active
+          </div>
+          <h1>Welcome, <span className="gradient-text-blue">{staffName?.replace('Dr. ', '')?.replace('Prof. ', '') || 'Faculty'}</span></h1>
+          <p className="staff-welcome-sub">Department of <strong>{staffDept}</strong> · Classroom Instructor</p>
+        </div>
+        <div className="staff-welcome-actions">
+          <button className="staff-btn-primary" onClick={() => navigate('/staff/attendance')}>
+            <CalendarCheck size={17} /> Take Attendance <ArrowRight size={16} />
+          </button>
+          <button className="staff-btn-ghost" onClick={() => setLeaveModalOpen(true)}>
+            <Plus size={17} /> Apply Leave
+          </button>
+        </div>
+      </div>
+
+      {/* ── 6 Dashboard Cards ── */}
+      <div className="staff-stats-grid">
+        <div className="staff-stat-card">
+          <div className="staff-stat-icon blue">
+            <Calendar size={22} />
+          </div>
+          <div className="staff-stat-details">
+            <p className="staff-stat-label">Total Classes</p>
+            <p className="staff-stat-value">{totalClasses}</p>
+            <p className="staff-stat-sub text-muted">Weekly timetable slots</p>
+          </div>
+        </div>
+
+        <div className="staff-stat-card">
+          <div className="staff-stat-icon emerald">
+            <Clock size={22} />
+          </div>
+          <div>
+            <p className="staff-stat-label">Today Classes</p>
+            <p className="staff-stat-value">{todayClasses}</p>
+            <p className="staff-stat-sub text-success">{todayClasses > 0 ? 'Active schedule' : 'No slots today'}</p>
+          </div>
+        </div>
+
+        <div className="staff-stat-card">
+          <div className="staff-stat-icon indigo">
+            <Users size={22} />
+          </div>
+          <div>
+            <p className="staff-stat-label">Students Assigned</p>
+            <p className="staff-stat-value">{studentsAssignedCount}</p>
+            <p className="staff-stat-sub text-muted">Across subjects</p>
+          </div>
+        </div>
+
+        <div className="staff-stat-card">
+          <div className="staff-stat-icon amber">
+            <CalendarCheck size={22} />
+          </div>
+          <div>
+            <p className="staff-stat-label">Attendance Status</p>
+            <p className={`staff-stat-value text-sm ${attendancePending ? 'text-danger' : 'text-success'}`} style={{ marginTop: '5px', fontSize: '1.2rem', fontWeight: 700 }}>
+              {attendancePending ? 'Pending Today' : 'Logged Today'}
+            </p>
+            <p className="staff-stat-sub text-muted">{attendanceLoggedCount} of {studentsAssignedCount} logged</p>
+          </div>
+        </div>
+
+        <div className="staff-stat-card">
+          <div className="staff-stat-icon red">
+            <BookOpenCheck size={22} />
+          </div>
+          <div>
+            <p className="staff-stat-label">Marks Pending</p>
+            <p className="staff-stat-value">{marksPendingCount}</p>
+            <p className="staff-stat-sub text-danger">{marksPendingCount > 0 ? 'Requires uploads' : 'All marks loaded'}</p>
+          </div>
+        </div>
+
+        <div className="staff-stat-card">
+          <div className="staff-stat-icon purple">
+            <ClipboardList size={22} />
+          </div>
+          <div>
+            <p className="staff-stat-label">Assignments Given</p>
+            <p className="staff-stat-value">{assignmentsGivenCount}</p>
+            <p className="staff-stat-sub text-muted">Created coursework</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Grid Content */}
+      <div className="staff-grid-row">
+        {/* Left Column: Charts, Subjects & Classes */}
+        <div className="staff-col-main">
+          {/* Performance Analytics Chart */}
+          <div className="glass-card staff-chart-card">
+            <h3>Average Class Performance (%)</h3>
+            <p className="text-muted text-sm">Class average tracker across evaluation milestones</p>
+            <div style={{ height: '240px', width: '100%', marginTop: '1.25rem' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="staffPerfGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.25} />
+                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                  <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis domain={[60, 100]} stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)', fontSize: 12 }} />
+                  <Area type="monotone" dataKey="avg" name="Class Average %" stroke="#3b82f6" strokeWidth={2.5} fill="url(#staffPerfGrad)" dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: 'white' }} />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* My Subjects & My Classes Row */}
+          <div className="staff-split-row">
+            <div className="glass-card flex-1">
+              <div className="staff-card-header">
+                <h3><BookOpen size={18} className="text-primary" /> My Subjects</h3>
+                <span className="badge-blue">{mySubjects.length} Active</span>
+              </div>
+              <div className="staff-list">
+                {mySubjects.map((sub, idx) => (
+                  <div key={idx} className="staff-list-item">
+                    <div className="item-icon-circle blue">
+                      <BookOpen size={16} />
+                    </div>
+                    <div className="item-info">
+                      <p className="item-title">{sub}</p>
+                      <p className="item-subtitle">{staffDept} Department</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="glass-card flex-1">
+              <div className="staff-card-header">
+                <h3><Users size={18} className="text-success" /> My Classes</h3>
+                <span className="badge-green">{myClasses.length} Scheduled</span>
+              </div>
+              <div className="staff-list">
+                {myClasses.map((cls, idx) => (
+                  <div key={idx} className="staff-list-item">
+                    <div className="item-icon-circle green">
+                      <Users size={16} />
+                    </div>
+                    <div className="item-info">
+                      <p className="item-title">{cls.dept} - {cls.sem}</p>
+                      <p className="item-subtitle">Subject: {cls.subject}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Leave Requests & Timeline */}
+        <div className="staff-col-side">
+          <div className="glass-card leave-status-card">
+            <div className="staff-card-header" style={{ marginBottom: '1.25rem' }}>
+              <h3><FileText size={18} className="text-warning-cgpa" /> Leave Requests</h3>
+              <button className="btn-add-leave" onClick={() => setLeaveModalOpen(true)}>
+                <Plus size={14} /> New Request
+              </button>
+            </div>
+
+            <div className="leave-list">
+              {myLeaves.length === 0 ? (
+                <p className="no-leave-data">No leave history recorded.</p>
+              ) : (
+                myLeaves.map(l => (
+                  <div key={l.id} className="leave-item">
+                    <div className="leave-item-header">
+                      <span className="leave-type">{l.type}</span>
+                      <span className={`status-badge-leave ${l.status?.toLowerCase() || ''}`}>
+                        {l.status}
+                      </span>
+                    </div>
+                    <p className="leave-dates"><Clock size={12} /> {l.startDate} to {l.endDate}</p>
+                    <p className="leave-reason">"{l.reason}"</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Quick Actions Portal */}
+          <div className="glass-card quick-actions-card">
+            <h3>Quick Actions</h3>
+            <div className="quick-actions-grid">
+              <button className="action-btn" onClick={() => navigate('/staff/attendance')}>
+                <CalendarCheck size={20} />
+                <span>Mark Attendance</span>
+              </button>
+              <button className="action-btn" onClick={() => navigate('/staff/marks')}>
+                <BookOpenCheck size={20} />
+                <span>Upload Marks</span>
+              </button>
+              <button className="action-btn" onClick={() => navigate('/staff/assignments')}>
+                <ClipboardList size={20} />
+                <span>Assignments</span>
+              </button>
+              <button className="action-btn" onClick={() => navigate('/staff/timetable')}>
+                <Calendar size={20} />
+                <span>Timetable</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* LEAVE MODAL */}
+      {leaveModalOpen && (
+        <div className="modal-overlay" onClick={() => setLeaveModalOpen(false)}>
+          <div className="modal-card glass-card" onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>Apply for Leave</h2>
+                <p className="text-muted" style={{ fontSize: '0.85rem', marginTop: '2px' }}>Submit a request to your Head of Department.</p>
+              </div>
+              <button className="btn-icon" onClick={() => setLeaveModalOpen(false)}><AlertCircle size={20} /></button>
+            </div>
+
+            {leaveSuccess && (
+              <div className="modal-success-flash">
+                <CheckCircle size={18} /> Leave request submitted successfully!
+              </div>
+            )}
+
+            <form onSubmit={handleApplyLeave} className="modal-form">
+              <div className="form-grid">
+                <div className="form-group">
+                  <label>Leave Type</label>
+                  <select value={leaveForm.type} onChange={e => setLeaveForm({ ...leaveForm, type: e.target.value })}>
+                    <option value="Casual Leave">Casual Leave</option>
+                    <option value="Sick Leave">Sick Leave</option>
+                    <option value="Maternity/Paternity Leave">Maternity/Paternity Leave</option>
+                    <option value="Duty Leave">Duty Leave</option>
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Start Date</label>
+                  <input type="date" required value={leaveForm.startDate} onChange={e => setLeaveForm({ ...leaveForm, startDate: e.target.value })} />
+                </div>
+
+                <div className="form-group">
+                  <label>End Date</label>
+                  <input type="date" required value={leaveForm.endDate} onChange={e => setLeaveForm({ ...leaveForm, endDate: e.target.value })} />
+                </div>
+              </div>
+
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label>Reason for Leave</label>
+                <textarea required placeholder="Brief description of reason..." rows="3" value={leaveForm.reason} onChange={e => setLeaveForm({ ...leaveForm, reason: e.target.value })} />
+              </div>
+
+              <div className="modal-actions">
+                <button type="button" className="btn-ghost" onClick={() => setLeaveModalOpen(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Submit Request</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default StaffDashboard;

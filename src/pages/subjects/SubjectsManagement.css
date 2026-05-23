@@ -1,0 +1,32 @@
+.subjects-management {
+  padding: 1.5rem;
+}
+
+.subject-code-pill {
+  font-family: monospace;
+  font-weight: 700;
+  font-size: 0.8rem;
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  color: #8b5cf6;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+}
+
+.subject-credit-badge {
+  font-weight: 700;
+  color: #10b981;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}
+
+.subject-workload-badge {
+  font-weight: 700;
+  color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+}

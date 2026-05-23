@@ -1,0 +1,413 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  Users, 
+  GraduationCap, 
+  Wallet, 
+  Building2,
+  TrendingUp,
+  UserPlus,
+  FileText,
+  Settings,
+  Briefcase,
+  BookOpen,
+  Calendar,
+  CalendarCheck,
+  Megaphone,
+  ShieldCheck,
+  Clock,
+  Activity,
+  Heart,
+  Inbox
+} from 'lucide-react';
+import { 
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  BarChart, Bar, LineChart, Line, Legend
+} from 'recharts';
+import { getStudents, getStaff, getDepartments, getAllFees, getAllAttendance } from '../api/index';
+import './Dashboard.css';
+
+const MOCK_ATTENDANCE = [
+  { name: 'Mon', students: 95, staff: 98 },
+  { name: 'Tue', students: 92, staff: 97 },
+  { name: 'Wed', students: 96, staff: 99 },
+  { name: 'Thu', students: 89, staff: 95 },
+  { name: 'Fri', students: 98, staff: 100 },
+  { name: 'Sat', students: 85, staff: 90 },
+];
+
+const MOCK_DEPT_SCORES = [
+  { name: 'CSE', score: 92, staff: 94 },
+  { name: 'ECE', score: 85, staff: 91 },
+  { name: 'MECH', score: 78, staff: 86 },
+  { name: 'EEE', score: 80, staff: 89 },
+  { name: 'BCA', score: 88, staff: 92 },
+  { name: 'MBA', score: 94, staff: 96 }
+];
+
+const MOCK_CGPA = [
+  { semester: 'Sem 1', avg: 7.8, top: 9.5 },
+  { semester: 'Sem 2', avg: 8.1, top: 9.6 },
+  { semester: 'Sem 3', avg: 7.9, top: 9.4 },
+  { semester: 'Sem 4', avg: 8.3, top: 9.8 },
+  { semester: 'Sem 5', avg: 8.5, top: 9.9 },
+  { semester: 'Sem 6', avg: 8.4, top: 9.7 },
+];
+
+const Dashboard = () => {
+  const navigate = useNavigate();
+  const [students, setStudents] = useState([]);
+  const [staff, setStaff] = useState([]);
+  const [depts, setDepts] = useState([]);
+  const [hods, setHods] = useState([]);
+  const [fees, setFees] = useState([]);
+  const [leavesCount, setLeavesCount] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Session Verification
+    const session = sessionStorage.getItem('admin_session');
+    if (!session) {
+      navigate('/login');
+      return;
+    }
+
+    const fetchAllData = async () => {
+      try {
+        setLoading(true);
+        const [studentsRes, staffRes, deptsRes, feesRes] = await Promise.all([
+          getStudents().catch(() => ({ data: [] })),
+          getStaff().catch(() => ({ data: [] })),
+          getDepartments().catch(() => ({ data: [] })),
+          getAllFees().catch(() => ({ data: [] }))
+        ]);
+
+        const sData = studentsRes?.data || [];
+        const fData = staffRes?.data || [];
+        const dData = deptsRes?.data || [];
+        const feesData = feesRes?.data || [];
+
+        setStudents(sData);
+        setStaff(fData);
+        setDepts(dData);
+        setFees(feesData);
+
+        // Compute HOD count dynamically
+        const hodsList = fData.filter(s => s.designation === 'HOD' || s.role === 'HOD' || s.email?.includes('hod'));
+        setHods(hodsList.length > 0 ? hodsList : dData.filter(d => d.hod));
+
+        // Read leaves count
+        const savedLeaves = localStorage.getItem('erp_leave_requests');
+        if (savedLeaves) {
+          const lData = JSON.parse(savedLeaves);
+          setLeavesCount(lData.filter(l => l.status === 'Pending').length);
+        } else {
+          setLeavesCount(1);
+        }
+      } catch (err) {
+        console.error('Error fetching dashboard stats:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAllData();
+  }, [navigate]);
+
+  // Aggregate Metrics Calculations
+  const totalStudentsCount = students.length > 0 ? students.length : 10;
+  const totalStaffCount = staff.length > 0 ? staff.length : 9;
+  const totalDeptsCount = depts.length > 0 ? depts.length : 6;
+  const totalHodsCount = hods.length > 0 ? hods.length : 6;
+  const totalParentsCount = students.length > 0 ? students.length : 10;
+  const totalSubjectsCount = 24;
+  const leaveRequestsCount = leavesCount;
+  const activeExamsCount = 4;
+
+  // Calculate dynamic fees collected
+  const totalFeesCollected = fees.length > 0 
+    ? fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0)
+    : 185000;
+  
+  const feesDisplay = totalFeesCollected >= 100000 
+    ? `₹${(totalFeesCollected / 100000).toFixed(1)}L`
+    : `₹${totalFeesCollected.toLocaleString()}`;
+
+  // Calculate dynamic average attendance
+  const averageAttendance = students.length > 0
+    ? (students.reduce((sum, s) => sum + (s.attendance || 0), 0) / students.length).toFixed(1)
+    : '94.6';
+
+  // Calculate dynamic department scores for chart
+  const deptScores = depts.length > 0 ? depts.map(d => {
+    const deptStudents = students.filter(s => s.dept === d.name);
+    const avgScore = deptStudents.length > 0 
+      ? (deptStudents.reduce((sum, s) => sum + (s.cgpa || 0), 0) / deptStudents.length) * 10
+      : 82;
+    const deptStaff = staff.filter(s => s.dept === d.name);
+    const totalLoad = deptStaff.reduce((sum, s) => sum + (s.workload || 0), 0);
+    return {
+      name: d.code || d.name.slice(0, 4).toUpperCase(),
+      score: parseFloat(avgScore.toFixed(1)),
+      staff: totalLoad || 12
+    };
+  }) : MOCK_DEPT_SCORES;
+
+  return (
+    <div className="dashboard animate-fade-in">
+      {/* Dashboard Welcome Header */}
+      <div className="dashboard-header">
+        <div>
+          <h1>Super Admin Console</h1>
+          <p className="text-muted">Unrestricted global access. Manage all departments, users, and configurations globally.</p>
+        </div>
+        <div className="header-actions">
+          <button className="btn-primary" onClick={() => navigate('/admin/reports')}>
+            <FileText size={18} />
+            System Reports
+          </button>
+        </div>
+      </div>
+
+      {/* Primary KPI Stats Grid */}
+      <div className="stats-grid">
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-gradient-blue">
+            <Users size={24} className="text-white" />
+          </div>
+          <div className="stat-details">
+            <h3>Total Students</h3>
+            <p className="stat-value">{totalStudentsCount.toLocaleString()}</p>
+            <p className="stat-change positive">
+              <TrendingUp size={14} /> Global Enrollment
+            </p>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-gradient-purple">
+            <GraduationCap size={24} className="text-white" />
+          </div>
+          <div className="stat-details">
+            <h3>Total HODs</h3>
+            <p className="stat-value">{totalHodsCount}</p>
+            <p className="stat-change positive">
+              <TrendingUp size={14} /> Assigned departments
+            </p>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-gradient-orange">
+            <Building2 size={24} className="text-white" />
+          </div>
+          <div className="stat-details">
+            <h3>Departments</h3>
+            <p className="stat-value">{totalDeptsCount}</p>
+            <p className="stat-change text-muted">Active divisions</p>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-gradient-green">
+            <CalendarCheck size={24} className="text-white" />
+          </div>
+          <div className="stat-details">
+            <h3>Avg Attendance</h3>
+            <p className="stat-value">{averageAttendance}%</p>
+            <p className="stat-change positive">
+              <TrendingUp size={14} /> Overall rate
+            </p>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-gradient-pink">
+            <Wallet size={24} className="text-white" />
+          </div>
+          <div className="stat-details">
+            <h3>Fees Collected</h3>
+            <p className="stat-value">{feesDisplay}</p>
+            <p className="stat-change positive">
+              <TrendingUp size={14} /> Mapped terms
+            </p>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-gradient-teal">
+            <Heart size={24} className="text-white" />
+          </div>
+          <div className="stat-details">
+            <h3>Parents Accounts</h3>
+            <p className="stat-value">{totalParentsCount.toLocaleString()}</p>
+            <p className="stat-change positive">
+              <TrendingUp size={14} /> Active links
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Visual Analytics Charts Grid */}
+      <div className="dashboard-grid">
+        <div className="chart-card glass-card col-span-2">
+          <div className="card-header">
+            <h3>Global Attendance Trends</h3>
+          </div>
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={MOCK_ATTENDANCE} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                  </linearGradient>
+                  <linearGradient id="colorStaff" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#ec4899" stopOpacity={0.35}/>
+                    <stop offset="95%" stopColor="#ec4899" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)' }} />
+                <Legend verticalAlign="top" height={36} />
+                <Area type="monotone" dataKey="students" name="Students Attendance" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorStudents)" />
+                <Area type="monotone" dataKey="staff" name="Staff Attendance" stroke="#ec4899" strokeWidth={3} fillOpacity={1} fill="url(#colorStaff)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="chart-card glass-card">
+          <div className="card-header">
+            <h3>Departmental Grades & KPI</h3>
+          </div>
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={deptScores} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={16}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <Tooltip cursor={{fill: 'var(--border-color)'}} contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)' }} />
+                <Legend verticalAlign="top" height={36} />
+                <Bar dataKey="score" name="Avg Score" fill="url(#colorBar)" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="staff" name="Faculty Load" fill="#10b981" radius={[4, 4, 0, 0]} />
+                <defs>
+                  <linearGradient id="colorBar" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor="#8b5cf6" />
+                    <stop offset="100%" stopColor="#3b82f6" />
+                  </linearGradient>
+                </defs>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        <div className="chart-card glass-card col-span-2">
+          <div className="card-header">
+            <h3>College CGPA Academic Curve</h3>
+          </div>
+          <div className="chart-container" style={{ minHeight: '300px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={MOCK_CGPA} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                <XAxis dataKey="semester" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <YAxis domain={[5, 10]} stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)' }} />
+                <Legend verticalAlign="top" height={36} />
+                <Line type="monotone" dataKey="avg" name="Average CGPA" stroke="#10b981" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 8 }} />
+                <Line type="monotone" dataKey="top" name="Top CGPA" stroke="#f59e0b" strokeWidth={3} dot={{ r: 4 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* Quick Actions Panel */}
+        <div className="glass-card">
+          <div className="card-header mb-4 px-6 pt-6">
+            <h3>Super Admin Quick Actions</h3>
+          </div>
+          <div className="quick-actions-grid p-6">
+            <button className="quick-action-btn" onClick={() => navigate('/admin/hods')}>
+              <div className="action-icon bg-gradient-blue"><UserPlus size={20} /></div>
+              <span>Register HOD</span>
+            </button>
+            <button className="quick-action-btn" onClick={() => navigate('/admin/staff')}>
+              <div className="action-icon bg-gradient-purple"><GraduationCap size={20} /></div>
+              <span>Register Staff</span>
+            </button>
+            <button className="quick-action-btn" onClick={() => navigate('/admin/announcements')}>
+              <div className="action-icon bg-gradient-green"><Megaphone size={20} /></div>
+              <span>Publish News</span>
+            </button>
+            <button className="quick-action-btn" onClick={() => navigate('/admin/settings')}>
+              <div className="action-icon bg-gradient-orange"><Settings size={20} /></div>
+              <span>Manage Settings</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Scoped Details Rows */}
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+        <div className="glass-card" style={{ padding: '1.5rem' }}>
+          <h3>📋 Recent Global Operations Logs</h3>
+          <div style={{ marginTop: '1rem', maxHeight: '200px', overflowY: 'auto' }}>
+            <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              {[
+                { time: '5 mins ago', user: 'Admin', act: 'Registered new HOD account (Dr. Sanjay Sen).' },
+                { time: '1 hour ago', user: 'CSE HOD', act: 'Added active Student Roll No: CSE007.' },
+                { time: 'Today', user: 'ECE HOD', act: 'Modified semester 3 timetable period schedule.' },
+                { time: 'Yesterday', user: 'System', act: 'Automated database check and seeder successfully run.' }
+              ].map((log, i) => (
+                <li key={i} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.82rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', alignItems: 'center' }}>
+                  <span className="text-muted" style={{ fontWeight: 600, minWidth: '75px' }}>{log.time}</span>
+                  <span className="badge-outline" style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', border: '1px solid var(--primary)', borderRadius: '4px', color: 'var(--primary)' }}>{log.user}</span>
+                  <span style={{ color: 'var(--text-main)', flex: 1 }}>{log.act}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        <div className="glass-card" style={{ padding: '1.5rem' }}>
+          <h3>🚀 Secondary System Modules</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+            {[
+              { title: 'Subjects', val: totalSubjectsCount, path: '/admin/subjects', icon: <BookOpen size={16} /> },
+              { title: 'Timetables', val: 'Active', path: '/admin/timetable', icon: <Calendar size={16} /> },
+              { title: 'Exams', val: activeExamsCount, path: '/admin/exams', icon: <FileText size={16} /> },
+              { title: 'Leave Requests', val: leaveRequestsCount, path: '/admin/leaves', icon: <Inbox size={16} /> }
+            ].map((mod, i) => (
+              <div 
+                key={i} 
+                onClick={() => navigate(mod.path)} 
+                style={{ 
+                  padding: '1rem', 
+                  backgroundColor: 'var(--bg-primary)', 
+                  border: '1px solid var(--border-color)', 
+                  borderRadius: '10px', 
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  transition: 'var(--transition)'
+                }}
+                className="hover-card-anim"
+              >
+                <div style={{ color: 'var(--primary)' }}>{mod.icon}</div>
+                <div>
+                  <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--text-muted)' }}>{mod.title}</p>
+                  <p style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)' }}>{mod.val}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Dashboard;
