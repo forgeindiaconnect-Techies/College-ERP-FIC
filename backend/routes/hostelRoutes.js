@@ -1,0 +1,62 @@
+import express from 'express';
+import HostelBlock from '../models/HostelBlock.js';
+import HostelRoom from '../models/HostelRoom.js';
+import HostelStudent from '../models/HostelStudent.js';
+import HostelComplaint from '../models/HostelComplaint.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
+
+const router = express.Router();
+
+// @desc    Get all hostel blocks
+// @route   GET /api/hostel/blocks
+// @access  Private
+router.get('/blocks', protect, async (req, res) => {
+  try {
+    const blocks = await HostelBlock.find({});
+    res.json(blocks);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error fetching blocks' });
+  }
+});
+
+// @desc    Get all hostel rooms
+// @route   GET /api/hostel/rooms
+// @access  Private
+router.get('/rooms', protect, async (req, res) => {
+  try {
+    const rooms = await HostelRoom.find({});
+    res.json(rooms);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error fetching rooms' });
+  }
+});
+
+// @desc    Get all hostel students
+// @route   GET /api/hostel/students
+// @access  Private
+router.get('/students', protect, async (req, res) => {
+  try {
+    const students = await HostelStudent.find({})
+      .populate({
+        path: 'studentProfile',
+        populate: { path: 'user', select: 'name email phone' }
+      });
+    res.json(students);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error fetching students' });
+  }
+});
+
+// @desc    Get all hostel complaints
+// @route   GET /api/hostel/complaints
+// @access  Private
+router.get('/complaints', protect, async (req, res) => {
+  try {
+    const complaints = await HostelComplaint.find({});
+    res.json(complaints);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error fetching complaints' });
+  }
+});
+
+export default router;

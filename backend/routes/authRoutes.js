@@ -40,6 +40,7 @@ router.post('/login', async (req, res) => {
         studentId: user.studentId || null,
         parentOf: user.parentOf || null,
         subjects: user.subjects || [],
+        permissions: user.permissions || [],
         token: generateToken(user._id),
       });
     } else {

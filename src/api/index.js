@@ -105,6 +105,44 @@ export const getFeesReport = () => api.get('/reports/fees');
 export const getPendingFeesReport = () => api.get('/reports/pending-fees');
 export const getDepartmentsReport = () => api.get('/reports/departments');
 
+// Library Management
+export const getLibraryBooks = () => api.get('/library/books');
+export const addLibraryBook = (data) => api.post('/library/books', data);
+export const getLibraryIssues = () => api.get('/library/issues');
+export const issueLibraryBook = (data) => api.post('/library/issues', data);
+export const returnLibraryBook = (id, data) => api.put(`/library/issues/${id}/return`, data);
+
+// Transport Management
+export const getTransportRoutes = () => api.get('/transport/routes');
+export const getTransportDrivers = () => api.get('/transport/drivers');
+export const getTransportStudents = () => api.get('/transport/students');
+
+// Hostel Management
+export const getHostelBlocks = () => api.get('/hostel/blocks');
+export const getHostelRooms = () => api.get('/hostel/rooms');
+export const getHostelStudents = () => api.get('/hostel/students');
+export const getHostelComplaints = () => api.get('/hostel/complaints');
+
+// Placement Management
+export const getPlacementCompanies = () => api.get('/placement/companies');
+export const getPlacementJobs = () => api.get('/placement/jobs');
+export const getPlacementApplications = () => api.get('/placement/applications');
+export const getPlacementInterviews = () => api.get('/placement/interviews');
+export const getPlacementSelections = () => api.get('/placement/selections');
+
+// Settings & Security
+export const getSettings = () => api.get('/settings');
+export const updateSettings = (data) => api.put('/settings', data);
+export const getLoginLogs = () => api.get('/settings/logs');
+
+// Notifications
+export const getNotifications = () => api.get('/notifications');
+export const markNotificationAsRead = (id) => api.put(`/notifications/${id}/read`);
+export const markAllNotificationsAsRead = () => api.put('/notifications/read-all');
+
+// Analytics
+export const getAnalytics = () => api.get('/analytics');
+
 // Dynamic User Management Endpoints (Admin Permissions/Parents management)
 export const getUsers = () => api.get('/auth/users');
 export const createUser = (userData) => api.post('/auth/users', userData);

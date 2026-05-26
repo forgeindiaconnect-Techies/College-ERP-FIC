@@ -15,7 +15,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['Admin', 'Principal', 'HOD', 'Staff', 'Student', 'Parent', 'Accounts'],
+    enum: ['Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Student', 'Parent', 'Accounts'],
     required: true
   },
   name: {
@@ -41,6 +41,10 @@ const userSchema = new mongoose.Schema({
   subjects: {
     type: [String],
     default: []    // For Staff users: array of subjects they teach
+  },
+  permissions: {
+    type: [String],
+    default: []    // For Sub Admin: array of accessible modules (e.g., 'students', 'staff', 'attendance')
   }
 }, { timestamps: true });
 

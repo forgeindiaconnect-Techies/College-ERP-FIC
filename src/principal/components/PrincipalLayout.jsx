@@ -1,10 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet } from 'react-router-dom';
+import PrincipalSidebar from './PrincipalSidebar';
+import Navbar from '../../components/layout/Navbar';
+import '../../components/layout/Layout.css';
 
 const PrincipalLayout = () => {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!isSidebarOpen);
+  };
+
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f3f4f6' }}>
-      <Outlet />
+    <div className="layout-container">
+      <PrincipalSidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      {isSidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+      )}
+      
+      <div className="main-wrapper">
+        <Navbar role="Principal" onMenuToggle={toggleSidebar} />
+        <main className="main-content">
+          <div className="page-content">
+            <Outlet />
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

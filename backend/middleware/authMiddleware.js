@@ -32,10 +32,29 @@ export const authorize = (...roles) => {
 
 export const departmentScope = (req, res, next) => {
   // Admin and Principal have unrestricted global access, never filter query
-  if (req.user && req.user.role !== 'Admin' && req.user.role !== 'Principal') {
+  if (req.user && req.user.role !== 'Admin' && req.user.role !== 'Principal' && req.user.role !== 'Sub Admin') {
     if (req.user.department) {
       req.dept = req.user.department;
     }
   }
   next();
+};
+
+export const requirePermission = (moduleName) => {
+  return (req, res, next) => {
+    // Admin has access to all modules implicitly
+    if (req.user && req.user.role === 'Admin') {
+      return next();
+    }
+    
+    // For Sub Admin, check if they have the specific permission
+    if (req.user && req.user.role === 'Sub Admin') {
+      if (!req.user.permissions || !req.user.permissions.includes(moduleName)) {
+        return res.status(403).json({ message: `Sub Admin is not authorized to access module: ${moduleName}` });
+      }
+    }
+    
+    // Other roles bypass this specific permission check (they should be blocked by authorize() if not allowed)
+    next();
+  };
 };

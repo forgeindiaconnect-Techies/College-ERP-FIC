@@ -24,12 +24,12 @@ const UnifiedLogin = () => {
       const role = userData.role;
 
       // Remove any leftover tokens/sessions from other roles
-      const allKeys = ['admin_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token',
-                       'admin_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
+      const allKeys = ['admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token',
+                       'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
       allKeys.forEach(k => sessionStorage.removeItem(k));
 
       // Clean check to ensure role is valid
-      const allowedRoles = ['Admin', 'HOD', 'Staff', 'Student', 'Parent', 'Accounts'];
+      const allowedRoles = ['Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Student', 'Parent', 'Accounts'];
       if (!allowedRoles.includes(role)) {
         setError('Unauthorized role returned.');
         setLoading(false);
@@ -37,8 +37,10 @@ const UnifiedLogin = () => {
       }
 
       // Store in role-specific session storage to avoid multi-tab conflicts
-      const tokenKey = `${role.toLowerCase()}_token`;
-      const sessionKey = `${role.toLowerCase()}_session`;
+      // NOTE: 'Sub Admin' has a space so we must normalize it to 'subadmin'
+      const roleKey = role.toLowerCase().replace(/\s+/g, '');
+      const tokenKey = `${roleKey}_token`;
+      const sessionKey = `${roleKey}_session`;
 
       sessionStorage.setItem(tokenKey, userData.token);
       
@@ -49,7 +51,8 @@ const UnifiedLogin = () => {
         email: userData.email,
         role: role,
         department: userData.department || null,
-        referenceId: userData.referenceId || null
+        referenceId: userData.referenceId || null,
+        permissions: userData.permissions || []
       };
       
       if (role === 'HOD') {
@@ -72,22 +75,28 @@ const UnifiedLogin = () => {
       // Redirect target based on role
       switch (role) {
         case 'Admin':
-          navigate('/admin/dashboard');
+          window.location.href = '/admin/dashboard';
+          break;
+        case 'Sub Admin':
+          window.location.href = '/subadmin/dashboard';
+          break;
+        case 'Principal':
+          window.location.href = '/principal/dashboard';
           break;
         case 'HOD':
-          navigate('/hod');
+          window.location.href = '/hod';
           break;
         case 'Staff':
-          navigate('/staff/dashboard');
+          window.location.href = '/staff/dashboard';
           break;
         case 'Student':
-          navigate('/student/dashboard');
+          window.location.href = '/student/dashboard';
           break;
         case 'Parent':
-          navigate('/parent/dashboard');
+          window.location.href = '/parent/dashboard';
           break;
         case 'Accounts':
-          navigate('/accounts/dashboard');
+          window.location.href = '/accounts/dashboard';
           break;
         default:
           setError('Unknown dashboard destination.');
@@ -109,8 +118,15 @@ const UnifiedLogin = () => {
         .then((res) => {
           const userData = res.data;
           const role = userData.role;
-          const tokenKey = `${role.toLowerCase()}_token`;
-          const sessionKey = `${role.toLowerCase()}_session`;
+
+          // Remove any leftover tokens/sessions from other roles
+          const allKeys = ['admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token',
+                           'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
+          allKeys.forEach(k => sessionStorage.removeItem(k));
+
+          const roleKey = role.toLowerCase().replace(/\s+/g, '');
+          const tokenKey = `${roleKey}_token`;
+          const sessionKey = `${roleKey}_session`;
           
           sessionStorage.setItem(tokenKey, userData.token);
           
@@ -120,18 +136,27 @@ const UnifiedLogin = () => {
             email: userData.email,
             role: role,
             department: userData.department || null,
-            referenceId: userData.referenceId || null
+            referenceId: userData.referenceId || null,
+            permissions: userData.permissions || []
           };
           
           if (role === 'HOD' || role === 'Staff') {
             sessionPayload.dept = userData.department;
             sessionPayload.deptCode = userData.department?.substring(0, 2).toUpperCase() || 'CS';
+          } else if (role === 'Student') {
+            sessionPayload.id = userData.referenceId;
+            sessionPayload.dept = userData.department;
+          } else if (role === 'Parent') {
+            sessionPayload.childId = userData.parentOf || userData.referenceId;
+            sessionPayload.childName = 'John Doe';
           }
           
           sessionStorage.setItem(sessionKey, JSON.stringify(sessionPayload));
 
-          if (role === 'HOD') navigate('/hod');
-          else navigate(`/${role.toLowerCase()}/dashboard`);
+          if (role === 'HOD') window.location.href = '/hod';
+          else if (role === 'Sub Admin') window.location.href = '/subadmin/dashboard';
+          else if (role === 'Principal') window.location.href = '/principal/dashboard';
+          else window.location.href = `/${role.toLowerCase()}/dashboard`;
         })
         .catch((err) => {
           setError(err.response?.data?.message || 'Failed to authenticate demo user.');
@@ -279,6 +304,8 @@ const UnifiedLogin = () => {
                 <div className="demo-grid">
                   {[
                     { name: 'Admin', email: 'admin@college.edu', icon: Shield, color: '#3b82f6' },
+                    { name: 'Principal', email: 'principal@college.edu', icon: Award, color: '#0284c7' },
+                    { name: 'Sub Admin', email: 'subadmin@college.edu', icon: Shield, color: '#0ea5e9' },
                     { name: 'HODs (6 Depts)', email: 'csehod@gmail.com', icon: Award, color: '#10b981', isSelector: true },
                     { name: 'Staff', email: 'karthik@college.edu', icon: BookOpen, color: '#8b5cf6' },
                     { name: 'Student', email: 'john@college.edu', icon: GraduationCap, color: '#f59e0b' },

@@ -1,11 +1,11 @@
 import express from 'express';
 import Staff from '../models/Staff.js';
-import { protect, authorize, departmentScope } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope, requirePermission } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Get all staff
-router.get('/', protect, authorize('Admin', 'Principal', 'HOD'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_staff'), departmentScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
     const query = dept ? { dept: dept } : {};
@@ -17,7 +17,7 @@ router.get('/', protect, authorize('Admin', 'Principal', 'HOD'), departmentScope
 });
 
 // Create new staff
-router.post('/', protect, authorize('Admin', 'Principal'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('manage_staff'), async (req, res) => {
   const staff = new Staff(req.body);
   try {
     const newStaff = await staff.save();
@@ -28,7 +28,7 @@ router.post('/', protect, authorize('Admin', 'Principal'), async (req, res) => {
 });
 
 // Update staff
-router.put('/:id', protect, authorize('Admin', 'Principal'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('manage_staff'), async (req, res) => {
   try {
     const updatedStaff = await Staff.findOneAndUpdate(
       { id: req.params.id },
@@ -42,7 +42,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal'), async (req, res) =>
 });
 
 // Delete staff
-router.delete('/:id', protect, authorize('Admin', 'Principal'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('manage_staff'), async (req, res) => {
   try {
     await Staff.findOneAndDelete({ id: req.params.id });
     res.json({ message: 'Staff deleted' });

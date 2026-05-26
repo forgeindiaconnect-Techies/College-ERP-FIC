@@ -105,6 +105,8 @@ const ParentDashboard = () => {
     { name: 'Pending', value: childDetails.feeStatus === 'Pending' ? (childDetails.pendingAmount || 45000) : 0, color: '#ef4444' }
   ];
 
+  const assignmentsCount = 3; // Mock data since it's not currently fetched from API
+
   return (
     <div className="parent-dashboard animate-fade-in">
       {/* Welcome Banner */}

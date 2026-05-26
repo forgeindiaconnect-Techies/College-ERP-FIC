@@ -22,6 +22,13 @@ import marksRoutes from './routes/marksRoutes.js';
 import feesRoutes from './routes/feesRoutes.js';
 import reportsRoutes from './routes/reportsRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import libraryRoutes from './routes/libraryRoutes.js';
+import transportRoutes from './routes/transportRoutes.js';
+import hostelRoutes from './routes/hostelRoutes.js';
+import placementRoutes from './routes/placementRoutes.js';
+import settingsRoutes from './routes/settingsRoutes.js';
+import notificationRoutes from './routes/notificationRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 // Import Models for auto-seeding
 import User from './models/User.js';
@@ -31,6 +38,24 @@ import Department from './models/Department.js';
 import Attendance from './models/Attendance.js';
 import Fee from './models/Fee.js';
 import Mark from './models/Mark.js';
+import Book from './models/Book.js';
+import IssueRecord from './models/IssueRecord.js';
+import TransportRoute from './models/TransportRoute.js';
+import TransportDriver from './models/TransportDriver.js';
+import TransportStudent from './models/TransportStudent.js';
+import HostelBlock from './models/HostelBlock.js';
+import HostelRoom from './models/HostelRoom.js';
+import HostelStudent from './models/HostelStudent.js';
+import HostelComplaint from './models/HostelComplaint.js';
+import PlacementCompany from './models/PlacementCompany.js';
+import PlacementJob from './models/PlacementJob.js';
+import PlacementApplication from './models/PlacementApplication.js';
+import PlacementInterview from './models/PlacementInterview.js';
+import PlacementSelection from './models/PlacementSelection.js';
+import SystemSetting from './models/SystemSetting.js';
+import LoginLog from './models/LoginLog.js';
+import StudentProfile from './models/StudentProfile.js';
+import Notification from './models/Notification.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -44,33 +69,53 @@ const autoSeedIfEmpty = async () => {
   try {
     const existingUserCount = await User.countDocuments();
     if (existingUserCount > 0) {
-      console.log(`✅ Database already has ${existingUserCount} users — skipping seed.`);
+      console.log(`✅ Database already has ${existingUserCount} users.`);
+
+      // Incremental patch: inject Principal if missing
+      const principalCount = await User.countDocuments({ role: 'Principal' });
+      if (principalCount === 0) {
+        console.log('🌱 Patching database: missing Principal user. Injecting now...');
+        await User.create([
+          { name: 'Dr. Suresh Kumar', email: 'principal@college.edu', password: 'password123', role: 'Principal' }
+        ]);
+        console.log('✅ Principal user injected successfully.');
+      }
+
+      // Incremental patch for missing demo users (HODs & Staff)
+      const hodCount = await User.countDocuments({ role: 'HOD' });
+      if (hodCount === 0) {
+        console.log('🌱 Patching database: missing HOD and Staff demo users detected. Injecting them now...');
+        await User.create([
+          { name: 'CSE HOD',          email: 'csehod@gmail.com',         password: 'password123', role: 'HOD', department: 'Computer Science', referenceId: 'STF001' },
+          { name: 'ECE HOD',          email: 'ecehod@gmail.com',         password: 'password123', role: 'HOD', department: 'Electronics & Comm.', referenceId: 'STF002' },
+          { name: 'EEE HOD',          email: 'eeehod@gmail.com',         password: 'password123', role: 'HOD', department: 'Electrical & Electronics', referenceId: 'STF003' },
+          { name: 'MECH HOD',         email: 'mechhod@gmail.com',        password: 'password123', role: 'HOD', department: 'Mechanical Engg.', referenceId: 'STF004' },
+          { name: 'BCA HOD',          email: 'bcahod@gmail.com',         password: 'password123', role: 'HOD', department: 'Bachelor of Computer App.', referenceId: 'STF005' },
+          { name: 'MBA HOD',          email: 'mbahod@gmail.com',         password: 'password123', role: 'HOD', department: 'Master of Business Admin.', referenceId: 'STF006' },
+          { name: 'Prof. Karthik S.', email: 'karthik@college.edu',      password: 'password123', role: 'Staff', department: 'Computer Science', referenceId: 'STF007', subjects: ['OS', 'Machine Learning'] }
+        ]);
+        console.log('✅ Missing HOD/Staff demo users injected successfully.');
+      } else {
+        console.log(`✅ Database has HOD users — skipping seed.`);
+      }
       return;
     }
     console.log('🌱 Empty database detected – seeding fresh demo data...');
     console.log('🌱 Auto-seeding fresh demo data across all 6 roles & departments...');
 
-
     // 1. Users (bcrypt hash triggers via pre-save hook)
-    await User.create([
+    const userDocs = await User.create([
       { name: 'System Admin',     email: 'admin@college.edu',        password: 'password123', role: 'Admin' },
+      { name: 'Dr. Suresh Kumar', email: 'principal@college.edu',    password: 'password123', role: 'Principal' },
+      { name: 'Sub Admin',        email: 'subadmin@college.edu',     password: 'password123', role: 'Sub Admin', permissions: [
+        "view_departments",
+        "manage_students",
+        "manage_staff",
+        "view_attendance",
+        "create_announcements",
+        "view_reports"
+      ] },
       
-      // HODs
-      { name: 'CSE HOD',          email: 'csehod@gmail.com',         password: 'password123', role: 'HOD',     department: 'Computer Science', referenceId: 'STF001' },
-      { name: 'ECE HOD',          email: 'ecehod@gmail.com',         password: 'password123', role: 'HOD',     department: 'Electronics & Comm.', referenceId: 'STF002' },
-      { name: 'EEE HOD',          email: 'eeehod@gmail.com',         password: 'password123', role: 'HOD',     department: 'Electrical & Electronics', referenceId: 'STF003' },
-      { name: 'MECH HOD',         email: 'mechhod@gmail.com',        password: 'password123', role: 'HOD',     department: 'Mechanical Engg.', referenceId: 'STF004' },
-      { name: 'BCA HOD',          email: 'bcahod@gmail.com',         password: 'password123', role: 'HOD',     department: 'Bachelor of Computer App.', referenceId: 'STF005' },
-      { name: 'MBA HOD',          email: 'mbahod@gmail.com',         password: 'password123', role: 'HOD',     department: 'Master of Business Admin.', referenceId: 'STF006' },
-      
-      // Staff
-      { name: 'Prof. Karthik S.', email: 'karthik@college.edu',      password: 'password123', role: 'Staff',   department: 'Computer Science', referenceId: 'STF007', subjects: ['OS', 'Machine Learning'] },
-      { name: 'Dr. Ananya Rao',   email: 'ananya@college.edu',       password: 'password123', role: 'Staff',   department: 'Computer Science', referenceId: 'STF008', subjects: ['Data Structures', 'DBMS'] },
-      { name: 'Prof. Rajan Iyer', email: 'rajan@college.edu',        password: 'password123', role: 'Staff',   department: 'Electrical & Electronics', referenceId: 'STF003', subjects: ['Circuits', 'Networks'] },
-      { name: 'Dr. Priya Nair',   email: 'mehod@college.edu',        password: 'password123', role: 'Staff',   department: 'Mechanical Engg.', referenceId: 'STF004', subjects: ['Thermodynamics'] },
-      { name: 'Dr. Meena Pillai', email: 'meena@college.edu',        password: 'password123', role: 'Staff',   department: 'Electronics & Comm.', referenceId: 'STF002', subjects: ['Microprocessors'] },
-      
-      // Students
       { name: 'John Doe',         email: 'john@college.edu',         password: 'password123', role: 'Student', department: 'Computer Science', referenceId: 'CS2022001', studentId: 'CS2022001' },
       { name: 'Emily Davis',      email: 'emily@college.edu',        password: 'password123', role: 'Student', department: 'Computer Science', referenceId: 'CS2021004', studentId: 'CS2021004' },
       { name: 'David Lee',        email: 'david@college.edu',        password: 'password123', role: 'Student', department: 'Computer Science', referenceId: 'CS2022002', studentId: 'CS2022002' },
@@ -88,6 +133,17 @@ const autoSeedIfEmpty = async () => {
       
       // Accounts
       { name: 'Accounts Officer', email: 'accounts@college.edu',     password: 'password123', role: 'Accounts' },
+
+      // HODs
+      { name: 'CSE HOD',          email: 'csehod@gmail.com',         password: 'password123', role: 'HOD', department: 'Computer Science', referenceId: 'STF001' },
+      { name: 'ECE HOD',          email: 'ecehod@gmail.com',         password: 'password123', role: 'HOD', department: 'Electronics & Comm.', referenceId: 'STF002' },
+      { name: 'EEE HOD',          email: 'eeehod@gmail.com',         password: 'password123', role: 'HOD', department: 'Electrical & Electronics', referenceId: 'STF003' },
+      { name: 'MECH HOD',         email: 'mechhod@gmail.com',        password: 'password123', role: 'HOD', department: 'Mechanical Engg.', referenceId: 'STF004' },
+      { name: 'BCA HOD',          email: 'bcahod@gmail.com',         password: 'password123', role: 'HOD', department: 'Bachelor of Computer App.', referenceId: 'STF005' },
+      { name: 'MBA HOD',          email: 'mbahod@gmail.com',         password: 'password123', role: 'HOD', department: 'Master of Business Admin.', referenceId: 'STF006' },
+
+      // Staff
+      { name: 'Prof. Karthik S.', email: 'karthik@college.edu',      password: 'password123', role: 'Staff', department: 'Computer Science', referenceId: 'STF007', subjects: ['OS', 'Machine Learning'] },
     ]);
 
     // 2. Departments
@@ -113,6 +169,28 @@ const autoSeedIfEmpty = async () => {
       { id: 'BC2022001', name: 'Karan Malhotra', email: 'karan@college.edu',   phone: '9856789012', dept: 'Bachelor of Computer App.', sem: 'Sem 5', cgpa: 8.7, attendance: 94, status: 'Active',   feeStatus: 'Paid'    },
       { id: 'MB2022001', name: 'Ritu Sen',       email: 'ritu@college.edu',    phone: '9867123456', dept: 'Master of Business Admin.', sem: 'Sem 4', cgpa: 9.2, attendance: 96, status: 'Active',   feeStatus: 'Paid'    },
     ]);
+
+    // Create Student Profiles for matching user documents
+    const studentUsers = userDocs.filter(u => u.role === 'Student');
+    const studentProfiles = [];
+    for (const s of studentUsers) {
+      const semester = s.referenceId.startsWith('ME') ? 2 : s.referenceId.startsWith('CS2022002') ? 3 : s.referenceId.startsWith('EE') ? 4 : s.referenceId.startsWith('BC') ? 5 : 6;
+      const cgpa = s.referenceId === 'CS2022001' ? 8.6 : s.referenceId === 'CS2021004' ? 8.9 : s.referenceId === 'CS2022002' ? 8.2 : s.referenceId === 'EE2022001' ? 9.1 : s.referenceId === 'EE2022002' ? 9.5 : s.referenceId === 'EC2022001' ? 8.8 : s.referenceId === 'EC2022002' ? 8.5 : s.referenceId === 'ME2023001' ? 7.8 : s.referenceId === 'BC2022001' ? 8.7 : 9.2;
+      
+      const profile = await StudentProfile.create({
+        user: s._id,
+        regNo: s.referenceId,
+        department: s.department,
+        semester: semester,
+        section: 'A',
+        cgpa: cgpa
+      });
+      studentProfiles.push(profile);
+    }
+    const studentProfilesMap = {};
+    studentProfiles.forEach(p => {
+      studentProfilesMap[p.regNo] = p;
+    });
 
     // 4. Staff
     await Staff.insertMany([
@@ -186,7 +264,107 @@ const autoSeedIfEmpty = async () => {
       { studentId: 'MB2022001', studentName: 'Ritu Sen', registerNo: 'MB2022001', department: 'Master of Business Admin.', semester: 'Sem 4', totalFees: 250000, paidAmount: 250000, pendingAmount: 0, paymentDate: new Date('2026-05-09'), paymentMode: 'Online', status: 'Paid', receiptNo: 'REC-012' }
     ]);
 
-    console.log('✅ Auto-seed successfully pre-populated! 22 users | 6 departments | 10 students | 9 staff | 9 attendance entries | 13 mark transcripts | 12 fee invoices');
+    // 8. Library Books & Issues
+    const bookDocs = await Book.insertMany([
+      { bookId: 'B001', isbn: '978-0131103627', title: 'The C Programming Language', author: 'Brian W. Kernighan', category: 'Computer Science', copies: 15, available: 12 },
+      { bookId: 'B002', isbn: '978-0201835953', title: 'The Mythical Man-Month', author: 'Frederick P. Brooks Jr.', category: 'Software Engg', copies: 5, available: 1 },
+      { bookId: 'B003', isbn: '978-0262033848', title: 'Introduction to Algorithms', author: 'Thomas H. Cormen', category: 'Computer Science', copies: 10, available: 5 },
+      { bookId: 'B004', isbn: '978-1118531648', title: 'Engineering Mechanics', author: 'J.L. Meriam', category: 'Mechanical', copies: 8, available: 0 },
+      { bookId: 'B005', isbn: '978-0073380490', title: 'Power System Analysis', author: 'John Grainger', category: 'Electrical', copies: 12, available: 8 },
+    ]);
+
+    await IssueRecord.insertMany([
+      { issueId: 'IS-101', bookId: bookDocs[2]._id, bookTitle: bookDocs[2].title, studentName: 'John Doe', regNo: 'CS2022001', issueDate: new Date('2026-05-01'), dueDate: new Date('2026-05-15'), status: 'Overdue', fine: 150 },
+      { issueId: 'IS-102', bookId: bookDocs[3]._id, bookTitle: bookDocs[3].title, studentName: 'Robert Johnson', regNo: 'ME2023001', issueDate: new Date('2026-05-15'), dueDate: new Date('2026-05-30'), status: 'Issued', fine: 0 },
+      { issueId: 'IS-103', bookId: bookDocs[1]._id, bookTitle: bookDocs[1].title, studentName: 'Alice Smith', regNo: 'EE2022001', issueDate: new Date('2026-05-10'), dueDate: new Date('2026-05-24'), status: 'Issued', fine: 0 },
+    ]);
+
+    // 9. Transport
+    await TransportRoute.insertMany([
+      { routeId: 'R001', name: 'City Center Express', vehicle: 'TN-01-AB-1234', driver: 'Rajesh Kumar', capacity: 40, occupied: 35, points: ['College', 'Main Junction', 'City Mall', 'Central Station'] },
+      { routeId: 'R002', name: 'North Suburb Route', vehicle: 'TN-02-XY-9876', driver: 'Suresh Singh', capacity: 40, occupied: 40, points: ['College', 'North Gate', 'Tech Park', 'Airport Road'] },
+      { routeId: 'R003', name: 'South Colony Direct', vehicle: 'TN-05-MN-5566', driver: 'Murugan T.', capacity: 30, occupied: 12, points: ['College', 'South Avenue', 'Beach Road'] },
+    ]);
+
+    await TransportDriver.insertMany([
+      { driverId: 'D001', name: 'Rajesh Kumar', license: 'DL-123456', experience: '8 Years', phone: '9876543210', status: 'Active' },
+      { driverId: 'D002', name: 'Suresh Singh', license: 'DL-987654', experience: '5 Years', phone: '9988776655', status: 'Active' },
+      { driverId: 'D003', name: 'Murugan T.', license: 'DL-456123', experience: '12 Years', phone: '9123456780', status: 'On Leave' },
+    ]);
+
+    await TransportStudent.insertMany([
+      { studentProfile: studentProfilesMap['CS2022001']._id, studentId: 'CS2022001', name: 'John Doe', routeId: 'R001', pickupPoint: 'City Mall', feeStatus: 'Paid', amount: 15000 },
+      { studentProfile: studentProfilesMap['EE2022001']._id, studentId: 'EE2022001', name: 'Alice Smith', routeId: 'R002', pickupPoint: 'Tech Park', feeStatus: 'Pending', amount: 18000 },
+      { studentProfile: studentProfilesMap['EC2022001']._id, studentId: 'EC2022001', name: 'Vikram Seth', routeId: 'R001', pickupPoint: 'Main Junction', feeStatus: 'Paid', amount: 12000 },
+    ]);
+
+    // 10. Hostel
+    await HostelBlock.insertMany([
+      { blockId: 'B-Boys-01', name: 'Boys Block A', capacity: 100, occupied: 90, warden: 'Mr. Ramesh' },
+      { blockId: 'B-Girls-01', name: 'Girls Block A', capacity: 80, occupied: 76, warden: 'Mrs. Sita' },
+    ]);
+
+    await HostelRoom.insertMany([
+      { roomId: 'R-101', block: 'Boys Block A', capacity: 2, occupied: 2, type: 'Non-AC' },
+      { roomId: 'R-102', block: 'Boys Block A', capacity: 2, occupied: 1, type: 'AC' },
+      { roomId: 'R-G-201', block: 'Girls Block A', capacity: 3, occupied: 3, type: 'Non-AC' },
+    ]);
+
+    await HostelStudent.insertMany([
+      { studentProfile: studentProfilesMap['CS2022001']._id, studentId: 'CS2022001', name: 'John Doe', block: 'Boys Block A', room: 'R-101', feeStatus: 'Paid', amount: 45000 },
+      { studentProfile: studentProfilesMap['EE2022001']._id, studentId: 'EE2022001', name: 'Alice Smith', block: 'Girls Block A', room: 'R-G-201', feeStatus: 'Pending', amount: 45000 },
+      { studentProfile: studentProfilesMap['ME2023001']._id, studentId: 'ME2023001', name: 'Robert Johnson', block: 'Boys Block A', room: 'R-102', feeStatus: 'Paid', amount: 60000 },
+    ]);
+
+    await HostelComplaint.insertMany([
+      { complaintId: 'C001', student: 'John Doe', room: '101', issue: 'Fan not working', status: 'Pending', date: new Date('2026-05-25') },
+      { complaintId: 'C002', student: 'Alice Smith', room: 'G-101', issue: 'Water leakage', status: 'Resolved', date: new Date('2026-05-20') },
+    ]);
+
+    // 11. Placement
+    await PlacementCompany.insertMany([
+      { companyId: 'C001', name: 'Google', sector: 'IT / Software', location: 'Bangalore', drives: 2, status: 'Active' },
+      { companyId: 'C002', name: 'Microsoft', sector: 'IT / Software', location: 'Hyderabad', drives: 1, status: 'Active' },
+      { companyId: 'C003', name: 'TCS', sector: 'IT Services', location: 'Chennai', drives: 4, status: 'Active' },
+    ]);
+
+    await PlacementJob.insertMany([
+      { jobId: 'J001', company: 'Microsoft', role: 'SDE', ctc: '22 LPA', eligibility: '8.0 CGPA', deadline: new Date('2026-06-10') },
+      { jobId: 'J002', company: 'TCS', role: 'System Engineer', ctc: '7 LPA', eligibility: '6.5 CGPA', deadline: new Date('2026-06-15') },
+    ]);
+
+    await PlacementApplication.insertMany([
+      { applicationId: 'APP001', studentProfile: studentProfilesMap['CS2022001']._id, student: 'John Doe', regNo: 'CS2022001', company: 'Microsoft', role: 'SDE', status: 'Applied' },
+      { applicationId: 'APP002', studentProfile: studentProfilesMap['CS2021004']._id, student: 'Emily Davis', regNo: 'CS2021004', company: 'Microsoft', role: 'SDE', status: 'Shortlisted' },
+      { applicationId: 'APP003', studentProfile: studentProfilesMap['EE2022001']._id, student: 'Alice Smith', regNo: 'EE2022001', company: 'TCS', role: 'System Engineer', status: 'Applied' },
+    ]);
+
+    await PlacementInterview.insertMany([
+      { interviewId: 'I001', company: 'Google', role: 'Software Engineer', round: 'Technical 1', date: new Date('2026-06-18'), time: '10:00 AM', mode: 'Online', candidates: 45 },
+    ]);
+
+    await PlacementSelection.insertMany([
+      { selectionId: 'S001', student: 'Vikram Seth', regNo: 'CS2022045', company: 'Microsoft', role: 'SDE', ctc: '22 LPA', date: new Date('2026-05-20') },
+    ]);
+
+    // 12. Settings & Logs
+    await SystemSetting.create({ key: 'global_config' }); // Uses default values
+    await LoginLog.insertMany([
+      { user: 'Admin (admin@college.edu)', role: 'Admin', ip: '192.168.1.45', browser: 'Chrome / Windows', time: '2026-05-26 10:15 AM', status: 'Success' },
+      { user: 'csehod@college.edu', role: 'HOD', ip: '192.168.1.102', browser: 'Safari / macOS', time: '2026-05-26 09:30 AM', status: 'Success' },
+      { user: 'Unknown', role: 'Unknown', ip: '45.22.11.9', browser: 'Firefox / Linux', time: '2026-05-26 02:15 AM', status: 'Failed (Bad Password)' },
+      { user: 'john@college.edu', role: 'Student', ip: '10.0.0.15', browser: 'Chrome / Android', time: '2026-05-25 08:45 PM', status: 'Success' },
+    ]);
+
+    // 13. Notifications
+    const adminUser = await User.findOne({ role: 'Admin' });
+    await Notification.insertMany([
+      { recipient: adminUser._id, title: 'Low Attendance Alert', message: '3 students in CSE have attendance below 75%.', type: 'Warning', link: '/admin/attendance' },
+      { recipient: adminUser._id, title: 'Fee Collection Update', message: '₹4,50,000 collected today.', type: 'Success', link: '/admin/fees' },
+      { recipient: adminUser._id, title: 'New Leave Request', message: 'Dr. Ananya Rao requested leave for 2 days.', type: 'Info', link: '/admin/leaves' }
+    ]);
+
+    console.log('✅ Auto-seed successfully pre-populated! 22 users | 6 departments | 10 students | 9 staff | 9 attendance entries | 13 mark transcripts | 12 fee invoices | 5 books | 3 issues | Transport Setup | Hostel Setup | Placement Setup | Settings Setup | Notifications Setup');
     console.log('   🔑 CSE HOD login: csehod@gmail.com / password123');
     console.log('   🔑 Student login: john@college.edu / password123');
   } catch (err) {
@@ -203,6 +381,13 @@ app.use('/api/attendance', attendanceRoutes);
 app.use('/api/marks', marksRoutes);
 app.use('/api/fees', feesRoutes);
 app.use('/api/reports', reportsRoutes);
+app.use('/api/library', libraryRoutes);
+app.use('/api/transport', transportRoutes);
+app.use('/api/hostel', hostelRoutes);
+app.use('/api/placement', placementRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/notifications', notificationRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/', (req, res) => {
   res.send('College ERP API is running...');
@@ -216,7 +401,11 @@ const startServer = async () => {
     console.log('✅ Connected to Local MongoDB');
   } catch (err) {
     console.log('⚠️ Local MongoDB not found. Falling back to In-Memory Database...');
-    const mongoServer = await MongoMemoryServer.create();
+    const mongoServer = await MongoMemoryServer.create({
+      binary: {
+        version: '4.4.29'
+      }
+    });
     const uri = mongoServer.getUri();
     await mongoose.connect(uri);
     console.log('✅ Connected to In-Memory MongoDB (Zero-Config Mode)');

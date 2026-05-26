@@ -1,0 +1,319 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  BarChart2, TrendingUp, Users, BookOpen, GraduationCap, Building2, 
+  Wallet, AlertTriangle, FileText, Calendar, Filter, BrainCircuit, Activity
+} from 'lucide-react';
+import { 
+  AreaChart, Area, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend 
+} from 'recharts';
+import './SystemAnalytics.css';
+
+// Mock Data
+const MOCK_ATTENDANCE_ANALYTICS = [
+  { name: 'Week 1', rate: 92 },
+  { name: 'Week 2', rate: 95 },
+  { name: 'Week 3', rate: 88 },
+  { name: 'Week 4', rate: 96 }
+];
+
+const MOCK_EXAM_PERFORMANCE = [
+  { dept: 'CSE', passRate: 94 },
+  { dept: 'ECE', passRate: 88 },
+  { dept: 'MECH', passRate: 76 },
+  { dept: 'EEE', passRate: 82 },
+  { dept: 'IT', passRate: 95 }
+];
+
+const MOCK_FEES_COLLECTION = [
+  { month: 'Jan', collected: 120, pending: 40 },
+  { month: 'Feb', collected: 250, pending: 30 },
+  { month: 'Mar', collected: 180, pending: 80 },
+  { month: 'Apr', collected: 300, pending: 20 },
+];
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+
+import { getAnalytics } from '../../api';
+
+const SystemAnalytics = () => {
+  const [loading, setLoading] = useState(true);
+  const [analyticsData, setAnalyticsData] = useState(null);
+  const [userContext, setUserContext] = useState({ role: 'Guest', dept: null });
+  
+  // Filters
+  const [deptFilter, setDeptFilter] = useState('All Departments');
+  const [yearFilter, setYearFilter] = useState('2026');
+
+  useEffect(() => {
+    // Determine role
+    let context = { role: 'Guest', dept: null };
+    if (sessionStorage.getItem('admin_session')) context = { role: 'Admin', dept: null };
+    else if (sessionStorage.getItem('subadmin_session')) context = { role: 'Sub Admin', dept: null };
+    else if (sessionStorage.getItem('hod_session')) {
+      try {
+        const hData = JSON.parse(sessionStorage.getItem('hod_session'));
+        context = { role: 'HOD', dept: hData.deptCode || 'CS' };
+      } catch (e) {
+        context = { role: 'HOD', dept: 'CSE' };
+      }
+    }
+    // Principal could be handled too
+    setUserContext(context);
+    
+    fetchAnalyticsData();
+  }, []);
+
+  const fetchAnalyticsData = async () => {
+    try {
+      const { data } = await getAnalytics();
+      setAnalyticsData(data);
+    } catch (error) {
+      console.error('Error fetching analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !analyticsData) {
+    return (
+      <div className="analytics-loading">
+        <div className="spinner"></div>
+        <p>Crunching institutional data...</p>
+      </div>
+    );
+  }
+
+  // Adjust mock data slightly based on HOD context
+  const isHOD = userContext.role === 'HOD';
+
+  return (
+    <div className="system-analytics-page animate-fade-in">
+      {/* Header */}
+      <div className="page-header">
+        <div>
+          <h1>System Analytics & AI Insights 🔥</h1>
+          <p className="text-muted">
+            Complete ERP performance, predictive insights, and advanced metrics tracking.
+            <span className="role-tag ml-2">Viewing as: {userContext.role} {userContext.dept ? `(${userContext.dept})` : ''}</span>
+          </p>
+        </div>
+        <div className="header-actions">
+          {userContext.role === 'Admin' && (
+            <button className="btn-primary shadow-glow">
+              <FileText size={16} /> Auto Report Generation
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Advanced Filters */}
+      <div className="glass-card filters-bar mb-4">
+        <div className="flex gap-4">
+          <div className="filter-item">
+            <Filter size={14} className="text-muted" />
+            <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)} disabled={isHOD}>
+              <option value="All Departments">All Departments</option>
+              {['CSE', 'ECE', 'MECH', 'EEE', 'IT'].map(d => <option key={d} value={d}>{d}</option>)}
+            </select>
+          </div>
+          <div className="filter-item">
+            <Calendar size={14} className="text-muted" />
+            <select value={yearFilter} onChange={e => setYearFilter(e.target.value)}>
+              <option value="2026">2026-2027</option>
+              <option value="2025">2025-2026</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* KPI Cards Grid */}
+      <div className="analytics-kpi-grid">
+        {!isHOD && (
+          <div className="akpi-card glass-card">
+            <Building2 size={20} className="text-blue-500" />
+            <div className="akpi-info">
+              <span className="akpi-val">8</span>
+              <span className="akpi-lbl">Total Departments</span>
+            </div>
+          </div>
+        )}
+        <div className="akpi-card glass-card">
+          <Users size={20} className="text-green-500" />
+          <div className="akpi-info">
+            <span className="akpi-val">{isHOD ? '450' : '3,240'}</span>
+            <span className="akpi-lbl">Total Students</span>
+          </div>
+        </div>
+        <div className="akpi-card glass-card">
+          <GraduationCap size={20} className="text-purple-500" />
+          <div className="akpi-info">
+            <span className="akpi-val">{isHOD ? '35' : '180'}</span>
+            <span className="akpi-lbl">Total Staff</span>
+          </div>
+        </div>
+        <div className="akpi-card glass-card">
+          <Activity size={20} className="text-orange-500" />
+          <div className="akpi-info">
+            <span className="akpi-val">
+              {analyticsData.attendance.length > 0 
+                ? Math.round((analyticsData.attendance.find(a => a._id === 'Present')?.count || 0) / (analyticsData.attendance.reduce((acc, curr) => acc + curr.count, 0)) * 100) + '%'
+                : '0%'}
+            </span>
+            <span className="akpi-lbl">Overall Attendance</span>
+          </div>
+        </div>
+        <div className="akpi-card glass-card">
+          <BookOpen size={20} className="text-pink-500" />
+          <div className="akpi-info">
+            <span className="akpi-val">88.2%</span>
+            <span className="akpi-lbl">Pass Percentage</span>
+          </div>
+        </div>
+        <div className="akpi-card glass-card">
+          <TrendingUp size={20} className="text-teal-500" />
+          <div className="akpi-info">
+            <span className="akpi-val">
+              {analyticsData.placements.reduce((acc, curr) => acc + curr.count, 0)}
+            </span>
+            <span className="akpi-lbl">Total Placements</span>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Insights & Real-time Alerts */}
+      <div className="dashboard-grid mt-4">
+        {userContext.role === 'Admin' || userContext.role === 'Sub Admin' ? (
+          <div className="glass-card ai-insights-card">
+            <h3 className="flex items-center gap-2 mb-3"><BrainCircuit size={18} className="text-primary"/> AI Predictive Insights</h3>
+            <ul className="insight-list">
+              <li>
+                <div className="insight-icon bg-warning-light text-warning"><AlertTriangle size={14}/></div>
+                <div>
+                  <p className="insight-title">Low Attendance Prediction</p>
+                  <p className="text-muted text-sm">45 students in MECH are likely to fall below 75% by mid-term based on current trends.</p>
+                </div>
+              </li>
+              <li>
+                <div className="insight-icon bg-success-light text-success"><TrendingUp size={14}/></div>
+                <div>
+                  <p className="insight-title">Predict Student Performance</p>
+                  <p className="text-muted text-sm">CSE 3rd Year batch shows a projected average CGPA increase to 8.6 for the upcoming semester.</p>
+                </div>
+              </li>
+              <li>
+                <div className="insight-icon bg-primary-light text-primary"><Building2 size={14}/></div>
+                <div>
+                  <p className="insight-title">Department Ranking</p>
+                  <p className="text-muted text-sm">IT Department currently ranks #1 in combined attendance and exam performance.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        ) : (
+          <div className="glass-card ai-insights-card">
+            <h3 className="flex items-center gap-2 mb-3"><BrainCircuit size={18} className="text-primary"/> Department AI Insights</h3>
+            <ul className="insight-list">
+              <li>
+                <div className="insight-icon bg-warning-light text-warning"><AlertTriangle size={14}/></div>
+                <div>
+                  <p className="insight-title">Performance Drop Warning</p>
+                  <p className="text-muted text-sm">Section B shows a 12% drop in internal marks compared to last semester.</p>
+                </div>
+              </li>
+            </ul>
+          </div>
+        )}
+
+        <div className="glass-card">
+          <h3 className="mb-3">Real-time Widgets</h3>
+          <div className="rt-widgets-grid">
+            <div className="rt-widget">
+              <span className="rt-val">12</span>
+              <span className="rt-lbl">Pending Leave Requests</span>
+            </div>
+            <div className="rt-widget">
+              <span className="rt-val">4</span>
+              <span className="rt-lbl">Upcoming Exams</span>
+            </div>
+            <div className="rt-widget">
+              <span className="rt-val text-danger">28</span>
+              <span className="rt-lbl">Low Attendance Alerts</span>
+            </div>
+            <div className="rt-widget">
+              <span className="rt-val">3</span>
+              <span className="rt-lbl">Latest Announcements</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Advanced Charts Grid */}
+      <div className="dashboard-grid mt-4">
+        <div className="glass-card chart-card col-span-2">
+          <h3>Attendance Analytics Trend</h3>
+          <div className="chart-container">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={MOCK_ATTENDANCE_ANALYTICS} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorAtt" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#10b981" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} domain={[70, 100]} />
+                <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)' }} />
+                <Area type="monotone" dataKey="rate" stroke="#10b981" strokeWidth={3} fillOpacity={1} fill="url(#colorAtt)" />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+
+        {!isHOD && (
+          <div className="glass-card chart-card">
+            <h3>Placement Stats (by Company)</h3>
+            <div className="chart-container">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={analyticsData.placements} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={30}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                  <XAxis dataKey="_id" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
+                  <Tooltip cursor={{ fill: 'var(--border-color)' }} contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)' }} />
+                  <Bar dataKey="count" fill="#3b82f6" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+        
+        {(!isHOD && userContext.role !== 'Sub Admin') && (
+          <div className="glass-card chart-card col-span-3">
+            <h3>Total Fees Collection Status</h3>
+            <div className="chart-container" style={{ minHeight: '250px' }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={[
+                      { name: 'Collected', value: analyticsData.fees.totalCollected },
+                      { name: 'Pending', value: analyticsData.fees.totalPending }
+                    ]}
+                    cx="50%" cy="50%" innerRadius={60} outerRadius={80} fill="#8884d8" paddingAngle={5} dataKey="value"
+                  >
+                    <Cell fill="#10b981" />
+                    <Cell fill="#ef4444" />
+                  </Pie>
+                  <Tooltip />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+export default SystemAnalytics;

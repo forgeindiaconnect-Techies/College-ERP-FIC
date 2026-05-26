@@ -4,13 +4,15 @@ import Mark from '../models/Mark.js';
 import Attendance from '../models/Attendance.js';
 import Fee from '../models/Fee.js';
 import Department from '../models/Department.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, requirePermission } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// All reports limited to Admin, Principal, HOD roles
+// All reports limited to Admin, Sub Admin, Principal, HOD roles
 router.use(protect);
-router.use(authorize('Admin', 'Principal', 'HOD'));
+router.use(authorize('Admin', 'Sub Admin', 'Principal', 'HOD'));
+// Adding a general permission check for Sub Admin; other roles bypass this check in the middleware
+router.use(requirePermission('view_reports'));
 
 // Helper: Returns a Student query object scoped to the user's department if HOD.
 // Student model uses 'dept'; User model stores department in 'department'.

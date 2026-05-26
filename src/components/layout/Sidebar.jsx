@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { 
+import { X, 
   LayoutDashboard, 
   Building2, 
   GraduationCap, 
@@ -16,13 +16,20 @@ import {
   Megaphone,
   ShieldCheck,
   Settings,
-  LogOut,
   ChevronRight,
-  Wallet
+  Wallet,
+  Activity,
+  PieChart,
+  LogOut,
+  Library,
+  Bus,
+  Building,
+  Briefcase,
+  Bot
 } from 'lucide-react';
 import './Sidebar.css';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -44,18 +51,34 @@ const Sidebar = () => {
     { name: 'Exams', path: '/admin/exams', icon: <FileSpreadsheet size={18} /> },
     { name: 'Results', path: '/admin/marks', icon: <BookOpenCheck size={18} /> },
     { name: 'Fees', path: '/admin/fees', icon: <Wallet size={18} /> },
+    { name: 'Library', path: '/admin/library', icon: <Library size={18} /> },
+    { name: 'Transport', path: '/admin/transport', icon: <Bus size={18} /> },
+    { name: 'Hostel', path: '/admin/hostel', icon: <Building size={18} /> },
+    { name: 'Placement', path: '/admin/placement', icon: <Briefcase size={18} /> },
     { name: 'Leave Requests', path: '/admin/leaves', icon: <Inbox size={18} /> },
     { name: 'Reports', path: '/admin/reports', icon: <FileBarChart size={18} /> },
+    { name: 'Analytics', path: '/admin/analytics', icon: <PieChart size={18} /> },
+    { name: 'AI Assistant', path: '/admin/ai', icon: <Bot size={18} className="text-purple-500" /> },
     { name: 'Announcements', path: '/admin/announcements', icon: <Megaphone size={18} /> },
     { name: 'Permissions', path: '/admin/permissions', icon: <ShieldCheck size={18} /> },
-    { name: 'Settings', path: '/admin/settings', icon: <Settings size={18} /> },
+    { name: 'Activity Logs', path: '/admin/activity-logs', icon: <Activity size={18} /> },
+    { name: 'Settings & Security', path: '/admin/settings', icon: <ShieldCheck size={18} className="text-red-500" /> },
   ];
 
   return (
-    <aside className="sidebar">
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div className="sidebar-overlay" onClick={onClose} />
+      )}
+      
+      <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-header">
         <div className="logo-icon">E</div>
         <h2>ERP<span className="gradient-text">Sys</span></h2>
+        <button className="sidebar-close-btn" onClick={onClose}>
+          <X size={20} />
+        </button>
       </div>
       
       <nav className="sidebar-nav">
@@ -88,7 +111,8 @@ const Sidebar = () => {
           </div>
         </div>
       </div>
-    </aside>
+      </aside>
+    </>
   );
 };
 

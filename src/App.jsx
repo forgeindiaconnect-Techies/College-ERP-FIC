@@ -1,5 +1,5 @@
 import React, { useState, useEffect, createContext } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 
 // Admin Layout & Pages
 import Layout from './components/layout/Layout';
@@ -23,7 +23,36 @@ import SubjectsManagement from './pages/subjects/SubjectsManagement';
 import ExamsManagement from './pages/exams/ExamsManagement';
 import LeavesManagement from './pages/leaves/LeavesManagement';
 import AnnouncementsManagement from './pages/announcements/AnnouncementsManagement';
-import PermissionsManagement from './pages/permissions/PermissionsManagement';
+import RolePermissions from './pages/permissions/RolePermissions';
+import ActivityLogs from './pages/activity-logs/ActivityLogs';
+import SystemAnalytics from './pages/analytics/SystemAnalytics';
+import LibraryManagement from './pages/library/LibraryManagement';
+import TransportManagement from './pages/transport/TransportManagement';
+import HostelManagement from './pages/hostel/HostelManagement';
+import PlacementManagement from './pages/placement/PlacementManagement';
+import AIAssistant from './pages/ai/AIAssistant';
+import SettingsSecurity from './pages/settings/SettingsSecurity';
+import LandingPage from './pages/landing/LandingPage';
+
+// Principal Layout & Pages
+import PrincipalLayout from './principal/components/PrincipalLayout';
+import PrincipalDashboard from './principal/pages/PrincipalDashboard';
+import PrincipalPlaceholder from './principal/pages/PrincipalPlaceholder';
+import PrincipalDepartments from './principal/pages/PrincipalDepartments';
+import PrincipalApprovals from './principal/pages/PrincipalApprovals';
+import PrincipalReports from './principal/pages/PrincipalReports';
+import PrincipalCommunicationCenter from './principal/pages/PrincipalCommunicationCenter';
+import PrincipalMeetingsEvents from './principal/pages/PrincipalMeetingsEvents';
+
+// Sub Admin Layout & Pages
+import SubAdminLayout from './subadmin/components/SubAdminLayout';
+import SubAdminDashboard from './subadmin/pages/SubAdminDashboard';
+import SubAdminStudents from './subadmin/pages/SubAdminStudents';
+import SubAdminStaff from './subadmin/pages/SubAdminStaff';
+import SubAdminAttendance from './subadmin/pages/SubAdminAttendance';
+import SubAdminAnnouncements from './subadmin/pages/SubAdminAnnouncements';
+import SubAdminReports from './subadmin/pages/SubAdminReports';
+import SubAdminNotifications from './subadmin/pages/SubAdminNotifications';
 
 // HOD Layout & Pages
 import HodLayout from './hod/components/HodLayout';
@@ -90,13 +119,14 @@ import Salary from './accounts/pages/Salary';
 import Receipts from './accounts/pages/Receipts';
 import AccountsReports from './accounts/pages/AccountsReports';
 import Unauthorized from './pages/Unauthorized';
+import FloatingChatbot from './components/FloatingChatbot';
 
 import './index.css';
 
 export const ThemeContext = createContext();
 
 const hasAnyOtherSession = (excludeKey) => {
-  const keys = ['admin_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
+  const keys = ['admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
   return keys.some(key => key !== excludeKey && sessionStorage.getItem(key));
 };
 
@@ -104,6 +134,20 @@ const AdminGuard = ({ children }) => {
   const session = sessionStorage.getItem('admin_session');
   if (session) return children;
   if (hasAnyOtherSession('admin_session')) return <Navigate to="/unauthorized" replace />;
+  return <Navigate to="/login" replace />;
+};
+
+const PrincipalGuard = ({ children }) => {
+  const session = sessionStorage.getItem('principal_session');
+  if (session) return children;
+  if (hasAnyOtherSession('principal_session')) return <Navigate to="/unauthorized" replace />;
+  return <Navigate to="/login" replace />;
+};
+
+const SubAdminGuard = ({ children }) => {
+  const session = sessionStorage.getItem('subadmin_session');
+  if (session) return children;
+  if (hasAnyOtherSession('subadmin_session')) return <Navigate to="/unauthorized" replace />;
   return <Navigate to="/login" replace />;
 };
 
@@ -164,7 +208,7 @@ function App() {
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<UnifiedLogin />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
@@ -197,9 +241,55 @@ function App() {
             <Route path="leaves"        element={<LeavesManagement />} />
             <Route path="fees"          element={<FeesManagement />} />
             <Route path="reports"       element={<ReportsManagement />} />
+            <Route path="library"       element={<LibraryManagement />} />
+            <Route path="transport"     element={<TransportManagement />} />
+            <Route path="hostel"        element={<HostelManagement />} />
+            <Route path="placement"     element={<PlacementManagement />} />
+            <Route path="ai"            element={<AIAssistant />} />
             <Route path="announcements" element={<AnnouncementsManagement />} />
-            <Route path="permissions"   element={<PermissionsManagement />} />
+            <Route path="permissions"   element={<RolePermissions />} />
+            <Route path="settings"      element={<SettingsSecurity />} />
+            <Route path="activity-logs" element={<ActivityLogs />} />
+            <Route path="analytics"     element={<SystemAnalytics />} />
             <Route path="settings"      element={<Settings />} />
+          </Route>
+
+          {/* ── SUB ADMIN ROUTES ── */}
+          <Route path="/subadmin" element={<SubAdminGuard><SubAdminLayout /></SubAdminGuard>}>
+            <Route index element={<Navigate to="/subadmin/dashboard" replace />} />
+            <Route path="dashboard"     element={<SubAdminDashboard />} />
+            <Route path="students"      element={<SubAdminStudents />} />
+            <Route path="staff"         element={<SubAdminStaff />} />
+
+            <Route path="attendance"    element={<SubAdminAttendance />} />
+            <Route path="timetable"     element={<TimetableManagement />} />
+            <Route path="departments"   element={<DepartmentManagement />} />
+            <Route path="announcements" element={<SubAdminAnnouncements />} />
+            <Route path="reports"       element={<SubAdminReports />} />
+            <Route path="placement"     element={<PlacementManagement />} />
+            <Route path="notifications" element={<SubAdminNotifications />} />
+            <Route path="activity-logs" element={<ActivityLogs />} />
+            <Route path="profile"       element={<Placeholder title="Sub Admin Profile" />} />
+            {/* The sidebar will restrict what they can click based on permissions, but the guard inside the component can also check, or we let the backend handle the 403s. */}
+          </Route>
+
+          {/* ── PRINCIPAL ROUTES ── */}
+          <Route path="/principal" element={<PrincipalGuard><PrincipalLayout /></PrincipalGuard>}>
+            <Route index element={<Navigate to="/principal/dashboard" replace />} />
+            <Route path="dashboard"     element={<PrincipalDashboard />} />
+            <Route path="approvals"     element={<PrincipalApprovals />} />
+            <Route path="departments"   element={<PrincipalDepartments />} />
+            <Route path="hods"          element={<PrincipalPlaceholder title="HOD Management" />} />
+            <Route path="staff"         element={<PrincipalPlaceholder title="Staff Overview" />} />
+            <Route path="students"      element={<PrincipalPlaceholder title="Students Overview" />} />
+            <Route path="attendance"    element={<PrincipalPlaceholder title="Attendance Analytics" />} />
+            <Route path="exams"         element={<PrincipalPlaceholder title="Exam & Results" />} />
+            <Route path="fees"          element={<PrincipalPlaceholder title="Fees Overview" />} />
+            <Route path="communication" element={<PrincipalCommunicationCenter />} />
+            <Route path="meetings"       element={<PrincipalMeetingsEvents />} />
+            <Route path="reports"       element={<PrincipalReports />} />
+            <Route path="placement"     element={<PrincipalPlaceholder title="Placements" />} />
+            <Route path="settings"      element={<PrincipalPlaceholder title="Settings" />} />
           </Route>
 
           {/* ── HOD ROUTES ── */}
@@ -270,9 +360,22 @@ function App() {
           </Route>
         </Routes>
       </BrowserRouter>
+      <ChatbotPortal />
     </ThemeContext.Provider>
   );
 }
+
+// Only show chatbot when NOT on the public landing page
+const ChatbotPortal = () => {
+  const [path, setPath] = React.useState(window.location.pathname);
+  React.useEffect(() => {
+    const onPop = () => setPath(window.location.pathname);
+    window.addEventListener('popstate', onPop);
+    return () => window.removeEventListener('popstate', onPop);
+  }, []);
+  if (path === '/') return null;
+  return <FloatingChatbot />;
+};
 
 export default App;
 

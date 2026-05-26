@@ -1,11 +1,11 @@
 import express from 'express';
 import Department from '../models/Department.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, requirePermission } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Get all departments
-router.get('/', protect, authorize('Admin', 'Principal'), async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
   try {
     const departments = await Department.find();
     res.json(departments);
@@ -15,7 +15,7 @@ router.get('/', protect, authorize('Admin', 'Principal'), async (req, res) => {
 });
 
 // Create new department
-router.post('/', protect, authorize('Admin', 'Principal'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
   const department = new Department(req.body);
   try {
     const newDepartment = await department.save();
@@ -26,7 +26,7 @@ router.post('/', protect, authorize('Admin', 'Principal'), async (req, res) => {
 });
 
 // Update department
-router.put('/:id', protect, authorize('Admin', 'Principal'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
   try {
     const updatedDepartment = await Department.findOneAndUpdate(
       { id: req.params.id },
@@ -40,7 +40,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal'), async (req, res) =>
 });
 
 // Delete department
-router.delete('/:id', protect, authorize('Admin', 'Principal'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
   try {
     await Department.findOneAndDelete({ id: req.params.id });
     res.json({ message: 'Department deleted' });

@@ -1,7 +1,7 @@
 import express from 'express';
 import Attendance from '../models/Attendance.js';
 import Student from '../models/Student.js';
-import { protect, authorize, departmentScope } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope, requirePermission } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -18,7 +18,7 @@ const updateStudentAttendancePercentage = async (studentId) => {
 };
 
 // Get all attendance records
-router.get('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), departmentScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
     const query = dept ? { department: dept } : {};
@@ -43,7 +43,7 @@ router.get('/student/:studentId', protect, async (req, res) => {
 });
 
 // Record new attendance (Single or Bulk)
-router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), async (req, res) => {
   try {
     if (Array.isArray(req.body)) {
       // Bulk insert
@@ -69,7 +69,7 @@ router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async
 });
 
 // Update attendance record
-router.put('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), async (req, res) => {
   try {
     const updatedRecord = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (updatedRecord) {
@@ -82,7 +82,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), asy
 });
 
 // Delete attendance record
-router.delete('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), async (req, res) => {
   try {
     const record = await Attendance.findById(req.params.id);
     if (record) {

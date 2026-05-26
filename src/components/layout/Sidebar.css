@@ -14,7 +14,8 @@
 }
 
 .sidebar-header {
-  padding: 1.5rem;
+  height: 70px;
+  padding: 0 1.2rem;
   display: flex;
   align-items: center;
   gap: 1rem;
@@ -47,7 +48,7 @@
 .sidebar-nav {
   flex: 1;
   overflow-y: auto;
-  padding: 1.5rem 1rem;
+  padding: 1rem;
 }
 
 /* Custom Scrollbar for Sidebar */
@@ -63,15 +64,15 @@
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.2rem;
 }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.8rem 1rem;
-  border-radius: 10px;
+  gap: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
   color: var(--text-muted);
   transition: var(--transition);
   font-weight: 500;
@@ -102,7 +103,7 @@
 }
 
 .sidebar-footer {
-  padding: 1.5rem 1rem;
+  padding: 1rem;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -113,10 +114,10 @@
 .admin-badge {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  padding: 0.8rem;
+  gap: 0.8rem;
+  padding: 0.6rem;
   background-color: var(--sidebar-hover);
-  border-radius: 12px;
+  border-radius: 10px;
 }
 
 .admin-avatar {
@@ -151,3 +152,49 @@
 .mb-4 { margin-bottom: 1rem; }
 .text-left { text-align: left; }
 .text-danger { color: var(--danger); }
+
+/* ============================
+   Mobile Responsive Sidebar
+   ============================ */
+.sidebar-close-btn {
+  display: none;
+  background: transparent;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 6px;
+  margin-left: auto;
+}
+
+.sidebar-overlay {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%);
+    z-index: 200;
+    width: 260px;
+    box-shadow: 4px 0 20px rgba(0,0,0,0.3);
+  }
+
+  .sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .sidebar-close-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .sidebar-overlay {
+    display: block;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 199;
+    backdrop-filter: blur(2px);
+  }
+}

@@ -1,11 +1,11 @@
 import express from 'express';
 import Student from '../models/Student.js';
-import { protect, authorize, departmentScope } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope, requirePermission } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Get all students
-router.get('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('manage_students'), departmentScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
     const query = dept ? { dept: dept } : {};
@@ -40,7 +40,7 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // Create new student
-router.post('/', protect, authorize('Admin', 'Principal', 'HOD'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), async (req, res) => {
   const student = new Student(req.body);
   try {
     const newStudent = await student.save();
@@ -51,7 +51,7 @@ router.post('/', protect, authorize('Admin', 'Principal', 'HOD'), async (req, re
 });
 
 // Update student
-router.put('/:id', protect, authorize('Admin', 'Principal', 'HOD'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), async (req, res) => {
   try {
     const updatedStudent = await Student.findOneAndUpdate(
       { id: req.params.id },
@@ -65,7 +65,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'HOD'), async (req, 
 });
 
 // Delete student
-router.delete('/:id', protect, authorize('Admin', 'Principal', 'HOD'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), async (req, res) => {
   try {
     await Student.findOneAndDelete({ id: req.params.id });
     res.json({ message: 'Student deleted' });

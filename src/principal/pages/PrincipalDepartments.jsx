@@ -1,0 +1,925 @@
+import React, { useState } from 'react';
+import { 
+  Building2, Users, GraduationCap, UserCheck, 
+  Percent, FileText, CheckCircle, Briefcase, 
+  ChevronRight, ArrowLeft, Download, ShieldAlert, 
+  Clock, Calendar, AlertTriangle, Send, XCircle, Search, Award
+} from 'lucide-react';
+import { 
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
+  LineChart, Line, AreaChart, Area, PieChart, Pie, Cell, ComposedChart
+} from 'recharts';
+import '../../pages/Dashboard.css';
+
+// --- DATA SETS ---
+
+const departmentsData = {
+  CSE: {
+    code: 'CSE',
+    name: 'Computer Science & Engineering',
+    hodName: 'Dr. Amit Sharma',
+    studentsCount: 720,
+    attendanceRate: 92,
+    passRate: 88,
+    staffCount: 45,
+    placementRate: 95,
+    topStudents: [
+      { name: 'Rohan Gupta', gpa: '9.8', placement: 'Placed (Google)', roll: 'CSE-041' },
+      { name: 'Shreya Iyer', gpa: '9.7', placement: 'Placed (Microsoft)', roll: 'CSE-112' },
+      { name: 'Aditya Sen', gpa: '9.6', placement: 'Placed (Amazon)', roll: 'CSE-003' }
+    ],
+    lowAttendance: [
+      { name: 'Aryan Mehta', attendance: 68, roll: 'CSE-201', status: 'Critical' },
+      { name: 'Simran Kaur', attendance: 72, roll: 'CSE-154', status: 'Warning' }
+    ],
+    performanceTrend: [
+      { term: 'Sem 1', gpa: 7.8 },
+      { term: 'Sem 2', gpa: 8.0 },
+      { term: 'Sem 3', gpa: 8.2 },
+      { term: 'Sem 4', gpa: 8.4 },
+      { term: 'Sem 5', gpa: 8.6 },
+      { term: 'Sem 6', gpa: 8.8 }
+    ]
+  },
+  ECE: {
+    code: 'ECE',
+    name: 'Electronics & Communication Engineering',
+    hodName: 'Dr. Ramesh Varma',
+    studentsCount: 640,
+    attendanceRate: 88,
+    passRate: 82,
+    staffCount: 38,
+    placementRate: 85,
+    topStudents: [
+      { name: 'Neha Reddy', gpa: '9.6', placement: 'Placed (Intel)', roll: 'ECE-088' },
+      { name: 'Vivek Joshi', gpa: '9.5', placement: 'Placed (Qualcomm)', roll: 'ECE-012' }
+    ],
+    lowAttendance: [
+      { name: 'Kunal Sen', attendance: 74, roll: 'ECE-311', status: 'Warning' }
+    ],
+    performanceTrend: [
+      { term: 'Sem 1', gpa: 7.5 },
+      { term: 'Sem 2', gpa: 7.7 },
+      { term: 'Sem 3', gpa: 7.8 },
+      { term: 'Sem 4', gpa: 8.0 },
+      { term: 'Sem 5', gpa: 8.1 },
+      { term: 'Sem 6', gpa: 8.2 }
+    ]
+  },
+  EEE: {
+    code: 'EEE',
+    name: 'Electrical & Electronics Engineering',
+    hodName: 'Dr. Priya Iyer',
+    studentsCount: 420,
+    attendanceRate: 85,
+    passRate: 78,
+    staffCount: 30,
+    placementRate: 80,
+    topStudents: [
+      { name: 'Kiran Rao', gpa: '9.4', placement: 'Placed (L&T)', roll: 'EEE-023' },
+      { name: 'Ananya Roy', gpa: '9.3', placement: 'Placed (Siemens)', roll: 'EEE-105' }
+    ],
+    lowAttendance: [
+      { name: 'Rahul Bose', attendance: 65, roll: 'EEE-055', status: 'Critical' }
+    ],
+    performanceTrend: [
+      { term: 'Sem 1', gpa: 7.2 },
+      { term: 'Sem 2', gpa: 7.3 },
+      { term: 'Sem 3', gpa: 7.5 },
+      { term: 'Sem 4', gpa: 7.6 },
+      { term: 'Sem 5', gpa: 7.7 },
+      { term: 'Sem 6', gpa: 7.8 }
+    ]
+  },
+  MECH: {
+    code: 'MECH',
+    name: 'Mechanical Engineering',
+    hodName: 'Dr. Vikram Rao',
+    studentsCount: 580,
+    attendanceRate: 82,
+    passRate: 75,
+    staffCount: 35,
+    placementRate: 72,
+    topStudents: [
+      { name: 'Siddharth Pal', gpa: '9.3', placement: 'Placed (Tata Motors)', roll: 'MEC-122' },
+      { name: 'Meera Nair', gpa: '9.2', placement: 'Placed (Mahindra)', roll: 'MEC-045' }
+    ],
+    lowAttendance: [
+      { name: 'Varun Dhawan', attendance: 61, roll: 'MEC-218', status: 'Critical' }
+    ],
+    performanceTrend: [
+      { term: 'Sem 1', gpa: 7.0 },
+      { term: 'Sem 2', gpa: 7.1 },
+      { term: 'Sem 3', gpa: 7.2 },
+      { term: 'Sem 4', gpa: 7.3 },
+      { term: 'Sem 5', gpa: 7.4 },
+      { term: 'Sem 6', gpa: 7.5 }
+    ]
+  },
+  MBA: {
+    code: 'MBA',
+    name: 'Master of Business Administration',
+    hodName: 'Dr. Sneha Reddy',
+    studentsCount: 360,
+    attendanceRate: 95,
+    passRate: 98,
+    staffCount: 24,
+    placementRate: 92,
+    topStudents: [
+      { name: 'Pooja Hegde', gpa: '9.9', placement: 'Placed (Goldman Sachs)', roll: 'MBA-001' },
+      { name: 'Rishi Kapoor', gpa: '9.8', placement: 'Placed (Deloitte)', roll: 'MBA-089' }
+    ],
+    lowAttendance: [],
+    performanceTrend: [
+      { term: 'Sem 1', gpa: 8.8 },
+      { term: 'Sem 2', gpa: 9.0 },
+      { term: 'Sem 3', gpa: 9.3 },
+      { term: 'Sem 4', gpa: 9.8 }
+    ]
+  },
+  BCA: {
+    code: 'BCA',
+    name: 'Bachelor of Computer Applications',
+    hodName: 'Dr. Sanjay Dutt',
+    studentsCount: 730,
+    attendanceRate: 90,
+    passRate: 85,
+    staffCount: 28,
+    placementRate: 88,
+    topStudents: [
+      { name: 'Aman Varma', gpa: '9.6', placement: 'Placed (TCS)', roll: 'BCA-312' },
+      { name: 'Divya Dutta', gpa: '9.5', placement: 'Placed (Wipro)', roll: 'BCA-004' }
+    ],
+    lowAttendance: [
+      { name: 'Gaurav Gill', attendance: 71, roll: 'BCA-209', status: 'Warning' }
+    ],
+    performanceTrend: [
+      { term: 'Sem 1', gpa: 7.6 },
+      { term: 'Sem 2', gpa: 7.8 },
+      { term: 'Sem 3', gpa: 8.0 },
+      { term: 'Sem 4', gpa: 8.2 },
+      { term: 'Sem 5', gpa: 8.4 },
+      { term: 'Sem 6', gpa: 8.5 }
+    ]
+  }
+};
+
+const analyticsChartData = [
+  { name: 'CSE', Attendance: 92, PassRate: 88, Placements: 95, StaffScore: 94 },
+  { name: 'ECE', Attendance: 88, PassRate: 82, Placements: 85, StaffScore: 86 },
+  { name: 'EEE', Attendance: 85, PassRate: 78, Placements: 80, StaffScore: 82 },
+  { name: 'MECH', Attendance: 82, PassRate: 75, Placements: 72, StaffScore: 78 },
+  { name: 'MBA', Attendance: 95, PassRate: 98, Placements: 92, StaffScore: 96 },
+  { name: 'BCA', Attendance: 90, PassRate: 85, Placements: 88, StaffScore: 88 }
+];
+
+export default function PrincipalDepartments() {
+  const [activeTab, setActiveTab] = useState('overview'); // overview, analytics, approvals, reports, permissions, detail
+  const [selectedDept, setSelectedDept] = useState('CSE');
+  
+  // Dynamic approvals lists stored in local React state
+  const [approvals, setApprovals] = useState([
+    { id: 1, type: 'Leave Request', department: 'CSE', requester: 'Dr. Amit Sharma (HOD)', description: 'Medical Leave - 3 days due to scheduled surgery.', date: 'May 25, 2026', status: 'Pending' },
+    { id: 2, type: 'Department Event', department: 'ECE', requester: 'Dr. Ramesh Varma (HOD)', description: 'National Robotics Workshop 2026 - Budget: ₹45,000.', date: 'May 24, 2026', status: 'Pending' },
+    { id: 3, type: 'Special Announcement', department: 'CSE', requester: 'Prof. Ankit Mehta', description: 'Institutional Hackathon announcement to all students.', date: 'May 26, 2026', status: 'Pending' },
+    { id: 4, type: 'Exam Approval', department: 'MBA', requester: 'Dr. Sneha Reddy (HOD)', description: 'End-semester MBA exam schedules & committee list.', date: 'May 23, 2026', status: 'Pending' },
+    { id: 5, type: 'Leave Request', department: 'MECH', requester: 'Prof. Vikram Rao (HOD)', description: 'Casual Leave - 1 day for personal engagement.', date: 'May 25, 2026', status: 'Approved' }
+  ]);
+
+  // Form states for report exporting
+  const [reportType, setReportType] = useState('Overview');
+  const [reportDept, setReportDept] = useState('All');
+  const [reportFormat, setReportFormat] = useState('PDF');
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportSuccess, setExportSuccess] = useState(false);
+  const [downloadFileName, setDownloadFileName] = useState('');
+
+  // Restricted Access Shield Alert (Step 6)
+  const [showRestrictionDialog, setShowRestrictionDialog] = useState(false);
+  const [attemptedAction, setAttemptedAction] = useState('');
+
+  const handleActionClick = (actionName) => {
+    setAttemptedAction(actionName);
+    setShowRestrictionDialog(true);
+  };
+
+  const handleApprove = (id) => {
+    setApprovals(prev => prev.map(app => app.id === id ? { ...app, status: 'Approved' } : app));
+  };
+
+  const handleReject = (id) => {
+    setApprovals(prev => prev.map(app => app.id === id ? { ...app, status: 'Rejected' } : app));
+  };
+
+  const handleGenerateReport = (e) => {
+    e.preventDefault();
+    setIsExporting(true);
+    setExportSuccess(false);
+
+    setTimeout(() => {
+      setIsExporting(false);
+      setExportSuccess(true);
+      setDownloadFileName(`${reportDept}_Department_${reportType}_Report.${reportFormat.toLowerCase()}`);
+      
+      // Auto dismiss success toast
+      setTimeout(() => {
+        setExportSuccess(false);
+      }, 5000);
+    }, 1500);
+  };
+
+  return (
+    <div className="main-content" style={{ padding: '2rem', minHeight: 'calc(100vh - 70px)', background: 'var(--bg-primary)' }}>
+      {/* HEADER */}
+      <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
+        <div>
+          <h1 className="text-2xl font-bold" style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <Building2 className="text-[#4f46e5]" size={28} /> Department Monitoring Center
+          </h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
+            Review, evaluate, and coordinate operations across all institutional divisions.
+          </p>
+        </div>
+        
+        {/* Permission Profile Tag */}
+        <div className="glass-card" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '10px', borderLeft: '3px solid var(--success)' }}>
+          <ShieldAlert size={18} className="text-[#10b981]" />
+          <div>
+            <span style={{ fontSize: '0.72rem', display: 'block', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>User Permission Profile</span>
+            <strong style={{ fontSize: '0.82rem', color: 'var(--text-main)' }}>Principal (Executive Oversight)</strong>
+          </div>
+        </div>
+      </div>
+
+      {/* NAVIGATION TABS */}
+      <div className="flex mb-6 flex-wrap gap-2" style={{ borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>
+        <button 
+          onClick={() => setActiveTab('overview')} 
+          className={`btn-primary ${activeTab === 'overview' || activeTab === 'detail' ? '' : 'btn-ghost'}`}
+          style={{ background: activeTab === 'overview' || activeTab === 'detail' ? 'var(--primary-gradient)' : 'transparent', color: activeTab === 'overview' || activeTab === 'detail' ? '#fff' : 'var(--text-muted)', borderRadius: '8px', padding: '0.6rem 1.2rem', fontSize: '0.88rem', fontWeight: 600 }}
+        >
+          📁 Departments Grid
+        </button>
+        <button 
+          onClick={() => setActiveTab('analytics')} 
+          className={`btn-primary ${activeTab === 'analytics' ? '' : 'btn-ghost'}`}
+          style={{ background: activeTab === 'analytics' ? 'var(--primary-gradient)' : 'transparent', color: activeTab === 'analytics' ? '#fff' : 'var(--text-muted)', borderRadius: '8px', padding: '0.6rem 1.2rem', fontSize: '0.88rem', fontWeight: 600 }}
+        >
+          📊 Academic Analytics
+        </button>
+        <button 
+          onClick={() => { setActiveTab('approvals'); }} 
+          className={`btn-primary ${activeTab === 'approvals' ? '' : 'btn-ghost'}`}
+          style={{ background: activeTab === 'approvals' ? 'var(--primary-gradient)' : 'transparent', color: activeTab === 'approvals' ? '#fff' : 'var(--text-muted)', borderRadius: '8px', padding: '0.6rem 1.2rem', fontSize: '0.88rem', fontWeight: 600, position: 'relative' }}
+        >
+          🔔 Approvals System
+          {approvals.filter(a => a.status === 'Pending').length > 0 && (
+            <span style={{ position: 'absolute', top: '-4px', right: '-4px', background: 'var(--danger)', color: 'white', fontSize: '0.65rem', padding: '2px 6px', borderRadius: '10px', fontWeight: 700 }}>
+              {approvals.filter(a => a.status === 'Pending').length}
+            </span>
+          )}
+        </button>
+        <button 
+          onClick={() => setActiveTab('reports')} 
+          className={`btn-primary ${activeTab === 'reports' ? '' : 'btn-ghost'}`}
+          style={{ background: activeTab === 'reports' ? 'var(--primary-gradient)' : 'transparent', color: activeTab === 'reports' ? '#fff' : 'var(--text-muted)', borderRadius: '8px', padding: '0.6rem 1.2rem', fontSize: '0.88rem', fontWeight: 600 }}
+        >
+          📥 Reports Exporter
+        </button>
+        <button 
+          onClick={() => setActiveTab('permissions')} 
+          className={`btn-primary ${activeTab === 'permissions' ? '' : 'btn-ghost'}`}
+          style={{ background: activeTab === 'permissions' ? 'var(--primary-gradient)' : 'transparent', color: activeTab === 'permissions' ? '#fff' : 'var(--text-muted)', borderRadius: '8px', padding: '0.6rem 1.2rem', fontSize: '0.88rem', fontWeight: 600 }}
+        >
+          🛡️ Permissions Shield
+        </button>
+      </div>
+
+      {/* TAB CONTENTS */}
+
+      {/* 1. OVERVIEW GRID (Step 1) */}
+      {activeTab === 'overview' && (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.5rem' }}>
+          {Object.keys(departmentsData).map((key) => {
+            const dept = departmentsData[key];
+            return (
+              <div 
+                key={key} 
+                className="glass-card animate-fade-in" 
+                style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}
+              >
+                {/* Visual Accent Corner */}
+                <div style={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', background: 'var(--primary-gradient)' }}></div>
+                
+                <div>
+                  <div className="flex justify-between items-start mb-3">
+                    <span className="dept-code-badge" style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                      {dept.code}
+                    </span>
+                    <span style={{ fontSize: '0.8rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                      <CheckCircle size={14} /> Active Oversight
+                    </span>
+                  </div>
+
+                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.3rem' }}>{dept.name}</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>
+                    HOD: <strong style={{ color: 'var(--text-main)' }}>{dept.hodName}</strong>
+                  </p>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                    <div style={{ background: 'var(--bg-primary)', padding: '0.6rem', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Students</span>
+                      <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>{dept.studentsCount.toLocaleString()}</strong>
+                    </div>
+                    <div style={{ background: 'var(--bg-primary)', padding: '0.6rem', borderRadius: '10px' }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Staff Count</span>
+                      <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>{dept.staffCount}</strong>
+                    </div>
+                  </div>
+
+                  {/* Metrics Progress Rings/Bars */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                    <div>
+                      <div className="flex justify-between" style={{ fontSize: '0.78rem', marginBottom: '0.2rem' }}>
+                        <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><UserCheck size={14} /> Attendance</span>
+                        <strong style={{ color: 'var(--text-main)' }}>{dept.attendanceRate}%</strong>
+                      </div>
+                      <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '10px', overflow: 'hidden' }}>
+                        <div style={{ width: `${dept.attendanceRate}%`, height: '100%', background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '10px' }}></div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex justify-between" style={{ fontSize: '0.78rem', marginBottom: '0.2rem' }}>
+                        <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Percent size={14} /> Pass Percentage</span>
+                        <strong style={{ color: 'var(--text-main)' }}>{dept.passRate}%</strong>
+                      </div>
+                      <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '10px', overflow: 'hidden' }}>
+                        <div style={{ width: `${dept.passRate}%`, height: '100%', background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)', borderRadius: '10px' }}></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <button 
+                  onClick={() => { setSelectedDept(dept.code); setActiveTab('detail'); }} 
+                  className="btn-primary w-full"
+                  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.2rem', padding: '0.65rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }}
+                >
+                  View {dept.code} Department Analytics <ChevronRight size={16} />
+                </button>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* 2. DETAIL VIEW (Step 2) */}
+      {activeTab === 'detail' && (
+        <div className="animate-fade-in">
+          {/* Back Button */}
+          <button 
+            onClick={() => setActiveTab('overview')} 
+            className="flex items-center gap-2 mb-4" 
+            style={{ background: 'transparent', color: 'var(--primary)', fontWeight: 600, border: 'none', cursor: 'pointer', outline: 'none' }}
+          >
+            <ArrowLeft size={16} /> Back to Departments Grid
+          </button>
+
+          {/* Department Selector Header */}
+          <div className="glass-card mb-6" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderRadius: '16px' }}>
+            <div>
+              <span className="dept-code-badge" style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem' }}>
+                {selectedDept} Division
+              </span>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '0.3rem' }}>
+                {departmentsData[selectedDept].name} Analytics
+              </h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.88rem' }}>
+                HOD In-Charge: <strong style={{ color: 'var(--text-main)' }}>{departmentsData[selectedDept].hodName}</strong>
+              </p>
+            </div>
+
+            {/* Dropdown to switch */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)', fontWeight: 500 }}>Monitor Another Division:</span>
+              <select 
+                value={selectedDept} 
+                onChange={(e) => setSelectedDept(e.target.value)}
+                style={{ padding: '0.45rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', outline: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontWeight: 600 }}
+              >
+                {Object.keys(departmentsData).map(key => (
+                  <option key={key} value={key}>{key}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Core Analytics Cards Grid */}
+          <div className="stats-grid mb-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
+            <div className="stat-card">
+              <div className="stat-icon-wrapper bg-gradient-blue text-white" style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}><Users size={20} /></div>
+              <div className="stat-details">
+                <h3>Student Strength</h3>
+                <p className="stat-value">{departmentsData[selectedDept].studentsCount}</p>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Registered Students</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}><GraduationCap size={20} /></div>
+              <div className="stat-details">
+                <h3>Staff Performance</h3>
+                <p className="stat-value">9.2 / 10</p>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Peer & Student Review Score</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><UserCheck size={20} /></div>
+              <div className="stat-details">
+                <h3>Attendance Analytics</h3>
+                <p className="stat-value">{departmentsData[selectedDept].attendanceRate}%</p>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Average Month Attendance</span>
+              </div>
+            </div>
+
+            <div className="stat-card">
+              <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><Percent size={20} /></div>
+              <div className="stat-details">
+                <h3>Exam Results</h3>
+                <p className="stat-value">{departmentsData[selectedDept].passRate}%</p>
+                <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Sem Pass Percentage</span>
+              </div>
+            </div>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
+            {/* Top Students Table */}
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Award className="text-[#f59e0b]" size={20} /> Top Performers (Top Students)
+              </h3>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Roll No</th>
+                      <th>Student Name</th>
+                      <th>GPA</th>
+                      <th>Placement Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {departmentsData[selectedDept].topStudents.map((stud, idx) => (
+                      <tr key={idx}>
+                        <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{stud.roll}</td>
+                        <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{stud.name}</td>
+                        <td style={{ color: 'var(--success)', fontWeight: 700 }}>{stud.gpa}</td>
+                        <td>
+                          <span style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 }}>
+                            {stud.placement}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Low Attendance Alert Table */}
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <AlertTriangle className="text-[#ef4444]" size={20} /> Low Attendance Students
+              </h3>
+              {departmentsData[selectedDept].lowAttendance.length > 0 ? (
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Roll No</th>
+                        <th>Student Name</th>
+                        <th>Attendance</th>
+                        <th>Warning Status</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {departmentsData[selectedDept].lowAttendance.map((stud, idx) => (
+                        <tr key={idx}>
+                          <td style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>{stud.roll}</td>
+                          <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{stud.name}</td>
+                          <td style={{ color: stud.attendance < 70 ? 'var(--danger)' : 'var(--warning)', fontWeight: 700 }}>
+                            {stud.attendance}%
+                          </td>
+                          <td>
+                            <span style={{ 
+                              backgroundColor: stud.status === 'Critical' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(245, 158, 11, 0.1)', 
+                              color: stud.status === 'Critical' ? '#ef4444' : '#f59e0b', 
+                              padding: '3px 8px', borderRadius: '6px', fontSize: '0.75rem', fontWeight: 600 
+                            }}>
+                              {stud.status}
+                            </span>
+                          </td>
+                          <td>
+                            <button 
+                              onClick={() => handleActionClick(`Send Auto Attendance Warning to ${stud.name} (Parent notify)`)}
+                              className="btn-primary" 
+                              style={{ padding: '3px 8px', fontSize: '0.75rem', borderRadius: '6px' }}
+                            >
+                              Notify
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--text-muted)' }}>
+                  <CheckCircle size={36} className="text-[#10b981]" style={{ margin: '0 auto 0.5rem' }} />
+                  <p style={{ fontSize: '0.9rem', fontWeight: 600 }}>All students satisfy the 75% attendance criteria.</p>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Department-wise 6-sem GPA progression chart */}
+          <div className="glass-card mb-6" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.2rem' }}>
+              🔬 Average Academic Grade Progression Trend (GPA over Semesters)
+            </h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <AreaChart data={departmentsData[selectedDept].performanceTrend} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorGpa" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                  <XAxis dataKey="term" stroke="var(--text-muted)" />
+                  <YAxis domain={[6, 10]} stroke="var(--text-muted)" />
+                  <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} />
+                  <Area type="monotone" dataKey="gpa" name="Average GPA" stroke="#4f46e5" strokeWidth={3} fillOpacity={1} fill="url(#colorGpa)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 3. ANALYTICS Tab (Step 3) */}
+      {activeTab === 'analytics' && (
+        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(450px, 1fr))', gap: '1.5rem' }}>
+          
+          {/* Chart 1: Department-wise Attendance */}
+          <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.2rem' }}>
+              📊 Department-wise Student Attendance Comparison (%)
+            </h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart data={analyticsChartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                  <XAxis dataKey="name" stroke="var(--text-muted)" />
+                  <YAxis domain={[70, 100]} stroke="var(--text-muted)" />
+                  <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} />
+                  <Legend />
+                  <Bar dataKey="Attendance" fill="#3b82f6" radius={[4, 4, 0, 0]}>
+                    {analyticsChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={index % 2 === 0 ? '#4f46e5' : '#ec4899'} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Chart 2: Pass Percentage */}
+          <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.2rem' }}>
+              📈 Semester Examination Pass Percentage Trend
+            </h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <AreaChart data={analyticsChartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="colorPass" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#10b981" stopOpacity={0.4}/>
+                      <stop offset="95%" stopColor="#10b981" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                  <XAxis dataKey="name" stroke="var(--text-muted)" />
+                  <YAxis domain={[60, 100]} stroke="var(--text-muted)" />
+                  <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} />
+                  <Legend />
+                  <Area type="monotone" dataKey="PassRate" name="Pass Rate (%)" stroke="#10b981" fillOpacity={1} fill="url(#colorPass)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Chart 3: Placement Statistics */}
+          <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.2rem' }}>
+              💼 Dynamic Departmental Placement Statistics (%)
+            </h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <ComposedChart data={analyticsChartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                  <XAxis dataKey="name" stroke="var(--text-muted)" />
+                  <YAxis domain={[50, 100]} stroke="var(--text-muted)" />
+                  <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} />
+                  <Legend />
+                  <Bar dataKey="Placements" name="Placement Rate" fill="#a78bfa" radius={[4, 4, 0, 0]} />
+                  <Line type="monotone" dataKey="Placements" stroke="#ec4899" strokeWidth={3} dot={{ r: 5 }} />
+                </ComposedChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          {/* Chart 4: Staff Performance */}
+          <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1.2rem' }}>
+              👩‍🏫 Faculty & Staff Peer Evaluation Indexes
+            </h3>
+            <div style={{ width: '100%', height: 300 }}>
+              <ResponsiveContainer>
+                <BarChart data={analyticsChartData} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                  <XAxis dataKey="name" stroke="var(--text-muted)" />
+                  <YAxis domain={[50, 100]} stroke="var(--text-muted)" />
+                  <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} />
+                  <Legend />
+                  <Bar dataKey="StaffScore" name="Faculty Quality Score" fill="#f59e0b" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+        </div>
+      )}
+
+      {/* 4. APPROVALS SYSTEM (Step 4) */}
+      {activeTab === 'approvals' && (
+        <div className="glass-card animate-fade-in" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+          <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)' }}>
+              🔔 Centralized Institutional Approvals Inbox
+            </h3>
+            <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+              Pending Action: <strong style={{ color: 'var(--danger)' }}>{approvals.filter(a => a.status === 'Pending').length} requests</strong>
+            </span>
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            {approvals.map((req) => (
+              <div 
+                key={req.id} 
+                className="glass-card animate-fade-in" 
+                style={{ 
+                  padding: '1.2rem', 
+                  borderRadius: '12px', 
+                  borderLeft: `4px solid ${req.status === 'Pending' ? 'var(--warning)' : req.status === 'Approved' ? 'var(--success)' : 'var(--danger)'}`,
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  flexWrap: 'wrap',
+                  gap: '1rem'
+                }}
+              >
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span style={{ 
+                      backgroundColor: req.type === 'Leave Request' ? 'rgba(59, 130, 246, 0.1)' : req.type === 'Department Event' ? 'rgba(124, 58, 237, 0.1)' : req.type === 'Special Announcement' ? 'rgba(245, 158, 11, 0.1)' : 'rgba(16, 185, 129, 0.1)',
+                      color: req.type === 'Leave Request' ? '#3b82f6' : req.type === 'Department Event' ? '#7c3aed' : req.type === 'Special Announcement' ? '#f59e0b' : '#10b981',
+                      padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 700
+                    }}>
+                      {req.type}
+                    </span>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 500 }}>
+                      Requester: <strong style={{ color: 'var(--text-main)' }}>{req.requester}</strong> ({req.department})
+                    </span>
+                  </div>
+
+                  <p style={{ fontSize: '0.92rem', color: 'var(--text-main)', fontWeight: 500 }}>{req.description}</p>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block', marginTop: '0.4rem' }}>Submitted: {req.date}</span>
+                </div>
+
+                {/* Interactive Status & Buttons */}
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  {req.status === 'Pending' ? (
+                    <>
+                      <button 
+                        onClick={() => handleApprove(req.id)}
+                        className="btn-primary" 
+                        style={{ padding: '0.45rem 1rem', borderRadius: '8px', fontSize: '0.8rem', background: 'var(--success)' }}
+                      >
+                        Approve
+                      </button>
+                      <button 
+                        onClick={() => handleReject(req.id)}
+                        className="btn-primary" 
+                        style={{ padding: '0.45rem 1rem', borderRadius: '8px', fontSize: '0.8rem', background: 'var(--danger)' }}
+                      >
+                        Reject
+                      </button>
+                    </>
+                  ) : (
+                    <span style={{ 
+                      color: req.status === 'Approved' ? '#10b981' : '#ef4444', 
+                      fontWeight: 700, fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '4px' 
+                    }}>
+                      {req.status === 'Approved' ? <CheckCircle size={16} /> : <XCircle size={16} />} {req.status}
+                    </span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 5. REPORTS SECTION (Step 5) */}
+      {activeTab === 'reports' && (
+        <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', maxWidth: '650px', margin: '0 auto' }}>
+          <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.3rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <FileText className="text-[#4f46e5]" size={24} /> Academic Reports Downloader
+          </h3>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
+            Generate and export custom performance sheets across all departments.
+          </p>
+
+          <form onSubmit={handleGenerateReport} style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                Select Report Subject
+              </label>
+              <select 
+                value={reportType} 
+                onChange={(e) => setReportType(e.target.value)}
+                style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', outline: 'none' }}
+              >
+                <option value="Overview">Department Overview Report</option>
+                <option value="Attendance">Attendance Reports</option>
+                <option value="Performance">Performance Reports</option>
+                <option value="Placement">Placement Reports</option>
+                <option value="Fees">Fee Reports</option>
+              </select>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                  Target Department
+                </label>
+                <select 
+                  value={reportDept} 
+                  onChange={(e) => setReportDept(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', outline: 'none' }}
+                >
+                  <option value="All">All Departments</option>
+                  {Object.keys(departmentsData).map(key => (
+                    <option key={key} value={key}>{key} Department</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)', marginBottom: '0.4rem' }}>
+                  Export Document Format
+                </label>
+                <select 
+                  value={reportFormat} 
+                  onChange={(e) => setReportFormat(e.target.value)}
+                  style={{ width: '100%', padding: '0.65rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', outline: 'none' }}
+                >
+                  <option value="PDF">Portable Document Format (.pdf)</option>
+                  <option value="CSV">Comma Separated Values (.csv)</option>
+                  <option value="XLSX">Excel Spreadsheet (.xlsx)</option>
+                </select>
+              </div>
+            </div>
+
+            <button 
+              type="submit" 
+              disabled={isExporting}
+              className="btn-primary w-full"
+              style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem 1rem', borderRadius: '10px', fontSize: '0.95rem', fontWeight: 600, marginTop: '0.5rem' }}
+            >
+              {isExporting ? (
+                <>⏳ Generating and packaging report...</>
+              ) : (
+                <><Download size={18} /> Compile & Download Report</>
+              )}
+            </button>
+          </form>
+
+          {/* Success Toast Notice */}
+          {exportSuccess && (
+            <div className="glass-card animate-fade-in" style={{ marginTop: '1.5rem', padding: '1rem', borderLeft: '4px solid var(--success)', display: 'flex', alignItems: 'center', gap: '0.8rem', background: 'rgba(16, 185, 129, 0.08)' }}>
+              <CheckCircle className="text-[#10b981]" size={24} />
+              <div>
+                <strong style={{ color: 'var(--text-main)', display: 'block', fontSize: '0.88rem' }}>Report Generated Successfully!</strong>
+                <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  File download initiated: <strong style={{ color: 'var(--text-main)' }}>{downloadFileName}</strong>
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* 6. PERMISSIONS & SHIELD GUARD (Step 6) */}
+      {activeTab === 'permissions' && (
+        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '1.5rem' }}>
+          
+          {/* Active Principal Authorizations */}
+          <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <CheckCircle className="text-[#10b981]" size={20} /> Permitted Institutional Oversight
+            </h3>
+            <ul style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', paddingLeft: '1.2rem', color: 'var(--text-main)', fontSize: '0.9rem' }}>
+              <li><strong>Academic Analytics Monitoring</strong>: Full read/write oversight across all 6 departments and statistical indices.</li>
+              <li><strong>Approvals & Event Scheduling</strong>: Authorize leaves, student schedules, announcements, and events.</li>
+              <li><strong>Export Performance Reports</strong>: Compile and export files on attendance, pass rates, placements, and financial collections.</li>
+              <li><strong>Staff Performance Evaluation</strong>: Evaluate peer-review indexes and review department heads.</li>
+            </ul>
+          </div>
+
+          {/* Access Shield Mock Restricted Operations */}
+          <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <XCircle className="text-[#ef4444]" size={20} /> Restricted Administrative Actions
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1.2rem' }}>
+              The following actions violate Principal clearance parameters. Clicking any will trigger the institutional security filter:
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
+              <button 
+                onClick={() => handleActionClick('Delete Registered System User accounts')}
+                className="glass-card w-full"
+                style={{ padding: '0.8rem', borderRadius: '10px', textAlign: 'left', borderLeft: '3px solid var(--danger)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(239, 68, 68, 0.03)' }}
+              >
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>❌ Delete System Users</span>
+                <ChevronRight size={16} />
+              </button>
+
+              <button 
+                onClick={() => handleActionClick('Change Institutional Security & Firewall Settings')}
+                className="glass-card w-full"
+                style={{ padding: '0.8rem', borderRadius: '10px', textAlign: 'left', borderLeft: '3px solid var(--danger)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(239, 68, 68, 0.03)' }}
+              >
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>🛡️ Change Security & Role Access Levels</span>
+                <ChevronRight size={16} />
+              </button>
+
+              <button 
+                onClick={() => handleActionClick('Mutate, Alter, or Purge Database Servers')}
+                className="glass-card w-full"
+                style={{ padding: '0.8rem', borderRadius: '10px', textAlign: 'left', borderLeft: '3px solid var(--danger)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(239, 68, 68, 0.03)' }}
+              >
+                <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>💾 Manage Database / Server Configurations</span>
+                <ChevronRight size={16} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Access Restriction Glass Dialog Modal (Step 6 Protection) */}
+      {showRestrictionDialog && (
+        <div style={{ 
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+          display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 
+        }}>
+          <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', maxWidth: '480px', margin: '0 1rem', textAlign: 'center', background: 'var(--bg-secondary)', border: '1.5px solid var(--danger)' }}>
+            <ShieldAlert size={48} className="text-[#ef4444]" style={{ margin: '0 auto 1rem' }} />
+            <h3 style={{ fontSize: '1.3rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem' }}>
+              Access Denied (Clearance Violation)
+            </h3>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              You attempted to: <strong style={{ color: 'var(--text-main)' }}>{attemptedAction}</strong>.<br />
+              Principal permissions do not include direct system architecture mutations. IT Server Administrator clearance is required.
+            </p>
+
+            <button 
+              onClick={() => setShowRestrictionDialog(false)} 
+              className="btn-primary"
+              style={{ background: 'var(--danger)', color: 'white', padding: '0.6rem 1.5rem', borderRadius: '8px', fontSize: '0.9rem', fontWeight: 600 }}
+            >
+              Acknowledge & Close
+            </button>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

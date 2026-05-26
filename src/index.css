@@ -344,3 +344,89 @@ tr:hover td {
 .from-\[\#3b82f6\] { --tw-gradient-from: #3b82f6; --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to, rgba(59, 130, 246, 0)); }
 .to-\[\#2563eb\] { --tw-gradient-to: #2563eb; }
 .bg-gradient-to-r { background-image: linear-gradient(to right, var(--tw-gradient-stops)); }
+
+/* ==============================
+   GLOBAL MOBILE RESPONSIVENESS
+   ============================== */
+
+/* Touch-friendly tables */
+.table-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 768px) {
+  /* Layout shifts for mobile */
+  .layout-container .main-wrapper {
+    margin-left: 0 !important;
+  }
+
+  /* Hamburger visible, search smaller */
+  .hamburger-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+    margin-right: 0.5rem;
+  }
+
+  .navbar-search {
+    width: 180px !important;
+  }
+
+  .dept-switch {
+    display: none !important;
+  }
+
+  /* Grid collapses on mobile */
+  .dashboard-grid,
+  .analytics-kpi-grid,
+  .grid-cols-2,
+  .grid-cols-3,
+  .grid-cols-4 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Remove col-span on mobile */
+  .col-span-2,
+  .col-span-3 {
+    grid-column: span 1 !important;
+  }
+
+  /* KPI cards stack */
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Page header stacks */
+  .page-header,
+  .settings-header,
+  .flex.justify-between {
+    flex-direction: column !important;
+    gap: 1rem;
+    align-items: flex-start !important;
+  }
+
+  /* Font size adjustments */
+  h1 { font-size: 1.4rem !important; }
+  h2 { font-size: 1.2rem !important; }
+
+  /* Tabs scroll horizontally */
+  .settings-tabs,
+  .placement-tabs,
+  .dept-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 4px;
+  }
+
+  /* Cards full width on mobile */
+  .glass-card {
+    border-radius: 12px;
+  }
+
+  /* Main content padding */
+  .main-content {
+    padding: 1rem !important;
+  }
+}
