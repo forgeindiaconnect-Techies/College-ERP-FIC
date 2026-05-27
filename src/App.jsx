@@ -43,6 +43,7 @@ import PrincipalApprovals from './principal/pages/PrincipalApprovals';
 import PrincipalReports from './principal/pages/PrincipalReports';
 import PrincipalCommunicationCenter from './principal/pages/PrincipalCommunicationCenter';
 import PrincipalMeetingsEvents from './principal/pages/PrincipalMeetingsEvents';
+import PrincipalAcademicPlanning from './principal/pages/PrincipalAcademicPlanning';
 
 // Sub Admin Layout & Pages
 import SubAdminLayout from './subadmin/components/SubAdminLayout';
@@ -287,6 +288,7 @@ function App() {
             <Route path="fees"          element={<PrincipalPlaceholder title="Fees Overview" />} />
             <Route path="communication" element={<PrincipalCommunicationCenter />} />
             <Route path="meetings"       element={<PrincipalMeetingsEvents />} />
+            <Route path="academic-planning" element={<PrincipalAcademicPlanning />} />
             <Route path="reports"       element={<PrincipalReports />} />
             <Route path="placement"     element={<PrincipalPlaceholder title="Placements" />} />
             <Route path="settings"      element={<PrincipalPlaceholder title="Settings" />} />

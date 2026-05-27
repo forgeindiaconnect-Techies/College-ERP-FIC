@@ -53,6 +53,7 @@ const PrincipalSidebar = ({ isOpen, onClose }) => {
     { name: 'Fees Overview', path: '/principal/fees', icon: <ClipboardList size={18} /> },
     { name: 'Communication Center', path: '/principal/communication', icon: <Megaphone size={18} /> },
     { name: 'Meetings & Events', path: '/principal/meetings', icon: <CalendarDays size={18} /> },
+    { name: 'Academic Planning', path: '/principal/academic-planning', icon: <CalendarCheck size={18} /> },
     { name: 'Reports', path: '/principal/reports', icon: <ClipboardList size={19} /> },
     { name: 'Placements', path: '/principal/placement', icon: <Briefcase size={19} /> },
     { name: 'Settings', path: '/principal/settings', icon: <Settings size={18} /> }
