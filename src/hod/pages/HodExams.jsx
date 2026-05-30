@@ -1,19 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Plus, Search, Edit2, Trash2, X, MapPin, Clock, BookOpen } from 'lucide-react';
+import { getExams, createExam, updateExam, deleteExam } from '../../api/index';
 
 const getHodSession = () => {
   try { return JSON.parse(sessionStorage.getItem('hod_session')) || { dept: 'Computer Science' }; }
   catch { return { dept: 'Computer Science' }; }
 };
 
-const DEFAULT_EXAMS = [
-  { id:'EXM001', name:'Mid Term Test', subject:'Data Structures', sem:'Sem 3', date:'2026-05-28', time:'10:00 AM – 12:00 PM', room:'Block A – 301', maxMarks:50 },
-  { id:'EXM002', name:'End Sem Theory', subject:'DBMS', sem:'Sem 3', date:'2026-06-02', time:'10:00 AM – 01:00 PM', room:'Main Hall', maxMarks:100 },
-  { id:'EXM003', name:'Lab Exam', subject:'OS Lab', sem:'Sem 4', date:'2026-05-30', time:'01:30 PM – 04:30 PM', room:'CS Lab 2', maxMarks:100 },
-];
-
 const SEMS = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
-const TYPES = ['Mid Term Test','End Sem Theory','Semester Lab Exam','Special Supplementary'];
+const EXAM_TYPES = [
+  {
+    category: 'Internal Exams',
+    options: [
+      'Internal Assessment 1 (IA-1)',
+      'Internal Assessment 2 (IA-2)',
+      'Internal Assessment 3 (IA-3)',
+      'Unit Tests',
+      'Class Tests'
+    ]
+  },
+  {
+    category: 'Semester Exams',
+    options: [
+      'Mid-Semester Examination',
+      'End Semester Examination (ESE)',
+      'University Semester Examination'
+    ]
+  },
+  {
+    category: 'Practical Exams',
+    options: [
+      'Lab Internal Exam',
+      'Lab Practical Examination',
+      'Project Viva'
+    ]
+  }
+];
 
 const HodExams = () => {
   const hod = getHodSession();
@@ -22,12 +44,11 @@ const HodExams = () => {
   const [search, setSearch] = useState('');
   const [modal, setModal] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ name:'Mid Term Test', subject:'', sem:'Sem 3', date:'', time:'10:00 AM – 12:00 PM', room:'', maxMarks:100 });
+  const [form, setForm] = useState({ name:'Internal Assessment 1 (IA-1)', subject:'', sem:'Sem 3', date:'', time:'10:00 AM – 12:00 PM', room:'', maxMarks:100 });
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const saved = localStorage.getItem('erp_exams');
-    const all = saved ? JSON.parse(saved) : DEFAULT_EXAMS;
-    setExams(all.filter(e => e.dept === hod.dept || !e.dept));
+    fetchExams();
 
     const savedSubs = localStorage.getItem('erp_subjects');
     if (savedSubs) {
@@ -36,23 +57,55 @@ const HodExams = () => {
     }
   }, [hod.dept]);
 
-  const saveAll = (list) => setExams(list);
+  const fetchExams = async () => {
+    try {
+      setLoading(true);
+      const res = await getExams();
+      if (res?.data) {
+        // filter by hod's department name
+        const filtered = res.data.filter(e => e.dept?.toLowerCase() === hod.dept?.toLowerCase());
+        setExams(filtered);
+      }
+    } catch (err) {
+      console.warn('API error fetching exams:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const openAdd = () => { setForm({ name:'Mid Term Test', subject:subjects[0]?.name||'', sem:'Sem 3', date:new Date().toISOString().split('T')[0], time:'10:00 AM – 12:00 PM', room:'', maxMarks:100 }); setEditId(null); setModal(true); };
-  const openEdit = (ex) => { setForm({ name:ex.name, subject:ex.subject, sem:ex.sem, date:ex.date, time:ex.time, room:ex.room, maxMarks:ex.maxMarks }); setEditId(ex.id); setModal(true); };
+  const openAdd = () => { setForm({ name:'Internal Assessment 1 (IA-1)', subject:subjects[0]?.name||'', sem:'Sem 3', date:new Date().toISOString().split('T')[0], time:'10:00 AM – 12:00 PM', room:'', maxMarks:100 }); setEditId(null); setModal(true); };
+  const openEdit = (ex) => { setForm({ name:ex.name, subject:ex.subject, sem:ex.sem || 'Sem 3', date:ex.date, time:ex.time, room:ex.room, maxMarks:ex.maxMarks }); setEditId(ex._id || ex.id); setModal(true); };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editId) {
-      saveAll(exams.map(ex => ex.id===editId ? { ...ex, ...form, maxMarks:Number(form.maxMarks), dept:hod.dept } : ex));
-    } else {
-      const id = `EXM${String(exams.length+1).padStart(3,'0')}`;
-      saveAll([...exams, { id, dept:hod.dept, ...form, maxMarks:Number(form.maxMarks) }]);
+    const payload = {
+      ...form,
+      dept: hod.dept,
+      maxMarks: Number(form.maxMarks)
+    };
+    try {
+      if (editId) {
+        await updateExam(editId, payload);
+      } else {
+        await createExam(payload);
+      }
+      fetchExams();
+    } catch (err) {
+      console.error('Error saving exam schedule:', err);
     }
     setModal(false);
   };
 
-  const handleDelete = (id) => { if(window.confirm('Delete this exam slot?')) saveAll(exams.filter(e=>e.id!==id)); };
+  const handleDelete = async (id) => {
+    if (window.confirm('Delete this exam slot?')) {
+      try {
+        await deleteExam(id);
+        fetchExams();
+      } catch (err) {
+        console.error('Error deleting exam slot:', err);
+      }
+    }
+  };
 
   const filtered = exams.filter(ex => {
     const q = search.toLowerCase();
@@ -83,7 +136,7 @@ const HodExams = () => {
               {filtered.length===0 ? (
                 <tr><td colSpan={8} className="text-center text-muted" style={{padding:'2rem'}}>No exams scheduled yet.</td></tr>
               ) : filtered.map(ex => (
-                <tr key={ex.id}>
+                <tr key={ex._id || ex.id}>
                   <td className="font-semibold">{ex.name}</td>
                   <td><div style={{display:'flex',alignItems:'center',gap:5}}><BookOpen size={13} className="text-muted"/><span>{ex.subject}</span></div></td>
                   <td><span className="badge-outline">{ex.sem}</span></td>
@@ -91,7 +144,7 @@ const HodExams = () => {
                   <td><div style={{display:'flex',alignItems:'center',gap:5}}><Clock size={13} className="text-muted"/><span className="text-sm font-semibold">{ex.time}</span></div></td>
                   <td><div style={{display:'flex',alignItems:'center',gap:5}}><MapPin size={13} className="text-muted"/><span style={{background:'rgba(59,130,246,0.1)',color:'#3b82f6',padding:'0.15rem 0.45rem',borderRadius:4,fontSize:'0.78rem',fontWeight:700}}>{ex.room}</span></div></td>
                   <td><span style={{background:'rgba(236,72,153,0.1)',color:'#ec4899',padding:'0.15rem 0.45rem',borderRadius:4,fontSize:'0.78rem',fontWeight:700}}>{ex.maxMarks} Marks</span></td>
-                  <td><div className="action-buttons"><button className="btn-icon" onClick={()=>openEdit(ex)}><Edit2 size={14}/></button><button className="btn-icon btn-icon-danger" onClick={()=>handleDelete(ex.id)}><Trash2 size={14}/></button></div></td>
+                  <td><div className="action-buttons"><button className="btn-icon" onClick={()=>openEdit(ex)}><Edit2 size={14}/></button><button className="btn-icon btn-icon-danger" onClick={()=>handleDelete(ex._id || ex.id)}><Trash2 size={14}/></button></div></td>
                 </tr>
               ))}
             </tbody>
@@ -105,7 +158,13 @@ const HodExams = () => {
             <div className="modal-header"><h2>{editId?'Edit Exam':'Schedule Exam'}</h2><button className="btn-icon" onClick={()=>setModal(false)}><X size={18}/></button></div>
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-grid">
-                <div className="form-group"><label>Exam Type</label><select value={form.name} onChange={e=>setForm({...form,name:e.target.value})}>{TYPES.map(t=><option key={t}>{t}</option>)}</select></div>
+                <div className="form-group"><label>Exam Type</label><select value={form.name} onChange={e=>setForm({...form,name:e.target.value})}>
+                  {EXAM_TYPES.map(group => (
+                    <optgroup key={group.category} label={group.category}>
+                      {group.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                    </optgroup>
+                  ))}
+                </select></div>
                 <div className="form-group"><label>Subject *</label>
                   {subjects.length>0 ? (
                     <select value={form.subject} onChange={e=>setForm({...form,subject:e.target.value})}><option value="">– Select –</option>{subjects.map(s=><option key={s.id} value={s.name}>{s.name} ({s.code})</option>)}</select>

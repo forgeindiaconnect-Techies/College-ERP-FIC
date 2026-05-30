@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
@@ -6,21 +6,38 @@ import {
 } from 'recharts';
 import {
   ClipboardList, BookOpen, AlertCircle, FileText, Bell,
-  Percent, Calendar, ShieldAlert
+  Percent, Calendar, ShieldAlert, Clock, MapPin, User
 } from 'lucide-react';
 import { 
   getStudentById, getAttendanceByStudent, 
-  getMarksByStudent, getFeesByStudent 
+  getMarksByStudent, getFeesByStudent, getExams 
 } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StudentDashboard.css';
 
 // Fallbacks
 const DEFAULT_STUDENT = {
   id: 'CS2022001',
   name: 'John Doe',
-  dept: 'Computer Science',
-  sem: 'Sem 6',
+  dept: 'Cyber Security',
+  sem: 'Sem 3',
   email: 'john@college.edu'
+};
+
+const PERIOD_TIMES = {
+  1: '09:00 AM - 10:00 AM',
+  2: '10:00 AM - 11:00 AM',
+  3: '11:15 AM - 12:15 PM',
+  4: '12:15 PM - 01:15 PM',
+  5: '02:00 PM - 03:00 PM',
+  6: '03:00 PM - 04:00 PM'
+};
+
+const getSubjectCode = (subject) => {
+  if (!subject) return 'GEN101';
+  const words = subject.split(' ');
+  if (words.length === 1) return subject.substring(0, 3).toUpperCase() + '101';
+  return words.map(w => w[0]).join('').toUpperCase() + '101';
 };
 
 const StudentDashboard = () => {
@@ -32,6 +49,8 @@ const StudentDashboard = () => {
   const [studentDetails, setStudentDetails] = useState(null);
   const [studentMarks, setStudentMarks] = useState(null);
   const [assignmentsCount, setAssignmentsCount] = useState(0);
+  const [exams, setExams] = useState([]);
+  const [todaySchedule, setTodaySchedule] = useState([]);
 
   useEffect(() => {
     const init = async () => {
@@ -47,31 +66,74 @@ const StudentDashboard = () => {
       }
 
       try {
+        const studentId = activeStud.referenceId || activeStud.id || activeStud._id;
+        studentIdRef.current = studentId; // track for real-time sync
         // Fetch real data in parallel
-        const [studentRes, marksRes, feesRes, attendanceRes] = await Promise.all([
-          getStudentById(activeStud.id).catch(() => null),
-          getMarksByStudent(activeStud.id).catch(() => null),
-          getFeesByStudent(activeStud.id).catch(() => null),
-          getAttendanceByStudent(activeStud.id).catch(() => null)
+        const [studentRes, marksRes, feesRes, attendanceRes, examsRes] = await Promise.all([
+          getStudentById(studentId).catch(() => null),
+          getMarksByStudent(studentId).catch(() => null),
+          getFeesByStudent(studentId).catch(() => null),
+          getAttendanceByStudent(studentId).catch(() => null),
+          getExams().catch(() => ({ data: [] }))
         ]);
 
         let dbRecord = studentRes?.data || null;
         if (!dbRecord) {
+          // Try to fetch from local storage if backend fails
+          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const localMatch = erpStudents.find(s => s.rollNo === activeStud.id || s.id === activeStud.id);
+          
+          let localAtt = 85;
+          if (localMatch && localMatch.attendance) {
+            const parsed = parseInt(String(localMatch.attendance).replace('%', '').trim());
+            if (!isNaN(parsed)) localAtt = parsed;
+          }
+
           dbRecord = {
             id: activeStud.id, name: activeStud.name, dept: activeStud.dept, sem: activeStud.sem,
-            attendance: 85, cgpa: 8.6, status: 'Active', feeStatus: 'Pending', email: activeStud.email
+            attendance: localAtt, cgpa: 8.6, status: 'Active', feeStatus: 'Pending', email: activeStud.email
           };
         }
+
+        // Dynamically override attendance if backend records exist
+        if (attendanceRes?.data && attendanceRes.data.length > 0) {
+          const presentDays = attendanceRes.data.filter(r => r.status.toLowerCase() === 'present').length;
+          dbRecord.attendance = Math.round((presentDays / attendanceRes.data.length) * 100);
+        }
+        
         setStudentDetails(dbRecord);
+
+        if (examsRes?.data) {
+          setExams(examsRes.data);
+        }
+
+        // Fetch timetable
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const todayName = dayNames[new Date().getDay()];
+        let savedTimetable = JSON.parse(localStorage.getItem('erp_timetable') || '[]');
+        
+        // Seed mock data if empty
+        if (savedTimetable.length === 0) {
+          savedTimetable = [
+            { dept: activeStud.dept, day: todayName, period: 1, subject: 'DBMS', faculty: 'Mr. Arun Kumar', classroom: 'Room A101' },
+            { dept: activeStud.dept, day: todayName, period: 2, subject: 'Computer Networks', faculty: 'Ms. Priya Sharma', classroom: 'Room A102' }
+          ];
+          localStorage.setItem('erp_timetable', JSON.stringify(savedTimetable));
+        }
+
+        const todayClasses = savedTimetable.filter(s => 
+          s.dept === activeStud.dept && s.day.toLowerCase() === todayName.toLowerCase()
+        ).sort((a, b) => Number(a.period) - Number(b.period));
+        
+        setTodaySchedule(todayClasses);
 
         // Calculate CGPA from marks, or fallback
         const marksData = marksRes?.data || [];
         let cgpaTrend = [8.2, 8.4, 8.5, 8.6];
-        let internal = 42, external = 85;
+        let internal = 0, external = 0;
         if (marksData.length > 0) {
-          // just mock the internal/external using the first mark record
-          internal = marksData[0].internalMarks || 42;
-          external = marksData[0].externalMarks || 85;
+          internal = marksData[0].internalMarks || 0;
+          external = marksData[0].semesterMarks || 0;
         }
 
         setStudentMarks({
@@ -90,12 +152,43 @@ const StudentDashboard = () => {
       } catch (err) {
         console.error('Failed to load student dashboard data:', err);
       } finally {
-        setAssignmentsCount(2); // Mock assignments
+        setAssignmentsCount(0);
         setLoading(false);
       }
     };
     init();
   }, [navigate]);
+
+  // Keep a ref to the last known student ID so we can refresh on data changes
+  const studentIdRef = useRef(null);
+  const refreshStudentData = useCallback(async () => {
+    const studentId = studentIdRef.current;
+    if (!studentId) return;
+    try {
+      const [marksRes, attendanceRes, feesRes] = await Promise.all([
+        getMarksByStudent(studentId).catch(() => null),
+        getAttendanceByStudent(studentId).catch(() => null),
+        getFeesByStudent(studentId).catch(() => null),
+      ]);
+      if (attendanceRes?.data && attendanceRes.data.length > 0) {
+        const presentDays = attendanceRes.data.filter(r => r.status.toLowerCase() === 'present').length;
+        const att = Math.round((presentDays / attendanceRes.data.length) * 100);
+        setStudentDetails(prev => prev ? { ...prev, attendance: att } : prev);
+      }
+      const marksData = marksRes?.data || [];
+      if (marksData.length > 0) {
+        setStudentMarks({ internal: marksData[0].internalMarks || 42, external: marksData[0].externalMarks || 85, trend: [8.2, 8.4, 8.5, 8.6] });
+      }
+      const feesData = feesRes?.data || [];
+      const pendingFee = feesData.find(f => f.status === 'Pending');
+      setStudentDetails(prev => prev ? { ...prev, feeStatus: pendingFee ? 'Pending' : 'Paid' } : prev);
+    } catch (err) {
+      console.warn('Background refresh error:', err.message);
+    }
+  }, []);
+
+  // Auto-refresh when marks, attendance, or fees data changes
+  useRealtimeSync(refreshStudentData, ['marks', 'attendance', 'fees']);
 
   if (loading || !studentDetails) {
     return (
@@ -105,28 +198,27 @@ const StudentDashboard = () => {
     );
   }
 
+  // Filter exams for student's department and semester
+  const studDept = studentDetails?.department || studentDetails?.dept || studentSession?.department || studentSession?.dept || 'Cyber Security';
+  const studSem = studentDetails?.sem || studentDetails?.semester || studentSession?.sem || studentSession?.semester || 'Sem 3';
+  
+  const myExams = exams.filter(ex => 
+    ex.dept?.toLowerCase() === studDept.toLowerCase() &&
+    ex.sem?.toLowerCase() === studSem.toLowerCase()
+  );
+
   // Attendance Trend Data (Past 5 weeks)
-  const attendanceTrendData = [
-    { name: 'Week 1', rate: 80 },
-    { name: 'Week 2', rate: 82 },
-    { name: 'Week 3', rate: 81 },
-    { name: 'Week 4', rate: 85 },
-    { name: 'Week 5', rate: studentDetails.attendance }
-  ];
+  const attendanceTrendData = [];
 
   // CGPA trend across semesters
-  const trendData = studentMarks?.trend || [8.2, 8.4, 8.5, 8.6];
+  const trendData = studentMarks?.trend || [];
   const cgpaTrendData = trendData.map((val, idx) => ({
     name: `Sem ${idx + 1}`,
     CGPA: val
   }));
 
-  // Internal vs External Marks data (Mocking a couple of subjects they are taking)
-  const performanceData = [
-    { subject: 'Core Subject 1', Internals: studentMarks?.internal || 42, Externals: (studentMarks?.external || 85) / 2 },
-    { subject: 'Elective 1', Internals: Math.round((studentMarks?.internal || 42) * 0.9), Externals: Math.round((studentMarks?.external || 85) * 0.95 / 2) },
-    { subject: 'Lab Core', Internals: Math.round((studentMarks?.internal || 42) * 1.1), Externals: Math.round((studentMarks?.external || 85) * 1.05 / 2) }
-  ];
+  // Performance Internals vs Externals
+  const performanceData = [];
 
   return (
     <div className="student-dashboard animate-fade-in">
@@ -178,8 +270,10 @@ const StudentDashboard = () => {
           <div className="metric-icon-s purple"><Calendar size={22} /></div>
           <div className="s-metric-details">
             <span className="card-title-s">Upcoming Exams</span>
-            <h2 className="metric-value-s">2 Exams</h2>
-            <div className="metric-sub-s text-muted">Starts May 28, 2026</div>
+            <h2 className="metric-value-s">{myExams.length} Exams</h2>
+            <div className="metric-sub-s text-muted">
+              {myExams.length > 0 ? `Next: ${myExams[0].date}` : 'No active exams'}
+            </div>
           </div>
         </div>
 
@@ -263,22 +357,75 @@ const StudentDashboard = () => {
         </div>
       </div>
 
-      {/* Announcements Panel */}
-      <div className="glass-card announcements-card-student">
-        <div className="announcements-header">
-          <h3><Bell size={18} className="text-primary-s" /> Campus Alerts & Board</h3>
-          <span className="notif-pill">2 NEW</span>
-        </div>
-        <div className="announcement-list">
-          <div className="announcement-item">
-            <span className="ann-date">21-May-2026</span>
-            <h4 className="ann-title">Semester Fee Payment Portal Open</h4>
-            <p className="ann-desc">Ensure you pay your semester examination and tuition fees before May 28 to avoid late penalties and register for tests.</p>
+      {/* Announcements & Timetables Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
+        
+        {/* Today's Class Schedule Panel */}
+        <div className="glass-card announcements-card-student" style={{ marginTop: 0, gridColumn: '1 / -1' }}>
+          <div className="announcements-header">
+            <div>
+              <h3><Clock size={18} className="text-primary-s" style={{ display: 'inline', marginRight: '6px' }} /> Today's Class Schedule</h3>
+              <p className="text-muted" style={{ fontSize: '0.8rem', marginTop: '4px' }}>
+                {new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' })} • {studentDetails.dept} • {studentDetails.sem}
+              </p>
+            </div>
+            <span className="notif-pill" style={{ background: 'rgba(20, 184, 166, 0.1)', color: '#14b8a6' }}>{todaySchedule.length} CLASSES</span>
           </div>
-          <div className="announcement-item">
-            <span className="ann-date">18-May-2026</span>
-            <h4 className="ann-title">Project Submissions Deadline Extended</h4>
-            <p className="ann-desc">HOD has extended the submission date for the Computer Science DBMS coursework to May 25, 2026.</p>
+          <div className="announcement-list" style={{ display: 'grid', gap: '1rem', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))' }}>
+            {todaySchedule.length === 0 ? (
+              <p className="text-muted text-center" style={{ padding: '2rem', gridColumn: '1 / -1' }}>No classes scheduled for today. Enjoy your day off!</p>
+            ) : (
+              todaySchedule.map((slot, i) => (
+                <div key={i} className="announcement-item" style={{ borderLeft: '4px solid #14b8a6', padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                    <h4 className="ann-title" style={{ fontSize: '1.05rem', color: 'var(--text-main)', margin: 0 }}>{slot.subject}</h4>
+                    <span style={{ fontSize: '0.75rem', background: 'rgba(20, 184, 166, 0.1)', color: '#14b8a6', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>{getSubjectCode(slot.subject)}</span>
+                  </div>
+                  <div className="ann-desc" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><User size={14} style={{ color: 'var(--text-main)' }} /> <strong>{slot.faculty}</strong></span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><Clock size={14} /> {PERIOD_TIMES[slot.period] || `Period ${slot.period}`}</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}><MapPin size={14} /> {slot.classroom || 'Main Block LH-1'}</span>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Announcements Panel */}
+        <div className="glass-card announcements-card-student" style={{ marginTop: 0 }}>
+          <div className="announcements-header">
+            <h3><Bell size={18} className="text-primary-s" /> Campus Alerts & Board</h3>
+            <span className="notif-pill">2 NEW</span>
+          </div>
+          <div className="announcement-list">
+            <p className="text-muted text-center" style={{ padding: '2rem' }}>No announcements available.</p>
+          </div>
+        </div>
+
+        {/* Dynamic Exams Timetable Card */}
+        <div className="glass-card announcements-card-student" style={{ marginTop: 0 }}>
+          <div className="announcements-header">
+            <h3><Calendar size={18} style={{ color: '#8b5cf6' }} /> Scheduled Examinations</h3>
+            <span className="notif-pill" style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6' }}>
+              {myExams.length} ACTIVE
+            </span>
+          </div>
+          <div className="announcement-list" style={{ maxHeight: '220px', overflowY: 'auto' }}>
+            {myExams.length === 0 ? (
+              <p className="text-muted text-center" style={{ padding: '2rem' }}>No exams scheduled for your semester.</p>
+            ) : (
+              myExams.map((ex, i) => (
+                <div key={ex._id || ex.id || i} className="announcement-item" style={{ borderLeft: '3px solid #8b5cf6', paddingLeft: '0.75rem' }}>
+                  <span className="ann-date" style={{ color: '#8b5cf6', fontWeight: 700 }}>{ex.name} ({ex.sem || 'Sem 3'})</span>
+                  <h4 className="ann-title" style={{ fontSize: '0.9rem', marginTop: '2px' }}>{ex.subject}</h4>
+                  <p className="ann-desc" style={{ fontSize: '0.78rem', marginTop: '4px', color: 'var(--text-muted)' }}>
+                    ⏱ Time: <strong>{ex.time}</strong> <br />
+                    📅 Date: <strong>{ex.date}</strong> · 📍 Hall: <strong>{ex.room || ex.hall || 'Main Hall'}</strong>
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

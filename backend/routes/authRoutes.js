@@ -11,7 +11,8 @@ dotenv.config({ path: join(__dirname, '../.env') });
 import Student from '../models/Student.js';
 import Staff from '../models/Staff.js';
 import Department from '../models/Department.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, authorize } from '../middleware/authMiddleware.js';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
@@ -27,7 +28,8 @@ router.post('/login', async (req, res) => {
   const { email, password } = req.body;
 
   try {
-    const user = await User.findOne({ email });
+    // Case-insensitive search for email to prevent login failures due to capitalization
+    const user = await User.findOne({ email: { $regex: new RegExp(`^${email.trim()}$`, 'i') } });
 
     if (user && (await user.matchPassword(password))) {
       res.json({
@@ -79,6 +81,63 @@ router.get('/me', protect, (req, res) => {
     department: req.user.department,
     referenceId: req.user.referenceId
   });
+});
+
+// Dev Only: Repair orphaned users
+router.get('/repair-users', async (req, res) => {
+  try {
+    let repaired = 0;
+    const students = await Student.find();
+    for (const student of students) {
+      if (!student.email) continue;
+      const u = await User.findOne({ email: { $regex: new RegExp(`^${student.email.trim()}$`, 'i') } });
+      if (!u) {
+        await User.create({
+          name: student.name, email: student.email, password: 'password123',
+          role: 'Student', department: student.dept, referenceId: student.id
+        });
+        repaired++;
+      } else {
+        u.role = 'Student';
+        u.password = 'password123';
+        u.markModified('password');
+        await u.save();
+        repaired++;
+      }
+    }
+
+    const staffMembers = await Staff.find();
+    for (const stf of staffMembers) {
+      if (!stf.email) continue;
+      const u = await User.findOne({ email: { $regex: new RegExp(`^${stf.email.trim()}$`, 'i') } });
+      if (!u) {
+        await User.create({
+          name: stf.name, email: stf.email, password: 'password123',
+          role: stf.designation === 'HOD' ? 'HOD' : 'Staff', department: stf.dept, referenceId: stf.id
+        });
+        repaired++;
+      } else {
+        u.role = stf.designation === 'HOD' ? 'HOD' : 'Staff';
+        u.password = 'password123';
+        u.markModified('password');
+        await u.save();
+        repaired++;
+      }
+    }
+    res.json({ message: `Repaired ${repaired} users.` });
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Dev Only: Inspect specific users
+router.get('/check-users', async (req, res) => {
+  try {
+    const users = await User.find({ email: /pooja|gowtham/i });
+    res.json(users);
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Dev Only: Seed Demo Users + Students + Staff + Departments
@@ -205,18 +264,15 @@ router.get('/users', protect, async (req, res) => {
   }
 });
 
-// CREATE a user (Admin only)
-router.post('/users', protect, async (req, res) => {
+// CREATE a user
+router.post('/users', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
   try {
-    if (req.user.role !== 'Admin') {
-      return res.status(403).json({ message: 'Access denied: Admin only' });
-    }
-    const { name, email, password, role, department, referenceId, parentOf, studentId, subjects } = req.body;
+    const { name, email, password, role, department, referenceId, parentOf, studentId, subjects, phone } = req.body;
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
-    const user = new User({ name, email, password, role, department, referenceId, parentOf, studentId, subjects });
+    const user = new User({ name, email, password, role, department, referenceId, parentOf, studentId, subjects, phone });
     const saved = await user.save();
     const response = saved.toObject();
     delete response.password;
@@ -226,13 +282,10 @@ router.post('/users', protect, async (req, res) => {
   }
 });
 
-// UPDATE a user (Admin only)
-router.put('/users/:id', protect, async (req, res) => {
+// UPDATE a user
+router.put('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
   try {
-    if (req.user.role !== 'Admin') {
-      return res.status(403).json({ message: 'Access denied: Admin only' });
-    }
-    const { name, email, role, department, referenceId, parentOf, studentId, subjects, password } = req.body;
+    const { name, email, role, department, referenceId, parentOf, studentId, subjects, password, phone } = req.body;
     const user = await User.findById(req.params.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -245,6 +298,7 @@ router.put('/users/:id', protect, async (req, res) => {
     user.parentOf = parentOf !== undefined ? parentOf : user.parentOf;
     user.studentId = studentId !== undefined ? studentId : user.studentId;
     user.subjects = subjects !== undefined ? subjects : user.subjects;
+    if (phone !== undefined) user.phone = phone;
     
     if (password) {
       user.password = password; // Hashing triggers on pre-save hook
@@ -259,12 +313,9 @@ router.put('/users/:id', protect, async (req, res) => {
   }
 });
 
-// DELETE a user (Admin only)
-router.delete('/users/:id', protect, async (req, res) => {
+// DELETE a user
+router.delete('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
   try {
-    if (req.user.role !== 'Admin') {
-      return res.status(403).json({ message: 'Access denied: Admin only' });
-    }
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });

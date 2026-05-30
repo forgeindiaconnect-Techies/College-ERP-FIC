@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getAssignments, submitAssignment as apiSubmitAssignment, getStudentSubmissions } from '../../api/index';
 import { ClipboardList, Calendar, Users, X, CheckCircle, FileText, ArrowLeft, UploadCloud } from 'lucide-react';
 import './StudentAssignments.css';
 
@@ -26,39 +27,62 @@ const StudentAssignments = () => {
   const [success, setSuccess] = useState(false);
 
   useEffect(() => {
-    // 1. Session check
-    const session = sessionStorage.getItem('student_session');
-    let activeStud = DEFAULT_STUDENT;
-    if (session) {
-      activeStud = JSON.parse(session);
-      setStudentSession(activeStud);
-    } else {
-      navigate('/student/login');
-      return;
-    }
+    const init = async () => {
+      const session = sessionStorage.getItem('student_session');
+      let activeStud = DEFAULT_STUDENT;
+      if (session) {
+        activeStud = JSON.parse(session);
+        setStudentSession(activeStud);
+      } else {
+        navigate('/student/login');
+        return;
+      }
 
-    // 2. Load assignments matching this student's class semester (e.g. Sem 6)
-    const savedAssignments = localStorage.getItem('erp_assignments');
-    let filtered = [];
-    if (savedAssignments) {
-      filtered = JSON.parse(savedAssignments).filter(a =>
-        a.class.toLowerCase() === activeStud.sem.toLowerCase()
-      );
-    } else {
-      // Fallback
-      filtered = [
-        { id: '2', subject: 'DBMS', class: 'Sem 6', title: 'SQL Join Queries Practice', description: 'Complete the SQL exercises sheet on nested queries and multi-table joins.', dueDate: '2026-05-25', submissionsCount: 8, faculty: 'Dr. Ananya Rao' }
-      ];
-    }
-    setAssignments(filtered);
+      let studentSem = activeStud.sem;
+      let studentDept = activeStud.dept;
+      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const localMatch = erpStudents.find(s => s.id === activeStud.id || s.rollNo === activeStud.id);
+      
+      if (localMatch) {
+        if (!studentSem && (localMatch.sem || localMatch.semester)) {
+          studentSem = localMatch.sem || localMatch.semester;
+        }
+        if (localMatch.dept || localMatch.department) {
+          studentDept = localMatch.dept || localMatch.department;
+        }
+      }
 
-    // Load any submitted states from localStorage for persistence
-    const savedSubmissions = localStorage.getItem(`erp_student_submissions_${activeStud.id}`);
-    if (savedSubmissions) {
-      setSubmittedTasks(JSON.parse(savedSubmissions));
-    }
+      studentSem = studentSem || 'Sem 1';
+      console.log('Fetching assignments for:', studentDept, studentSem);
 
-    setLoading(false);
+      try {
+        const res = await getAssignments();
+        console.log('All Assignments:', res.data);
+        
+        // Filter locally to allow demo testing across departments
+        const filtered = (res.data || []).filter(a => {
+          // Relaxed for demo: allow them to see it regardless of department so they can test the flow
+          return true;
+        });
+        
+        console.log('Filtered Assignments for student:', filtered);
+        setAssignments(filtered);
+        
+        const subRes = await getStudentSubmissions(activeStud.id);
+        const subDict = {};
+        if (subRes.data) {
+          subRes.data.forEach(s => {
+            subDict[s.assignmentId] = s;
+          });
+        }
+        setSubmittedTasks(subDict);
+      } catch (err) {
+        console.warn('Failed to load DB assignments');
+      } finally {
+        setLoading(false);
+      }
+    };
+    init();
   }, [navigate]);
 
   const openSubmit = (task) => {
@@ -73,26 +97,33 @@ const StudentAssignments = () => {
     setActiveTask(null);
   };
 
-  const handleMockSubmit = (e) => {
+  const handleMockSubmit = async (e) => {
     e.preventDefault();
     if (!activeTask) return;
 
-    const newSubmissions = {
-      ...submittedTasks,
-      [activeTask.id]: {
-        fileName: fileName || 'assignment_submission.pdf',
-        submittedAt: new Date().toISOString().split('T')[0]
-      }
-    };
+    try {
+      const payload = {
+        studentId: studentSession.id,
+        studentName: studentSession.name,
+        department: studentSession.dept,
+        fileName: fileName || 'assignment_submission.pdf'
+      };
+      
+      const res = await apiSubmitAssignment(activeTask._id || activeTask.id, payload);
+      
+      setSubmittedTasks(prev => ({
+        ...prev,
+        [activeTask._id || activeTask.id]: res.data
+      }));
 
-    setSubmittedTasks(newSubmissions);
-    localStorage.setItem(`erp_student_submissions_${studentSession.id}`, JSON.stringify(newSubmissions));
-
-    setSuccess(true);
-    setTimeout(() => {
-      closeSubmit();
-      setSuccess(false);
-    }, 800);
+      setSuccess(true);
+      setTimeout(() => {
+        closeSubmit();
+        setSuccess(false);
+      }, 800);
+    } catch (err) {
+      alert('Error submitting assignment');
+    }
   };
 
   return (
@@ -126,11 +157,12 @@ const StudentAssignments = () => {
           </div>
         ) : (
           assignments.map(a => {
-            const isSubmitted = !!submittedTasks[a.id];
-            const subData = submittedTasks[a.id];
+            const assignmentId = a._id || a.id;
+            const isSubmitted = !!submittedTasks[assignmentId];
+            const subData = submittedTasks[assignmentId];
 
             return (
-              <div key={a.id} className="glass-card s-assignment-card">
+              <div key={assignmentId} className="glass-card s-assignment-card">
                 <div className="s-assignment-header">
                   <span className="subject-code-tag">{a.subject}</span>
                   <span className={`status-pill ${isSubmitted ? 'submitted' : 'pending'}`}>
@@ -153,9 +185,14 @@ const StudentAssignments = () => {
                   </div>
 
                   {isSubmitted ? (
-                    <div className="submitted-file-info">
-                      <FileText size={13} />
-                      <span>{subData.fileName}</span>
+                    <div className="submitted-file-info" style={{ display: 'flex', alignItems: 'center', gap: '0.8rem' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-main)', background: 'var(--bg-secondary)', padding: '0.4rem 0.8rem', borderRadius: '6px', fontSize: '0.85rem' }}>
+                        <FileText size={14} className="text-primary-s" />
+                        <span>{subData.fileName}</span>
+                      </div>
+                      <button className="btn-ghost" style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem', color: 'var(--primary)' }} onClick={() => openSubmit(a)}>
+                        Resubmit
+                      </button>
                     </div>
                   ) : (
                     <button className="btn-submit-task" onClick={() => openSubmit(a)}>

@@ -37,11 +37,11 @@ const StudentAttendance = () => {
     const loadAttendance = async () => {
       try {
         const res = await getAttendanceByStudent(activeStud.id || activeStud.referenceId || activeStud._id);
-        if (res?.data) {
+        if (res?.data && res.data.length > 0) {
           const records = res.data;
           const presentCount = records.filter(r => r.status?.toLowerCase() === 'present').length;
           const totalDays = records.length;
-          const percent = totalDays > 0 ? Math.round((presentCount / totalDays) * 100) : 85;
+          const percent = Math.round((presentCount / totalDays) * 100);
 
           setAttendancePercent(percent);
 
@@ -53,6 +53,14 @@ const StudentAttendance = () => {
           // Sort descending by date
           logs.sort((a, b) => new Date(b.date) - new Date(a.date));
           setAttendanceLogs(logs);
+        } else {
+          // Fallback to local percentage if no daily logs exist
+          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const localMatch = erpStudents.find(s => s.rollNo === activeStud.id || s.id === activeStud.id);
+          if (localMatch && localMatch.attendance) {
+            const parsed = parseInt(String(localMatch.attendance).replace('%', '').trim());
+            if (!isNaN(parsed)) setAttendancePercent(parsed);
+          }
         }
       } catch (err) {
         console.error('Failed to fetch backend student attendance:', err);

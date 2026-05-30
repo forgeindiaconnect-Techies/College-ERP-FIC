@@ -15,7 +15,8 @@ import {
   Briefcase,
   Settings,
   ClipboardList,
-  CheckSquare
+  CheckSquare,
+  ShieldAlert
 } from 'lucide-react';
 import '../../components/layout/Sidebar.css';
 
@@ -50,11 +51,13 @@ const PrincipalSidebar = ({ isOpen, onClose }) => {
     { name: 'Students Overview', path: '/principal/students', icon: <Users size={18} /> },
     { name: 'Attendance Analytics', path: '/principal/attendance', icon: <CalendarCheck size={18} /> },
     { name: 'Exam & Results', path: '/principal/exams', icon: <FileBarChart size={18} /> },
+    { name: 'Assignments', path: '/principal/assignments', icon: <ClipboardList size={18} /> },
     { name: 'Fees Overview', path: '/principal/fees', icon: <ClipboardList size={18} /> },
     { name: 'Communication Center', path: '/principal/communication', icon: <Megaphone size={18} /> },
     { name: 'Meetings & Events', path: '/principal/meetings', icon: <CalendarDays size={18} /> },
     { name: 'Academic Planning', path: '/principal/academic-planning', icon: <CalendarCheck size={18} /> },
     { name: 'Faculty Performance', path: '/principal/faculty-performance', icon: <UserCheck size={18} /> },
+    { name: 'Student Welfare & Discipline', path: '/principal/student-welfare', icon: <ShieldAlert size={18} /> },
     { name: 'Reports', path: '/principal/reports', icon: <ClipboardList size={19} /> },
     { name: 'Placements', path: '/principal/placement', icon: <Briefcase size={19} /> },
     { name: 'Settings', path: '/principal/settings', icon: <Settings size={18} /> }

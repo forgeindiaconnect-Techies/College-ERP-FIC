@@ -41,7 +41,7 @@ const SubAdminNotifications = () => {
   useEffect(() => {
     // Simulate fetch
     setTimeout(() => {
-      setNotifications(MOCK_HISTORY);
+      setNotifications([]);
       setLoading(false);
     }, 400);
   }, []);

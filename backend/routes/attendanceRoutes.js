@@ -32,12 +32,16 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'St
 // Get attendance for a specific student
 router.get('/student/:studentId', protect, async (req, res) => {
   try {
+    console.log(`[GET /student/:studentId] Request for: ${req.params.studentId}. User role: ${req.user.role}, Ref ID: ${req.user.referenceId}`);
     if ((req.user.role === 'Student' || req.user.role === 'Parent') && req.user.referenceId !== req.params.studentId) {
+      console.log('=> 403 Forbidden: Unauthorized');
       return res.status(403).json({ message: 'Unauthorized to view this record' });
     }
     const records = await Attendance.find({ studentId: req.params.studentId }).sort({ date: -1 });
+    console.log(`=> Found ${records.length} records`);
     res.json(records);
   } catch (err) {
+    console.log(`=> 500 Error: ${err.message}`);
     res.status(500).json({ message: err.message });
   }
 });
@@ -45,22 +49,44 @@ router.get('/student/:studentId', protect, async (req, res) => {
 // Record new attendance (Single or Bulk)
 router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), async (req, res) => {
   try {
+    console.log(`[POST /attendance] Received payload:`, JSON.stringify(req.body));
     if (Array.isArray(req.body)) {
-      // Bulk insert
-      const newRecords = await Attendance.insertMany(req.body);
+      // Bulk upsert to prevent duplicates for same student, date, and subject
+      const bulkOps = req.body.map(record => {
+        // Strip time to ensure consistent exact matching
+        const exactDate = new Date(record.date);
+        exactDate.setUTCHours(0, 0, 0, 0);
+        record.date = exactDate; // ensure the record saves with this normalized date
+        
+        return {
+          updateOne: {
+            filter: {
+              studentId: record.studentId,
+              subject: record.subject,
+              date: exactDate
+            },
+            update: { $set: record },
+            upsert: true
+          }
+        };
+      });
+      
+      const result = await Attendance.bulkWrite(bulkOps);
+      console.log(`=> Upserted ${result.upsertedCount} new, modified ${result.modifiedCount} records`);
       
       // Update student percentages (get unique student IDs)
-      const studentIds = [...new Set(newRecords.map(r => r.studentId))];
+      const studentIds = [...new Set(req.body.map(r => r.studentId))];
       for (const id of studentIds) {
         await updateStudentAttendancePercentage(id);
       }
-      
-      return res.status(201).json(newRecords);
+      req.app.get('io').emit('dataUpdated', { module: 'attendance', action: 'created' });
+      return res.status(201).json({ message: 'Attendance records saved successfully' });
     } else {
       // Single insert
       const attendance = new Attendance(req.body);
       const newRecord = await attendance.save();
       await updateStudentAttendancePercentage(newRecord.studentId);
+      req.app.get('io').emit('dataUpdated', { module: 'attendance', action: 'created' });
       return res.status(201).json(newRecord);
     }
   } catch (err) {
@@ -75,6 +101,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 
     if (updatedRecord) {
       await updateStudentAttendancePercentage(updatedRecord.studentId);
     }
+    req.app.get('io').emit('dataUpdated', { module: 'attendance', action: 'updated' });
     res.json(updatedRecord);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -89,6 +116,7 @@ router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD
       await Attendance.findByIdAndDelete(req.params.id);
       await updateStudentAttendancePercentage(record.studentId);
     }
+    req.app.get('io').emit('dataUpdated', { module: 'attendance', action: 'deleted' });
     res.json({ message: 'Attendance record deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

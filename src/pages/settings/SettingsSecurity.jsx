@@ -275,12 +275,97 @@ const SettingsSecurity = () => {
           </div>
         )}
 
-        {/* Placeholders for remaining tabs to keep UI clean */}
-        {['Role Permissions', 'Communications', 'Data Privacy'].includes(activeTab) && (
-          <div className="animate-fade-in p-12 text-center">
-            <ShieldCheck size={48} className="text-muted opacity-50 mx-auto mb-4"/>
-            <h2 className="text-xl font-bold mb-2">{activeTab} Module</h2>
-            <p className="text-muted max-w-md mx-auto">This section provides advanced configuration options for {activeTab.toLowerCase()}. Settings here are applied globally across the ERP architecture.</p>
+        {activeTab === 'Role Permissions' && (
+          <div className="animate-fade-in p-6">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-xl font-bold mb-1">Role Matrix Configuration</h2>
+                <p className="text-sm text-muted">Quick overview of role capabilities. For detailed configuration, visit the main Permissions module.</p>
+              </div>
+              <a href="/admin/permissions" className="btn-secondary">Advanced Permissions</a>
+            </div>
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Module</th>
+                    <th>Sub-Admin</th>
+                    <th>Principal</th>
+                    <th>HOD</th>
+                    <th>Staff</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="font-bold">Student Records</td>
+                    <td><span className="text-green-500 font-bold">View/Edit</span></td>
+                    <td><span className="text-blue-500 font-bold">View Only</span></td>
+                    <td><span className="text-blue-500 font-bold">View Only</span></td>
+                    <td><span className="text-muted">No Access</span></td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold">Fee Management</td>
+                    <td><span className="text-muted">No Access</span></td>
+                    <td><span className="text-blue-500 font-bold">View Only</span></td>
+                    <td><span className="text-muted">No Access</span></td>
+                    <td><span className="text-muted">No Access</span></td>
+                  </tr>
+                  <tr>
+                    <td className="font-bold">Attendance</td>
+                    <td><span className="text-green-500 font-bold">View/Edit</span></td>
+                    <td><span className="text-blue-500 font-bold">View Only</span></td>
+                    <td><span className="text-green-500 font-bold">View/Edit</span></td>
+                    <td><span className="text-green-500 font-bold">View/Edit</span></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'Communications' && (
+          <div className="animate-fade-in p-6">
+            <h2 className="text-xl font-bold mb-2">Notification & Alert Rules</h2>
+            <p className="text-muted text-sm mb-6">Control global communication channels for automated ERP alerts.</p>
+            
+            <div className="setting-row">
+              <div className="setting-info">
+                <h4><Mail size={14} className="inline mr-2 text-primary" />Email Broadcasting</h4>
+                <p>Send fee reminders, result declarations, and absence alerts to registered emails.</p>
+              </div>
+              <Toggle checked={settings.emailNotifications} onChange={() => handleToggle('emailNotifications')} />
+            </div>
+
+            <div className="setting-row">
+              <div className="setting-info">
+                <h4><Smartphone size={14} className="inline mr-2 text-success" />SMS Gateway Integration</h4>
+                <p>Dispatch critical low-attendance and pending-fee warnings via SMS.</p>
+              </div>
+              <Toggle checked={settings.smsNotifications} onChange={() => handleToggle('smsNotifications')} />
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'Data Privacy' && (
+          <div className="animate-fade-in p-6">
+            <h2 className="text-xl font-bold mb-2">Privacy & Compliance</h2>
+            <p className="text-muted text-sm mb-6">Manage data retention policies and user privacy settings.</p>
+            
+            <div className="setting-row">
+              <div className="setting-info">
+                <h4>Student Data Masking</h4>
+                <p>Mask sensitive student information (like phone numbers) from staff members.</p>
+              </div>
+              <Toggle checked={true} onChange={() => {}} />
+            </div>
+
+            <div className="setting-row">
+              <div className="setting-info">
+                <h4>Auto-Delete Alumni Logs</h4>
+                <p>Automatically purge activity logs of graduated students after 1 year.</p>
+              </div>
+              <Toggle checked={false} onChange={() => {}} />
+            </div>
           </div>
         )}
 

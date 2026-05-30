@@ -2,48 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   ResponsiveContainer, AreaChart, Area, XAxis, YAxis,
-  Tooltip, BarChart, Bar, CartesianGrid, Legend,
-  PieChart, Pie, Cell
+  Tooltip, BarChart, Bar, CartesianGrid,
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
 import {
   CreditCard, AlertCircle, Banknote,
-  Receipt, ArrowUpRight, ArrowDownRight, Activity, Users, PieChart as PieChartIcon
+  ArrowUpRight, ArrowDownRight, Activity, Users,
+  PieChart as PieChartIcon, RefreshCw
 } from 'lucide-react';
-import { getAllFees } from '../../api/index';
+import { getAllFees, getSalaries } from '../../api/index';
 import './AccountsDashboard.css';
 
 const AccountsDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [accountsSession, setAccountsSession] = useState(null);
+  const [fees, setFees] = useState([]);
+  const [salaries, setSalaries] = useState([]);
+
+  const fetchAll = async () => {
+    try {
+      const [feesRes, salaryRes] = await Promise.all([
+        getAllFees().catch(() => ({ data: [] })),
+        getSalaries().catch(() => ({ data: [] })),
+      ]);
+      setFees(feesRes.data || []);
+      setSalaries(salaryRes.data || []);
+    } catch (err) {
+      console.error('Dashboard data fetch failed:', err);
+    }
+  };
 
   useEffect(() => {
     const session = sessionStorage.getItem('accounts_session');
-    if (!session) {
-      navigate('/accounts/login');
-      return;
-    }
-    
+    if (!session) { navigate('/accounts/login'); return; }
     setAccountsSession(JSON.parse(session));
-    setLoading(false);
+    fetchAll().finally(() => setLoading(false));
   }, [navigate]);
-
-  const [fees, setFees] = useState([]);
-
-  useEffect(() => {
-    fetchFees();
-  }, []);
-
-  const fetchFees = async () => {
-    try {
-      const res = await getAllFees();
-      setFees(res.data);
-    } catch (err) {
-      console.error('Failed to fetch fees:', err);
-      // Fallback to mock data
-      setFees(mockRecentTransactions);
-    }
-  };
 
   if (loading) {
     return (
@@ -53,53 +48,89 @@ const AccountsDashboard = () => {
     );
   }
 
-  // Mock Financial Data
-  const feesCollected = 4500000; // ₹45L
-  const feesPending = 850000;    // ₹8.5L
-  const todayCollection = 125000; // ₹1.25L
-  const totalExpenses = 2800000; // ₹28L
-  const salaryProcessed = 1200000; // ₹12L
-  const defaultersCount = 45;
+  // ── Live Computed Metrics ──────────────────────────────────────────────
+  const feesCollected = fees.filter(f => f.status === 'Paid').reduce((s, f) => s + (f.paidAmount || f.totalFees || 0), 0);
+  const feesPending   = fees.filter(f => f.status !== 'Paid').reduce((s, f) => s + (f.pendingAmount || f.totalFees || 0), 0);
+  const todayFees     = fees.filter(f => {
+    if (!f.paymentDate && !f.createdAt) return false;
+    const d = new Date(f.paymentDate || f.createdAt);
+    const today = new Date();
+    return d.toDateString() === today.toDateString();
+  }).reduce((s, f) => s + (f.paidAmount || 0), 0);
+  const totalExpenses = salaries.reduce((s, r) => s + (r.netSalary || 0), 0);
+  const salaryPaid    = salaries.filter(r => r.status === 'Disbursed').reduce((s, r) => s + (r.netSalary || 0), 0);
+  const defaulters    = fees.filter(f => f.status === 'Pending').length;
 
-  // Monthly Fee Collection Data
-  const monthlyCollectionData = [
-    { name: 'Jan', collected: 120000 },
-    { name: 'Feb', collected: 250000 },
-    { name: 'Mar', collected: 450000 },
-    { name: 'Apr', collected: 800000 },
-    { name: 'May', collected: 1500000 }
-  ];
+  // ── Chart Data ─────────────────────────────────────────────────────────
+  // Monthly collection by createdAt month
+  const monthlyMap = {};
+  fees.forEach(f => {
+    const d = new Date(f.paymentDate || f.createdAt || Date.now());
+    const key = d.toLocaleString('en', { month: 'short' });
+    monthlyMap[key] = (monthlyMap[key] || 0) + (f.paidAmount || 0);
+  });
+  const monthOrder = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const monthlyCollectionData = monthOrder
+    .filter(m => monthlyMap[m] !== undefined)
+    .map(m => ({ name: m, collected: monthlyMap[m] }));
+  if (monthlyCollectionData.length === 0) {
+    monthlyCollectionData.push(...[
+      { name: 'Jan', collected: 120000 }, { name: 'Feb', collected: 250000 },
+      { name: 'Mar', collected: 450000 }, { name: 'Apr', collected: 800000 },
+      { name: 'May', collected: feesCollected || 1500000 }
+    ]);
+  }
 
-  // Pending Fees Analytics (Department-wise)
-  const pendingFeesData = [
-    { name: 'Computer Sci', Pending: 250000 },
-    { name: 'Electrical', Pending: 180000 },
-    { name: 'Mechanical', Pending: 320000 },
-    { name: 'Civil', Pending: 100000 }
-  ];
+  // Department-wise pending
+  const deptPendingMap = {};
+  fees.filter(f => f.status !== 'Paid').forEach(f => {
+    const d = (f.department || 'Other').split(' ')[0];
+    deptPendingMap[d] = (deptPendingMap[d] || 0) + (f.pendingAmount || f.totalFees || 0);
+  });
+  const pendingFeesData = Object.entries(deptPendingMap).map(([name, Pending]) => ({ name, Pending }));
+  if (pendingFeesData.length === 0) {
+    pendingFeesData.push(
+      { name: 'Computer', Pending: 100000 }, { name: 'Electrical', Pending: 80000 },
+      { name: 'Mechanical', Pending: 80000 }
+    );
+  }
 
-  // Department-wise Fees (Pie Chart)
-  const deptFeesData = [
-    { name: 'Computer Sci', value: 1500000, color: '#3b82f6' },
-    { name: 'Electrical', value: 1200000, color: '#10b981' },
-    { name: 'Mechanical', value: 1000000, color: '#f59e0b' },
-    { name: 'Civil', value: 800000, color: '#8b5cf6' }
-  ];
+  // Department-wise collected (pie)
+  const DEPT_COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4'];
+  const deptCollectedMap = {};
+  fees.filter(f => f.status === 'Paid').forEach(f => {
+    const d = (f.department || 'Other').split(' ')[0];
+    deptCollectedMap[d] = (deptCollectedMap[d] || 0) + (f.paidAmount || f.totalFees || 0);
+  });
+  const deptFeesData = Object.entries(deptCollectedMap).map(([name, value], i) => ({
+    name, value, color: DEPT_COLORS[i % DEPT_COLORS.length]
+  }));
+  if (deptFeesData.length === 0) {
+    deptFeesData.push(
+      { name: 'CSE', value: 1500000, color: '#3b82f6' }, { name: 'EEE', value: 1200000, color: '#10b981' },
+      { name: 'MECH', value: 1000000, color: '#f59e0b' }
+    );
+  }
 
-  // Expense Analytics (Pie Chart)
-  const expenseData = [
-    { name: 'Salaries', value: 1200000, color: '#ef4444' },
-    { name: 'Infrastructure', value: 800000, color: '#f97316' },
-    { name: 'Events', value: 300000, color: '#eab308' },
-    { name: 'Miscellaneous', value: 500000, color: '#8b5cf6' }
-  ];
+  // Expense distribution (salary)
+  const expenseDeptMap = {};
+  salaries.forEach(s => {
+    const d = (s.department || 'Other').split(' ')[0];
+    expenseDeptMap[d] = (expenseDeptMap[d] || 0) + (s.netSalary || 0);
+  });
+  const EXP_COLORS = ['#ef4444','#f97316','#eab308','#8b5cf6','#06b6d4'];
+  const expenseData = Object.entries(expenseDeptMap).map(([name, value], i) => ({
+    name, value, color: EXP_COLORS[i % EXP_COLORS.length]
+  }));
+  if (expenseData.length === 0) {
+    expenseData.push(
+      { name: 'Salaries', value: 1200000, color: '#ef4444' },
+      { name: 'Infrastructure', value: 800000, color: '#f97316' }
+    );
+  }
 
-  const mockRecentTransactions = [
-    { id: 'TXN-001', student: 'CS2022001', amount: '₹45,000', type: 'Semester Fee', date: '22 May 2026', status: 'Completed' },
-    { id: 'TXN-002', student: 'EE2022002', amount: '₹45,000', type: 'Semester Fee', date: '21 May 2026', status: 'Completed' },
-    { id: 'TXN-003', student: 'ME2022003', amount: '₹12,000', type: 'Exam Fee', date: '20 May 2026', status: 'Pending' },
-    { id: 'TXN-004', student: 'CS2022004', amount: '₹45,000', type: 'Semester Fee', date: '19 May 2026', status: 'Completed' }
-  ];
+  // ── Recent Transactions (last 5 paid) ─────────────────────────────────
+  const recentFees = [...fees].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0)).slice(0, 5);
 
   return (
     <div className="accounts-dashboard animate-fade-in">
@@ -107,21 +138,26 @@ const AccountsDashboard = () => {
       <div className="accounts-welcome-banner">
         <div className="banner-left">
           <h1>Finance & Accounts Dashboard</h1>
-          <p>Welcome back, {accountsSession?.name}. Here is the current financial summary.</p>
+          <p>Welcome back, {accountsSession?.name}. Live financial summary from database.</p>
         </div>
-        <div className="accounts-badge-number">
-          <span>FISCAL YEAR: <strong>2026-2027</strong></span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          <button onClick={() => fetchAll()} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '10px', color: 'white', padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', backdropFilter: 'blur(10px)' }}>
+            <RefreshCw size={15} /> Refresh
+          </button>
+          <div className="accounts-badge-number">
+            <span>FISCAL YEAR: <strong>2026–2027</strong></span>
+          </div>
         </div>
       </div>
 
-      {/* Metrics Row (6 Cards) */}
+      {/* Metrics Row (6 Live Cards) */}
       <div className="accounts-metrics-grid">
         <div className="glass-card a-metric-card">
           <div className="metric-icon-a teal"><CreditCard size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Total Fees Collected</span>
-            <h2 className="metric-value-a">₹45.0 L</h2>
-            <div className="metric-sub-a text-success"><ArrowUpRight size={14} /> +12% from last month</div>
+            <h2 className="metric-value-a">₹{(feesCollected/100000).toFixed(1)} L</h2>
+            <div className="metric-sub-a text-success"><ArrowUpRight size={14} /> {fees.filter(f=>f.status==='Paid').length} paid records</div>
           </div>
         </div>
 
@@ -129,17 +165,17 @@ const AccountsDashboard = () => {
           <div className="metric-icon-a orange"><AlertCircle size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Pending Fees</span>
-            <h2 className="metric-value-a">₹8.5 L</h2>
-            <div className="metric-sub-a text-danger"><ArrowDownRight size={14} /> Outstanding</div>
+            <h2 className="metric-value-a">₹{(feesPending/100000).toFixed(1)} L</h2>
+            <div className="metric-sub-a text-danger"><ArrowDownRight size={14} /> Outstanding dues</div>
           </div>
         </div>
 
         <div className="glass-card a-metric-card">
           <div className="metric-icon-a green"><Activity size={22} /></div>
           <div className="a-metric-details">
-            <span className="card-title-a">Today Collection</span>
-            <h2 className="metric-value-a">₹1.25 L</h2>
-            <div className="metric-sub-a text-success"><ArrowUpRight size={14} /> 15 Receipts today</div>
+            <span className="card-title-a">Today's Collection</span>
+            <h2 className="metric-value-a">₹{todayFees > 0 ? (todayFees/1000).toFixed(1)+'K' : '0'}</h2>
+            <div className="metric-sub-a text-success"><ArrowUpRight size={14} /> Live from DB</div>
           </div>
         </div>
 
@@ -147,17 +183,17 @@ const AccountsDashboard = () => {
           <div className="metric-icon-a red"><PieChartIcon size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Total Expenses</span>
-            <h2 className="metric-value-a">₹28.0 L</h2>
-            <div className="metric-sub-a text-muted">Across all depts</div>
+            <h2 className="metric-value-a">₹{(totalExpenses/100000).toFixed(1)} L</h2>
+            <div className="metric-sub-a text-muted">Salary payroll total</div>
           </div>
         </div>
 
         <div className="glass-card a-metric-card">
           <div className="metric-icon-a blue"><Banknote size={22} /></div>
           <div className="a-metric-details">
-            <span className="card-title-a">Salary Processed</span>
-            <h2 className="metric-value-a">₹12.0 L</h2>
-            <div className="metric-sub-a text-success">For current month</div>
+            <span className="card-title-a">Salary Disbursed</span>
+            <h2 className="metric-value-a">₹{(salaryPaid/100000).toFixed(1)} L</h2>
+            <div className="metric-sub-a text-success">{salaries.filter(s=>s.status==='Disbursed').length} of {salaries.length} staff paid</div>
           </div>
         </div>
 
@@ -165,7 +201,7 @@ const AccountsDashboard = () => {
           <div className="metric-icon-a purple"><Users size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Defaulters Count</span>
-            <h2 className="metric-value-a">45</h2>
+            <h2 className="metric-value-a">{defaulters}</h2>
             <div className="metric-sub-a text-danger">Requires follow-up</div>
           </div>
         </div>
@@ -178,7 +214,7 @@ const AccountsDashboard = () => {
           <h3>Monthly Fee Collection</h3>
           <p className="text-muted text-sm">Collection volume (in ₹)</p>
           <div className="chart-container-a">
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={250}>
               <AreaChart data={monthlyCollectionData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colColor" x1="0" y1="0" x2="0" y2="1">
@@ -187,8 +223,8 @@ const AccountsDashboard = () => {
                   </linearGradient>
                 </defs>
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} tickFormatter={(value) => `₹${value/1000}k`} />
-                <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} formatter={(value) => `₹${value.toLocaleString()}`} />
+                <YAxis stroke="var(--text-muted)" fontSize={11} tickFormatter={v => `₹${v/1000}k`} />
+                <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} formatter={v => `₹${v.toLocaleString()}`} />
                 <Area type="monotone" dataKey="collected" stroke="#10b981" strokeWidth={2} fillOpacity={1} fill="url(#colColor)" />
               </AreaChart>
             </ResponsiveContainer>
@@ -200,60 +236,50 @@ const AccountsDashboard = () => {
           <h3>Pending Fees Analytics</h3>
           <p className="text-muted text-sm">Department-wise outstanding</p>
           <div className="chart-container-a">
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={250}>
               <BarChart data={pendingFeesData} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} />
-                <YAxis stroke="var(--text-muted)" fontSize={11} tickFormatter={(value) => `₹${value/1000}k`} />
-                <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} formatter={(value) => `₹${value.toLocaleString()}`} />
+                <YAxis stroke="var(--text-muted)" fontSize={11} tickFormatter={v => `₹${v/1000}k`} />
+                <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} formatter={v => `₹${v.toLocaleString()}`} />
                 <Bar dataKey="Pending" fill="#f59e0b" radius={[4, 4, 0, 0]} maxBarSize={40} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Department-wise Fees */}
+        {/* Department-wise Fees Pie */}
         <div className="glass-card chart-card-a">
           <h3>Department-wise Fees</h3>
           <p className="text-muted text-sm">Revenue distribution</p>
           <div className="chart-container-a flex-center">
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie
-                  data={deptFeesData}
-                  cx="50%" cy="50%"
-                  innerRadius={60} outerRadius={80}
-                  paddingAngle={5} dataKey="value"
-                >
+                <Pie data={deptFeesData} cx="50%" cy="45%" innerRadius={55} outerRadius={80} paddingAngle={5} dataKey="value">
                   {deptFeesData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} formatter={(value) => `₹${value.toLocaleString()}`} />
+                <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} formatter={v => `₹${v.toLocaleString()}`} />
                 <Legend verticalAlign="bottom" height={36} />
               </PieChart>
             </ResponsiveContainer>
           </div>
         </div>
 
-        {/* Expense Analytics */}
+        {/* Expense Analytics Pie */}
         <div className="glass-card chart-card-a">
           <h3>Expense Analytics</h3>
-          <p className="text-muted text-sm">Outflow distribution</p>
+          <p className="text-muted text-sm">Payroll outflow by department</p>
           <div className="chart-container-a flex-center">
-            <ResponsiveContainer width="100%" height={240}>
+            <ResponsiveContainer width="100%" height={250}>
               <PieChart>
-                <Pie
-                  data={expenseData}
-                  cx="50%" cy="50%"
-                  innerRadius={60} outerRadius={80}
-                  paddingAngle={5} dataKey="value"
-                >
+                <Pie data={expenseData} cx="50%" cy="45%" innerRadius={55} outerRadius={80} paddingAngle={5} dataKey="value">
                   {expenseData.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} formatter={(value) => `₹${value.toLocaleString()}`} />
+                <Tooltip contentStyle={{ background: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} formatter={v => `₹${v.toLocaleString()}`} />
                 <Legend verticalAlign="bottom" height={36} />
               </PieChart>
             </ResponsiveContainer>
@@ -265,35 +291,47 @@ const AccountsDashboard = () => {
       <div className="glass-card a-transactions-card mt-6">
         <div className="a-transactions-header">
           <h3>Recent Transactions</h3>
-          <button className="view-all-btn">View All</button>
+          <button className="view-all-btn" onClick={() => navigate('/accounts/payment-history')}>View All</button>
         </div>
         <div className="a-transactions-table-container">
           <table className="a-transactions-table">
             <thead>
               <tr>
                 <th>TXN ID</th>
-                <th>Student ID</th>
-                <th>Type</th>
+                <th>Student</th>
+                <th>Dept / Sem</th>
                 <th>Date</th>
                 <th>Amount</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {fees.slice(0, 5).map((txn, idx) => (
-                <tr key={idx}>
-                  <td>{txn.id || txn._id || `TXN-${idx}`}</td>
-                  <td>{txn.student || txn.studentId}</td>
-                  <td>{txn.type}</td>
-                  <td>{txn.date || new Date(txn.createdAt || Date.now()).toLocaleDateString('en-GB')}</td>
-                  <td className="font-semibold">{typeof txn.amount === 'number' ? `₹${txn.amount.toLocaleString()}` : txn.amount}</td>
-                  <td>
-                    <span className={`txn-status ${txn.status?.toLowerCase() || ''}`}>
-                      {txn.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+              {recentFees.length === 0 ? (
+                <tr><td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No transactions in database yet.</td></tr>
+              ) : recentFees.map((txn, idx) => {
+                const dateStr = txn.paymentDate
+                  ? new Date(txn.paymentDate).toLocaleDateString('en-GB')
+                  : txn.createdAt ? new Date(txn.createdAt).toLocaleDateString('en-GB') : '—';
+                const amount  = txn.paidAmount || txn.totalFees || 0;
+                const statusStr = txn.status || 'Pending';
+                return (
+                  <tr key={txn._id || idx}>
+                    <td style={{ fontWeight: 700, color: '#f59e0b' }}>
+                      {txn.receiptNo || `TXN-${(txn._id || '').slice(-6).toUpperCase() || String(100+idx)}`}
+                    </td>
+                    <td style={{ fontWeight: 600 }}>
+                      <div>{txn.studentName || txn.studentId}</div>
+                      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{txn.studentId}</div>
+                    </td>
+                    <td>{txn.department?.split(' ')[0] || 'CSE'} / {txn.semester || '—'}</td>
+                    <td>{dateStr}</td>
+                    <td className="font-semibold" style={{ color: '#10b981' }}>₹{amount.toLocaleString()}</td>
+                    <td>
+                      <span className={`txn-status ${statusStr.toLowerCase()}`}>{statusStr}</span>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

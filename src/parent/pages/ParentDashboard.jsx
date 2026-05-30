@@ -10,7 +10,7 @@ import {
   Percent, Calendar, ShieldAlert
 } from 'lucide-react';
 import { 
-  getStudentById, getFeesByStudent, getMarksByStudent
+  getStudentById, getFeesByStudent, getMarksByStudent, getExams
 } from '../../api/index';
 import './ParentDashboard.css';
 
@@ -19,6 +19,7 @@ const ParentDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [parentSession, setParentSession] = useState(null);
   const [childDetails, setChildDetails] = useState(null);
+  const [exams, setExams] = useState([]);
 
   useEffect(() => {
     const init = async () => {
@@ -32,10 +33,11 @@ const ParentDashboard = () => {
       setParentSession(parsedSession);
 
       try {
-        const [studentRes, feesRes, marksRes] = await Promise.all([
+        const [studentRes, feesRes, marksRes, examsRes] = await Promise.all([
           getStudentById(parsedSession.childId).catch(() => null),
           getFeesByStudent(parsedSession.childId).catch(() => null),
-          getMarksByStudent(parsedSession.childId).catch(() => null)
+          getMarksByStudent(parsedSession.childId).catch(() => null),
+          getExams().catch(() => ({ data: [] }))
         ]);
 
         let dbRecord = studentRes?.data || null;
@@ -49,7 +51,7 @@ const ParentDashboard = () => {
         // Apply CGPA if marks exist
         if (marksRes?.data?.length > 0) {
           const m = marksRes.data[0];
-          dbRecord.cgpa = m.total ? (m.total / 10).toFixed(2) : 8.6;
+          dbRecord.cgpa = m.totalMarks ? (m.totalMarks / 10).toFixed(2) : 8.6;
         }
 
         // Apply Fee Status
@@ -57,13 +59,17 @@ const ParentDashboard = () => {
         const pendingFee = feesData.find(f => f.status === 'Pending');
         if (pendingFee) {
           dbRecord.feeStatus = 'Pending';
-          dbRecord.pendingAmount = pendingFee.amount;
+          dbRecord.pendingAmount = pendingFee.pendingAmount;
         } else {
           dbRecord.feeStatus = 'Paid';
           dbRecord.pendingAmount = 0;
         }
 
         setChildDetails(dbRecord);
+
+        if (examsRes?.data) {
+          setExams(examsRes.data);
+        }
       } catch (err) {
         console.error('Failed to load parent dashboard data:', err);
       } finally {
@@ -80,6 +86,9 @@ const ParentDashboard = () => {
       </div>
     );
   }
+
+  // Filter child's department exams
+  const childExams = exams.filter(ex => ex.dept?.toLowerCase() === childDetails?.dept?.toLowerCase());
 
   // Attendance Trend Data
   const attendanceTrendData = [
@@ -157,8 +166,10 @@ const ParentDashboard = () => {
           <div className="metric-icon-p purple"><Calendar size={22} /></div>
           <div className="p-metric-details">
             <span className="card-title-p">Upcoming Exams</span>
-            <h2 className="metric-value-p">2 Exams</h2>
-            <div className="metric-sub-p text-muted">Starts May 28, 2026</div>
+            <h2 className="metric-value-p">{childExams.length} Exams</h2>
+            <div className="metric-sub-p text-muted">
+              {childExams.length > 0 ? `Next: ${childExams[0].date}` : 'No active exams'}
+            </div>
           </div>
         </div>
 
@@ -250,22 +261,51 @@ const ParentDashboard = () => {
         </div>
       </div>
 
-      {/* Notifications Panel */}
-      <div className="glass-card p-announcements-card">
-        <div className="p-announcements-header">
-          <h3><Bell size={18} className="text-primary-p" /> Important Notifications</h3>
-          <span className="p-notif-pill">1 NEW</span>
-        </div>
-        <div className="p-announcement-list">
-          <div className="p-announcement-item">
-            <span className="p-ann-date">22-May-2026</span>
-            <h4 className="p-ann-title">Upcoming Parent-Teacher Meeting</h4>
-            <p className="p-ann-desc">A meeting has been scheduled for June 5th to discuss your child's mid-semester performance and academic track.</p>
+      {/* Dynamic Exam Schedule & Notifications Grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
+        {/* Notifications Panel */}
+        <div className="glass-card p-announcements-card" style={{ marginTop: 0 }}>
+          <div className="p-announcements-header">
+            <h3><Bell size={18} className="text-primary-p" /> Important Notifications</h3>
+            <span className="p-notif-pill">1 NEW</span>
           </div>
-          <div className="p-announcement-item">
-            <span className="p-ann-date">15-May-2026</span>
-            <h4 className="p-ann-title">Semester Fee Deadline</h4>
-            <p className="p-ann-desc">Please clear the pending semester fees before May 28 to ensure your child receives their examination hall ticket.</p>
+          <div className="p-announcement-list">
+            <div className="p-announcement-item">
+              <span className="p-ann-date">22-May-2026</span>
+              <h4 className="p-ann-title">Upcoming Parent-Teacher Meeting</h4>
+              <p className="p-ann-desc">A meeting has been scheduled for June 5th to discuss your child's mid-semester performance and academic track.</p>
+            </div>
+            <div className="p-announcement-item">
+              <span className="p-ann-date">15-May-2026</span>
+              <h4 className="p-ann-title">Semester Fee Deadline</h4>
+              <p className="p-ann-desc">Please clear the pending semester fees before May 28 to ensure your child receives their examination hall ticket.</p>
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Exams Timetable Card */}
+        <div className="glass-card p-announcements-card" style={{ marginTop: 0 }}>
+          <div className="p-announcements-header">
+            <h3><Calendar size={18} style={{ color: '#8b5cf6' }} /> Child's Examination Timetable</h3>
+            <span className="p-notif-pill" style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6' }}>
+              {childExams.length} ACTIVE
+            </span>
+          </div>
+          <div className="p-announcement-list" style={{ maxHeight: '220px', overflowY: 'auto' }}>
+            {childExams.length === 0 ? (
+              <p className="text-muted text-center" style={{ padding: '2rem' }}>No examinations scheduled currently.</p>
+            ) : (
+              childExams.map((ex, i) => (
+                <div key={ex._id || ex.id || i} className="p-announcement-item" style={{ borderLeft: '3px solid #8b5cf6', paddingLeft: '0.75rem' }}>
+                  <span className="p-ann-date" style={{ color: '#8b5cf6', fontWeight: 700 }}>{ex.name} ({ex.sem || 'Sem 3'})</span>
+                  <h4 className="p-ann-title" style={{ fontSize: '0.9rem', marginTop: '2px' }}>{ex.subject}</h4>
+                  <p className="p-ann-desc" style={{ fontSize: '0.78rem', marginTop: '4px', color: 'var(--text-muted)' }}>
+                    📅 Date: <strong>{ex.date}</strong> · ⏱ Time: <strong>{ex.time}</strong> <br />
+                    📍 Venue Hall: <strong>{ex.room || ex.hall || 'Main Hall'}</strong> ({ex.maxMarks} Marks)
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </div>

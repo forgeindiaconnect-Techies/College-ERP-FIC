@@ -133,20 +133,28 @@ const FeesManagement = () => {
       const [studentsRes, feesRes] = await Promise.all([ getStudents(), getAllFees() ]);
       const studentList = studentsRes.data;
       const feesList = feesRes.data;
-      let dataToUse = feesList.length > 0 ? feesList : MOCK_FEES;
-      const studentMap = Object.fromEntries(studentList.map(s => [s.id, s]));
+      const feeMap = Object.fromEntries(
+        (feesList.length > 0 ? feesList : MOCK_FEES).map(f => [f.studentId || f.id, f])
+      );
       
-      const mergedRecords = dataToUse.map(f => {
-        const s = studentMap[f.studentId] || studentMap[f.id];
+      const mergedRecords = studentList.map(s => {
+        const f = feeMap[s.id] || {};
+        const feeStatus = s.feeStatus || f.status || 'Pending';
+        const semesterFee = f.semesterFee || 75000;
+        
+        let paid = f.paid || 0;
+        if (feeStatus === 'Paid' || feeStatus === 'Waived') paid = semesterFee;
+        else if (feeStatus === 'Partial' && paid === 0) paid = semesterFee / 2;
+        
         return {
-          ...f,
-          name: s?.name || f.name || 'Unknown',
-          dept: s?.dept || f.dept || 'Unknown',
-          sem: s?.sem || f.sem || 'Unknown',
-          semesterFee: f.totalFees || f.semesterFee || 0,
+          id: s.id,
+          name: s.name,
+          dept: s.dept,
+          sem: s.sem,
+          semesterFee: semesterFee,
           fine: f.fine || 0,
-          paid: f.paidAmount || f.paid || 0,
-          status: f.status || 'Pending',
+          paid: paid,
+          status: feeStatus,
           payments: f.payments || []
         };
       });

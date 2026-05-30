@@ -8,9 +8,24 @@ import {
 import './HodSidebar.css';
 
 const DEPT_CODE_MAP = {
+  'Computer Science Engineering': 'CSE',
+  'Information Technology': 'IT',
+  'Electronics & Communication Engineering': 'ECE',
+  'Electrical & Electronics Engineering': 'EEE',
+  'Mechanical Engineering': 'MECH',
+  'Civil Engineering': 'CIVIL',
+  'Artificial Intelligence & Data Science': 'AIDS',
+  'Artificial Intelligence & Machine Learning': 'AIML',
+  'Cyber Security': 'CYBER',
+  'Biomedical Engineering': 'BME',
+  'Aeronautical Engineering': 'AERO',
+  'Automobile Engineering': 'AUTO',
+  'Robotics Engineering': 'ROBOTICS',
+  'Chemical Engineering': 'CHEM',
+  'Biotechnology Engineering': 'BIOTECH',
   'Computer Science': 'CSE',
   'Electronics & Comm.': 'ECE',
-  'Electrical & Electronics': 'EEE',
+  'Electrical Engg.': 'EE',
   'Mechanical Engg.': 'MECH',
   'Bachelor of Computer App.': 'BCA',
   'Master of Business Admin.': 'MBA'
@@ -34,6 +49,7 @@ const HodSidebar = () => {
     { name: 'Students', path: '/hod/students', icon: <Users size={20} /> },
     { name: 'Staff', path: '/hod/staff', icon: <GraduationCap size={20} /> },
     { name: 'Subjects', path: '/hod/subjects', icon: <BookOpen size={20} /> },
+    { name: 'Assignments', path: '/hod/assignments', icon: <FileText size={20} /> },
     { name: 'Attendance', path: '/hod/attendance', icon: <CalendarCheck size={20} /> },
     { name: 'Timetable', path: '/hod/timetable', icon: <Calendar size={20} /> },
     { name: 'Leave Approvals', path: '/hod/leaves', icon: <Inbox size={20} /> },

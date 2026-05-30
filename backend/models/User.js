@@ -22,6 +22,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  phone: {
+    type: String,
+    default: null
+  },
   department: {
     type: String,
     default: null  // For HOD/Staff: their assigned department (e.g. 'Computer Science')

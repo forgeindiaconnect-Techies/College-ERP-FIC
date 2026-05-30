@@ -1,49 +1,71 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, CheckCircle, XCircle } from 'lucide-react';
+import { CalendarCheck, ShieldAlert, CheckCircle, Search, ArrowLeft, Calendar } from 'lucide-react';
 import { getAttendanceByStudent } from '../../api/index';
+import '../../student/pages/StudentAttendance.css';
+
+// Fallbacks
+const DEFAULT_PARENT_SESSION = {
+  id: 'P001',
+  name: 'James Doe',
+  childName: 'John Doe',
+  referenceId: 'CS2022001',
+  email: 'parent_john@college.edu'
+};
 
 const ParentAttendance = () => {
   const navigate = useNavigate();
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [parentSession, setParentSession] = useState(DEFAULT_PARENT_SESSION);
+
+  // Dynamic state
   const [attendancePercent, setAttendancePercent] = useState(85);
-  const [presentDays, setPresentDays] = useState(0);
-  const [absentDays, setAbsentDays] = useState(0);
   const [attendanceLogs, setAttendanceLogs] = useState([]);
 
   useEffect(() => {
-    const s = sessionStorage.getItem('parent_session');
-    if (!s) {
+    // 1. Session check
+    const session = sessionStorage.getItem('parent_session');
+    let activeSession = DEFAULT_PARENT_SESSION;
+    if (session) {
+      activeSession = JSON.parse(session);
+      setParentSession(activeSession);
+    } else {
       navigate('/parent/login');
       return;
     }
-    const parsedSession = JSON.parse(s);
-    setSession(parsedSession);
 
     const loadAttendance = async () => {
       try {
-        const res = await getAttendanceByStudent(parsedSession.childId || parsedSession.referenceId || parsedSession._id || parsedSession.id);
-        if (res?.data) {
+        const studentId = activeSession.parentOf || activeSession.referenceId || activeSession.childId;
+        const res = await getAttendanceByStudent(studentId);
+        
+        if (res?.data && res.data.length > 0) {
           const records = res.data;
           const presentCount = records.filter(r => r.status?.toLowerCase() === 'present').length;
           const totalDays = records.length;
-          const percent = totalDays > 0 ? Math.round((presentCount / totalDays) * 100) : 85;
+          const percent = Math.round((presentCount / totalDays) * 100);
 
           setAttendancePercent(percent);
-          setPresentDays(presentCount);
-          setAbsentDays(totalDays - presentCount);
 
           const logs = records.map(r => ({
             date: new Date(r.date).toLocaleDateString('en-CA'),
-            status: r.status || 'Present',
-            remarks: r.status?.toLowerCase() === 'absent' ? 'Absent recorded by faculty' : '-'
+            subject: r.subject || 'All Subjects',
+            status: r.status?.toLowerCase() || 'present'
           }));
+          // Sort descending by date
           logs.sort((a, b) => new Date(b.date) - new Date(a.date));
           setAttendanceLogs(logs);
+        } else {
+          // Fallback to local percentage if no daily logs exist
+          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const localMatch = erpStudents.find(s => s.rollNo === studentId || s.id === studentId);
+          if (localMatch && localMatch.attendance) {
+            const parsed = parseInt(String(localMatch.attendance).replace('%', '').trim());
+            if (!isNaN(parsed)) setAttendancePercent(parsed);
+          }
         }
       } catch (err) {
-        console.error('Failed to load child attendance for parent:', err);
+        console.error('Failed to fetch backend child attendance for parent:', err);
       } finally {
         setLoading(false);
       }
@@ -53,73 +75,89 @@ const ParentAttendance = () => {
   }, [navigate]);
 
   return (
-    <div className="animate-fade-in p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-[var(--text-main)] flex items-center gap-2">
-          <Calendar size={24} className="text-[#10b981]" /> Child Attendance Record
-        </h1>
-        <p className="text-[var(--text-muted)] mt-1">
-          Detailed view of {session?.childName || 'your child'}'s daily attendance.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="glass-card p-6 flex flex-col gap-2">
-          <span className="text-[var(--text-muted)] text-sm">Overall Attendance</span>
-          <span className="text-3xl font-bold text-[#10b981]">{attendancePercent}%</span>
-        </div>
-        <div className="glass-card p-6 flex flex-col gap-2">
-          <span className="text-[var(--text-muted)] text-sm">Days Present (This Sem)</span>
-          <span className="text-3xl font-bold text-[var(--text-main)]">{presentDays}</span>
-        </div>
-        <div className="glass-card p-6 flex flex-col gap-2">
-          <span className="text-[var(--text-muted)] text-sm">Days Absent (This Sem)</span>
-          <span className="text-3xl font-bold text-[#ef4444]">{absentDays}</span>
+    <div className="student-attendance-page animate-fade-in">
+      <div className="page-header-student">
+        <div className="header-left-s">
+          <button className="btn-back-s" onClick={() => navigate('/parent/dashboard')}>
+            <ArrowLeft size={16} /> Back
+          </button>
+          <div>
+            <h1>Child Attendance History</h1>
+            <p className="text-muted">Track {parentSession.childName || 'your child'}'s daily roll call sheets and aggregate metrics.</p>
+          </div>
         </div>
       </div>
 
-      <div className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-[var(--border-color)]">
-          <h3 className="font-semibold text-[var(--text-main)]">Recent Logs</h3>
+      {/* Aggregate Banner */}
+      <div className="glass-card attendance-hero-card">
+        <div className="hero-progress-circle-wrapper">
+          <div className="hero-progress-text">
+            <h2>{attendancePercent}%</h2>
+            <span>Attendance</span>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+        <div className="hero-details">
+          <h3>Your Child's Attendance Summary</h3>
+          <p className="text-muted">You can monitor their registered attendance levels for the current semester here.</p>
+          <div className="summary-status-tag-row">
+            {attendancePercent >= 75 ? (
+              <span className="badge-success-s"><CheckCircle size={14} /> Safe Zone</span>
+            ) : (
+              <span className="badge-danger-s"><ShieldAlert size={14} /> Shortage Warning (Below 75%)</span>
+            )}
+            <span className="badge-neutral-s">Required: 75%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Table Section */}
+      <div className="glass-card table-section-card-s">
+        <div className="table-header-row-s">
+          <h3>Daily Log Sheet</h3>
+          <div className="search-box-attendance">
+            <Search size={16} className="search-icon" />
+            <input type="text" placeholder="Search by subject or date..." disabled style={{ opacity: 0.6 }} />
+          </div>
+        </div>
+
+        <div className="table-container-s">
+          <table>
             <thead>
-              <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] text-sm">
-                <th className="p-4 font-medium">Date</th>
-                <th className="p-4 font-medium">Status</th>
-                <th className="p-4 font-medium">Remarks</th>
+              <tr>
+                <th>#</th>
+                <th>Date</th>
+                <th>Subject Taught</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={3} className="p-4 text-center">
-                    <span className="student-spinner">Loading child logs...</span>
-                  </td>
-                </tr>
+                Array.from({ length: 4 }).map((_, i) => (
+                  <tr key={i}>
+                    {Array.from({ length: 4 }).map((_, j) => (
+                      <td key={j}><div className="skeleton" style={{ height: '20px', borderRadius: '4px' }}></div></td>
+                    ))}
+                  </tr>
+                ))
               ) : attendanceLogs.length === 0 ? (
                 <tr>
-                  <td colSpan={3} className="p-4 text-center text-[var(--text-muted)]">
-                    No child daily attendance logs logged yet.
-                  </td>
+                  <td colSpan={4} className="text-center py-4">No daily logs found.</td>
                 </tr>
               ) : (
-                attendanceLogs.map((log, i) => (
-                  <tr key={i} className="border-b border-[var(--border-color)] last:border-0 hover:bg-[var(--bg-secondary)] transition-colors">
-                    <td className="p-4 text-[var(--text-main)] font-medium">{log.date}</td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-semibold ${
-                        log.status?.toLowerCase() === 'present' ? 'bg-[#10b981]/10 text-[#10b981]' : 
-                        log.status?.toLowerCase() === 'absent' ? 'bg-[#ef4444]/10 text-[#ef4444]' : 'bg-[#3b82f6]/10 text-[#3b82f6]'
-                      }`}>
-                        {log.status?.toLowerCase() === 'present' && <CheckCircle size={14} />}
-                        {log.status?.toLowerCase() === 'absent' && <XCircle size={14} />}
-                        {log.status}
-                      </span>
+                attendanceLogs.map((log, idx) => (
+                  <tr key={idx}>
+                    <td className="text-muted">{idx + 1}</td>
+                    <td>
+                      <div className="date-cell">
+                        <Calendar size={13} className="text-muted" />
+                        <span>{log.date}</span>
+                      </div>
                     </td>
-                    <td className="p-4 text-[var(--text-muted)] text-sm">
-                      {log.remarks}
+                    <td><span className="font-semibold">{log.subject}</span></td>
+                    <td>
+                      <span className={`status-badge-cell ${log.status}`}>
+                        {log.status === 'present' ? '✓ Present' : '⚠ Absent'}
+                      </span>
                     </td>
                   </tr>
                 ))

@@ -52,8 +52,8 @@ const StaffTimetable = () => {
   const staffName = staffSession.name;
   const staffDept = staffSession.dept;
 
-  // Filter timetable slots assigned to this staff member
-  const mySchedule = timetable.filter(s => s.faculty === staffName);
+  // Filter timetable slots assigned to this staff member's department
+  const mySchedule = timetable.filter(s => s.dept === staffDept);
 
   // Helper to find slot for a specific day and period
   const getSlot = (day, period) => {
@@ -68,8 +68,8 @@ const StaffTimetable = () => {
             <ArrowLeft size={16} /> Back
           </button>
           <div>
-            <h1>Personal Schedule</h1>
-            <p className="text-muted">View your weekly teaching hours, assigned classrooms, and lectures.</p>
+            <h1>Department Timetable</h1>
+            <p className="text-muted">View the complete weekly schedule for your department.</p>
           </div>
         </div>
       </div>

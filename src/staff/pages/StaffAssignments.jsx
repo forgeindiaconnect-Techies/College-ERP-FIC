@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getAssignments, createAssignment, getAssignmentSubmissions, getStudents } from '../../api/index';
 import {
   ClipboardList, Plus, Search, Calendar, Users, FileText,
   Trash2, X, CheckCircle, ArrowLeft, AlertCircle, BookOpen
@@ -13,18 +14,6 @@ const DEFAULT_SESSION = {
   deptCode: 'CS',
   role: 'Staff',
   subjects: ['Data Structures', 'DBMS']
-};
-
-const SUBJECT_TO_CLASS = {
-  'Data Structures': 'Sem 3',
-  'DBMS': 'Sem 6',
-  'OS': 'Sem 4',
-  'Machine Learning': 'Sem 6',
-  'Circuits': 'Sem 4',
-  'Networks': 'Sem 4',
-  'Thermodynamics': 'Sem 2',
-  'Fluid Mechanics': 'Sem 2',
-  'Structural Analysis': 'Sem 8'
 };
 
 const MOCK_ASSIGNMENTS = [
@@ -43,8 +32,15 @@ const StaffAssignments = () => {
 
   // Modal create states
   const [modalOpen, setModalOpen] = useState(false);
-  const [form, setForm] = useState({ title: '', subject: '', description: '', dueDate: '' });
+  const [form, setForm] = useState({ title: '', subject: '', targetClass: 'Sem 1', description: '', dueDate: '' });
   const [saved, setSaved] = useState(false);
+
+  const [viewingAssignment, setViewingAssignment] = useState(null);
+  const [submissionsModalOpen, setSubmissionsModalOpen] = useState(false);
+  const [assignmentSubmissions, setAssignmentSubmissions] = useState([]);
+  const [classStudents, setClassStudents] = useState([]);
+  const [subsLoading, setSubsLoading] = useState(false);
+  const [availableSubjects, setAvailableSubjects] = useState([]);
 
   useEffect(() => {
     // 1. Session check
@@ -58,22 +54,50 @@ const StaffAssignments = () => {
       return;
     }
 
-    // Set default form subject
-    if (activeStaff.subjects && activeStaff.subjects.length > 0) {
-      setForm(f => ({ ...f, subject: activeStaff.subjects[0] }));
+    let dynSubjects = [];
+    let deptInitialized = false;
+    const savedSubjects = localStorage.getItem('erp_subjects');
+    if (savedSubjects) {
+      const allSubs = JSON.parse(savedSubjects);
+      const deptSubs = allSubs.filter(s => s.dept === activeStaff.dept);
+      
+      if (deptSubs.length > 0) {
+        deptInitialized = true;
+        const mySubs = deptSubs.filter(s => {
+          if (!s.teacher) return false;
+          const t = s.teacher.toLowerCase().trim();
+          const n = activeStaff.name.toLowerCase().trim();
+          return t.includes(n) || n.includes(t);
+        });
+        dynSubjects = [...new Set(mySubs.map(s => s.name))];
+      }
+    }
+    
+    if (!deptInitialized && dynSubjects.length === 0) {
+      dynSubjects = activeStaff.subjects && activeStaff.subjects.length > 0 ? activeStaff.subjects : ['General Course'];
     }
 
-    // 2. Load assignments
-    const savedAssignments = localStorage.getItem('erp_assignments');
-    if (savedAssignments) {
-      setAssignments(JSON.parse(savedAssignments));
-    } else {
-      localStorage.setItem('erp_assignments', JSON.stringify(MOCK_ASSIGNMENTS));
-      setAssignments(MOCK_ASSIGNMENTS);
+    if (dynSubjects.length === 0) {
+      dynSubjects = ['No Subjects Assigned'];
     }
+    
+    setAvailableSubjects(dynSubjects);
+    setForm(f => ({ ...f, subject: dynSubjects[0] || '' }));
 
-    setLoading(false);
+    fetchAssignments(activeStaff.name);
   }, [navigate]);
+
+  const fetchAssignments = async (facultyName) => {
+    try {
+      setLoading(true);
+      const res = await getAssignments();
+      setAssignments(res.data.filter(a => a.faculty === facultyName));
+    } catch (err) {
+      console.warn('Failed to fetch assignments, using fallback mock data');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const staffName = staffSession.name;
   const staffDept = staffSession.dept;
@@ -87,10 +111,12 @@ const StaffAssignments = () => {
     a.description.toLowerCase().includes(search.toLowerCase())
   );
 
+
   const openAdd = () => {
     setForm({
       title: '',
-      subject: staffSession.subjects[0] || '',
+      subject: availableSubjects[0] || '',
+      targetClass: 'Sem 1',
       description: '',
       dueDate: ''
     });
@@ -106,28 +132,57 @@ const StaffAssignments = () => {
     setForm(f => ({ ...f, [key]: val }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newAssignment = {
-      id: String(Date.now()),
       subject: form.subject,
-      class: SUBJECT_TO_CLASS[form.subject] || 'Sem 3',
+      class: form.targetClass,
       title: form.title,
       description: form.description,
       dueDate: form.dueDate,
-      submissionsCount: 0,
+      department: staffDept,
       faculty: staffName
     };
 
-    const updated = [newAssignment, ...assignments];
-    setAssignments(updated);
-    localStorage.setItem('erp_assignments', JSON.stringify(updated));
+    try {
+      const res = await createAssignment(newAssignment);
+      setAssignments([res.data, ...assignments]);
+      setSaved(true);
+      setTimeout(() => {
+        closeModal();
+        setSaved(false);
+      }, 800);
+    } catch (err) {
+      console.error('Error creating assignment:', err);
+      if (err.response) {
+        console.error('Response data:', err.response.data);
+      }
+      alert('Error creating assignment: ' + (err.response?.data?.message || err.response?.data?.error || err.message));
+    }
+  };
 
-    setSaved(true);
-    setTimeout(() => {
-      closeModal();
-      setSaved(false);
-    }, 800);
+  const openSubmissions = async (assignment) => {
+    setViewingAssignment(assignment);
+    setSubmissionsModalOpen(true);
+    setSubsLoading(true);
+    try {
+      // 1. Get submissions for this assignment
+      const subRes = await getAssignmentSubmissions(assignment._id || assignment.id);
+      setAssignmentSubmissions(subRes.data || []);
+      
+      // 2. Get all students in this department and class to find pending
+      const stuRes = await getStudents();
+      const allStuds = stuRes.data || [];
+      const targetStudents = allStuds.filter(s => 
+        (s.dept === assignment.department || s.department === assignment.department) && 
+        (s.sem === assignment.class || s.semester === assignment.class)
+      );
+      setClassStudents(targetStudents);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSubsLoading(false);
+    }
   };
 
   const handleDelete = (id) => {
@@ -206,10 +261,10 @@ const StaffAssignments = () => {
             const isDueToday = daysLeftStr === 'Due Today';
 
             return (
-              <div key={a.id} className="glass-card assignment-card">
+              <div key={a._id || a.id} className="glass-card assignment-card" onClick={() => openSubmissions(a)} style={{ cursor: 'pointer' }}>
                 <div className="assignment-card-header">
                   <span className="assignment-class-badge">{staffDept} - {a.class}</span>
-                  <button className="btn-delete-assignment" title="Remove Assignment" onClick={() => handleDelete(a.id)}>
+                  <button className="btn-delete-assignment" title="Remove Assignment" onClick={(e) => { e.stopPropagation(); handleDelete(a._id || a.id); }}>
                     <Trash2 size={15} />
                   </button>
                 </div>
@@ -263,14 +318,27 @@ const StaffAssignments = () => {
 
             <form onSubmit={handleSubmit} className="modal-form">
               <div className="form-group">
+                <label>Target Class / Semester</label>
+                <select
+                  value={form.targetClass}
+                  onChange={e => handleInputChange('targetClass', e.target.value)}
+                  required
+                >
+                  {['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'].map(sem => (
+                    <option key={sem} value={sem}>{staffDept} - {sem}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label>Select Course / Subject</label>
                 <select
                   value={form.subject}
                   onChange={e => handleInputChange('subject', e.target.value)}
                   required
                 >
-                  {staffSession.subjects.map(sub => (
-                    <option key={sub} value={sub}>{sub} ({SUBJECT_TO_CLASS[sub] || 'Sem 3'})</option>
+                  {availableSubjects.map(sub => (
+                    <option key={sub} value={sub}>{sub}</option>
                   ))}
                 </select>
               </div>
@@ -312,6 +380,66 @@ const StaffAssignments = () => {
                 <button type="submit" className="btn-primary">Post Assignment</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {submissionsModalOpen && viewingAssignment && (
+        <div className="modal-overlay" onClick={() => setSubmissionsModalOpen(false)}>
+          <div className="modal-card glass-card" style={{ maxWidth: '600px' }} onClick={e => e.stopPropagation()}>
+            <div className="modal-header">
+              <div>
+                <h2>Submissions: {viewingAssignment.title}</h2>
+                <p className="text-muted" style={{ fontSize: '0.85rem' }}>{viewingAssignment.department} - {viewingAssignment.class}</p>
+              </div>
+              <button className="btn-icon" onClick={() => setSubmissionsModalOpen(false)}><X size={20} /></button>
+            </div>
+            
+            <div className="modal-body" style={{ padding: '1.5rem', maxHeight: '60vh', overflowY: 'auto' }}>
+              {subsLoading ? (
+                <p>Loading submissions...</p>
+              ) : (
+                <>
+                  <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                    <div className="stat-box" style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px', flex: 1, textAlign: 'center' }}>
+                      <h4>Total Students</h4>
+                      <h2>{classStudents.length}</h2>
+                    </div>
+                    <div className="stat-box" style={{ background: 'rgba(16, 185, 129, 0.1)', color: '#10b981', padding: '1rem', borderRadius: '8px', flex: 1, textAlign: 'center' }}>
+                      <h4>Submitted</h4>
+                      <h2>{assignmentSubmissions.length}</h2>
+                    </div>
+                    <div className="stat-box" style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '1rem', borderRadius: '8px', flex: 1, textAlign: 'center' }}>
+                      <h4>Pending</h4>
+                      <h2>{Math.max(0, classStudents.length - assignmentSubmissions.length)}</h2>
+                    </div>
+                  </div>
+                  
+                  <h4>Student List</h4>
+                  <ul style={{ listStyle: 'none', padding: 0, marginTop: '1rem' }}>
+                    {classStudents.length === 0 ? (
+                      <li className="text-muted">No students found in this class.</li>
+                    ) : (
+                      classStudents.map(student => {
+                        const hasSubmitted = assignmentSubmissions.some(sub => sub.studentId === student.referenceId || sub.studentId === student.id || sub.studentId === student._id);
+                        return (
+                          <li key={student._id || student.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.75rem', borderBottom: '1px solid var(--border-color)' }}>
+                            <span>{student.name} ({student.rollNo || student.id})</span>
+                            <span style={{ 
+                              color: hasSubmitted ? '#10b981' : '#ef4444',
+                              fontWeight: 'bold',
+                              fontSize: '0.85rem'
+                            }}>
+                              {hasSubmitted ? '✓ Submitted' : 'Pending'}
+                            </span>
+                          </li>
+                        );
+                      })
+                    )}
+                  </ul>
+                </>
+              )}
+            </div>
           </div>
         </div>
       )}

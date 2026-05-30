@@ -81,7 +81,8 @@ const Expenses = () => {
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#ef4444] to-red-600 text-white font-medium rounded-lg hover:shadow-lg transition-all"
+          style={{ background: 'linear-gradient(to right, #ef4444, #dc2626)' }}
+          className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all"
         >
           <Plus size={18} /> Log Expense
         </button>

@@ -1,5 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Edit2, Trash2, X, GraduationCap, Mail, Phone } from 'lucide-react';
+import { getStaff, createStaff, updateStaff, deleteStaff, getDepartments, createUser } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './HodManagement.css';
 
 const DEFAULT_HODS = [
@@ -12,15 +14,27 @@ const DEFAULT_HODS = [
 ];
 
 const DEPARTMENTS = [
-  { name: 'Computer Science', code: 'CSE' },
-  { name: 'Electronics & Comm.', code: 'ECE' },
-  { name: 'Electrical & Electronics', code: 'EEE' },
-  { name: 'Mechanical Engg.', code: 'MECH' },
-  { name: 'Bachelor of Computer App.', code: 'BCA' },
-  { name: 'Master of Business Admin.', code: 'MBA' }
+  { name: 'Computer Science Engineering', code: 'CSE' },
+  { name: 'Information Technology', code: 'IT' },
+  { name: 'Electronics & Communication Engineering', code: 'ECE' },
+  { name: 'Electrical & Electronics Engineering', code: 'EEE' },
+  { name: 'Mechanical Engineering', code: 'MECH' },
+  { name: 'Civil Engineering', code: 'CIVIL' },
+  { name: 'Artificial Intelligence & Data Science', code: 'AIDS' },
+  { name: 'Artificial Intelligence & Machine Learning', code: 'AIML' },
+  { name: 'Cyber Security', code: 'CYBER' },
+  { name: 'Biomedical Engineering', code: 'BME' },
+  { name: 'Aeronautical Engineering', code: 'AERO' },
+  { name: 'Automobile Engineering', code: 'AUTO' },
+  { name: 'Robotics Engineering', code: 'ROBOTICS' },
+  { name: 'Chemical Engineering', code: 'CHEM' },
+  { name: 'Biotechnology Engineering', code: 'BIOTECH' },
 ];
 
-const EMPTY_FORM = { name: '', email: '', phone: '', dept: 'Computer Science', status: 'Active' };
+const EMPTY_FORM = { 
+  name: '', email: '', phone: '', dept: 'Computer Science Engineering', status: 'Active',
+  experience: '10 yrs', passRate: 88, attendance: 95, publications: 5, faculty: 5, students: 100, rating: 4.5
+};
 
 const HodManagement = () => {
   const [hods, setHods] = useState([]);
@@ -30,20 +44,48 @@ const HodManagement = () => {
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
 
+  const [availableDepartments, setAvailableDepartments] = useState(DEPARTMENTS);
+
   useEffect(() => {
-    const raw = localStorage.getItem('erp_hods');
-    if (raw) {
-      setHods(JSON.parse(raw));
-    } else {
-      setHods(DEFAULT_HODS);
-      localStorage.setItem('erp_hods', JSON.stringify(DEFAULT_HODS));
-    }
-    setLoading(false);
+    fetchHods();
+    fetchDepts();
   }, []);
 
-  const saveHods = (newList) => {
-    setHods(newList);
-    localStorage.setItem('erp_hods', JSON.stringify(newList));
+  // Auto-refresh when staff data changes on another dashboard
+  useRealtimeSync(useCallback(() => { fetchHods(); }, []), 'staff');
+
+  const fetchDepts = async () => {
+    try {
+      const res = await getDepartments();
+      if (res.data && res.data.length > 0) {
+        setAvailableDepartments(res.data.map(d => ({ name: d.name, code: d.code })));
+      }
+    } catch (err) {
+      console.warn('Failed to load real departments, using defaults');
+    }
+  };
+
+  const fetchHods = async () => {
+    try {
+      setLoading(true);
+      const res = await getStaff();
+      let allHods = res.data.filter(s => s.designation === 'HOD');
+      
+      // Merge manually entered local data that might not be in DB
+      const local = localStorage.getItem('erp_staff');
+      if (local) {
+        const parsed = JSON.parse(local).filter(s => s.designation === 'HOD' || s.role === 'HOD');
+        const dbIds = new Set(allHods.map(h => h.id || h._id));
+        parsed.forEach(h => { if (!dbIds.has(h.id)) allHods.push(h); });
+      }
+      setHods(allHods);
+    } catch (err) {
+      console.error('Failed to fetch HODs:', err);
+      const local = localStorage.getItem('erp_staff');
+      setHods(local ? JSON.parse(local).filter(s => s.designation === 'HOD' || s.role === 'HOD') : []);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filtered = hods.filter(h => 
@@ -56,25 +98,73 @@ const HodManagement = () => {
   const openEdit = (h) => { setForm({ ...h }); setEditTarget(h.id); setModalOpen(true); };
   const closeModal = () => { setModalOpen(false); setEditTarget(null); setForm(EMPTY_FORM); };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!form.name || !form.name.trim()) {
+      alert("Please provide the HOD's Name before saving.");
+      return;
+    }
+    if (!form.email || !form.email.trim()) {
+      alert("Please provide the HOD's Email Address before saving.");
+      return;
+    }
+
     const deptInfo = DEPARTMENTS.find(d => d.name === form.dept) || { code: 'HOD' };
     
-    if (editTarget) {
-      const updated = hods.map(h => h.id === editTarget ? { ...h, ...form, deptCode: deptInfo.code } : h);
-      saveHods(updated);
-    } else {
-      const newId = `HOD${String(hods.length + 1).padStart(3, '0')}`;
-      const newHod = { id: newId, ...form, deptCode: deptInfo.code };
-      saveHods([...hods, newHod]);
+    try {
+      if (editTarget) {
+        const payload = { ...form, deptCode: deptInfo.code, designation: 'HOD' };
+        await updateStaff(editTarget, payload);
+        setHods(hods.map(h => h.id === editTarget ? { ...h, ...payload } : h));
+      } else {
+        // Safe ID generation: find max HOD id and increment, fallback to length + 1
+        let maxSuffix = 0;
+        hods.forEach(h => {
+          if (h.id && h.id.startsWith('HOD')) {
+            const num = parseInt(h.id.replace('HOD', ''), 10);
+            if (!isNaN(num) && num > maxSuffix) maxSuffix = num;
+          }
+        });
+        const nextNum = Math.max(maxSuffix + 1, hods.length + 1);
+        const newId = `HOD${String(nextNum).padStart(3, '0')}`;
+        
+        const newHod = { id: newId, ...form, deptCode: deptInfo.code, designation: 'HOD', workload: 12, attendance: 100 };
+        const res = await createStaff(newHod);
+        
+        // Also create a login account for this HOD
+        try {
+          await createUser({
+            name: form.name,
+            email: form.email,
+            password: 'password123',
+            role: 'HOD',
+            department: form.dept,
+            referenceId: newId
+          });
+        } catch (userErr) {
+          console.warn('User account might already exist or failed to create:', userErr);
+        }
+
+        setHods([...hods, res.data]);
+      }
+      closeModal();
+    } catch (err) {
+      console.error('Save failed:', err);
+      const errMsg = err.response?.data?.message || err.message;
+      alert(`Failed to save HOD: ${errMsg}`);
     }
-    closeModal();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this HOD record?')) {
-      const updated = hods.filter(h => h.id !== id);
-      saveHods(updated);
+      try {
+        await deleteStaff(id);
+        setHods(hods.filter(h => h.id !== id));
+      } catch (err) {
+        console.error('Delete failed:', err);
+        alert('Failed to delete HOD.');
+      }
     }
   };
 
@@ -152,12 +242,15 @@ const HodManagement = () => {
                   </td>
                 </tr>
               ) : (
-                filtered.map((hod) => (
+                filtered.map((hod) => {
+                  const deptObj = DEPARTMENTS.find(d => d.name === hod.dept);
+                  const displayCode = hod.deptCode || (deptObj ? deptObj.code : '—');
+                  return (
                   <tr key={hod.id}>
                     <td><span className="roll-no">{hod.id}</span></td>
                     <td className="font-semibold">{hod.name}</td>
                     <td>{hod.dept}</td>
-                    <td><span className="code-pill">{hod.deptCode}</span></td>
+                    <td><span className="code-pill">{displayCode}</span></td>
                     <td><span className="text-sm font-semibold">{hod.email}</span></td>
                     <td><span className="text-sm">{hod.phone || '—'}</span></td>
                     <td>
@@ -172,7 +265,8 @@ const HodManagement = () => {
                       </div>
                     </td>
                   </tr>
-                ))
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -223,7 +317,7 @@ const HodManagement = () => {
                     value={form.dept} 
                     onChange={e => setForm({ ...form, dept: e.target.value })}
                   >
-                    {DEPARTMENTS.map(d => (
+                    {availableDepartments.map(d => (
                       <option key={d.name} value={d.name}>{d.name}</option>
                     ))}
                   </select>
@@ -237,6 +331,38 @@ const HodManagement = () => {
                     <option value="Active">Active</option>
                     <option value="Inactive">Inactive</option>
                   </select>
+                </div>
+                
+                {/* Advanced Metrics */}
+                <div className="sm-form-section-title" style={{ gridColumn: '1 / -1', marginTop: '1rem', fontWeight: 600, color: 'var(--text-main)', borderBottom: '1px solid var(--border-color)', paddingBottom: '0.5rem' }}>Advanced Analytics Metrics</div>
+                
+                <div className="form-group">
+                  <label>Experience (e.g. '10 yrs')</label>
+                  <input placeholder="10 yrs" value={form.experience} onChange={e => setForm({ ...form, experience: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Pass Rate (%)</label>
+                  <input type="number" min="0" max="100" value={form.passRate} onChange={e => setForm({ ...form, passRate: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Attendance (%)</label>
+                  <input type="number" min="0" max="100" value={form.attendance} onChange={e => setForm({ ...form, attendance: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Total Publications</label>
+                  <input type="number" min="0" value={form.publications} onChange={e => setForm({ ...form, publications: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Faculty Managed</label>
+                  <input type="number" min="0" value={form.faculty} onChange={e => setForm({ ...form, faculty: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Students in Dept</label>
+                  <input type="number" min="0" value={form.students} onChange={e => setForm({ ...form, students: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Overall Rating (1-5)</label>
+                  <input type="number" step="0.1" min="1" max="5" value={form.rating} onChange={e => setForm({ ...form, rating: e.target.value })} />
                 </div>
               </div>
               <div className="modal-actions">

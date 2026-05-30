@@ -5,6 +5,8 @@ import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import http from 'http';
+import { Server } from 'socket.io';
 
 // Derive __dirname for ES modules
 const __filename = fileURLToPath(import.meta.url);
@@ -29,8 +31,15 @@ import placementRoutes from './routes/placementRoutes.js';
 import settingsRoutes from './routes/settingsRoutes.js';
 import notificationRoutes from './routes/notificationRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import approvalRoutes from './routes/approvalRoutes.js';
+import examRoutes from './routes/examRoutes.js';
+import salaryRoutes from './routes/salaryRoutes.js';
+import timetableRoutes from './routes/timetableRoutes.js';
+import assignmentRoutes from './routes/assignmentRoutes.js';
 
 // Import Models for auto-seeding
+import Approval from './models/Approval.js';
+import Exam from './models/Exam.js';
 import User from './models/User.js';
 import Student from './models/Student.js';
 import Staff from './models/Staff.js';
@@ -56,9 +65,29 @@ import SystemSetting from './models/SystemSetting.js';
 import LoginLog from './models/LoginLog.js';
 import StudentProfile from './models/StudentProfile.js';
 import Notification from './models/Notification.js';
+import Salary from './models/Salary.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+// Socket.io setup
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST', 'PUT', 'DELETE']
+  }
+});
+
+// Make io accessible to routes
+app.set('io', io);
+
+io.on('connection', (socket) => {
+  console.log('🔌 New client connected:', socket.id);
+  socket.on('disconnect', () => {
+    console.log('🔌 Client disconnected:', socket.id);
+  });
+});
 
 app.use(cors());
 app.use(express.json());
@@ -71,14 +100,21 @@ const autoSeedIfEmpty = async () => {
     if (existingUserCount > 0) {
       console.log(`✅ Database already has ${existingUserCount} users.`);
 
-      // Incremental patch: inject Principal if missing
-      const principalCount = await User.countDocuments({ role: 'Principal' });
-      if (principalCount === 0) {
-        console.log('🌱 Patching database: missing Principal user. Injecting now...');
-        await User.create([
-          { name: 'Dr. Suresh Kumar', email: 'principal@college.edu', password: 'password123', role: 'Principal' }
-        ]);
-        console.log('✅ Principal user injected successfully.');
+      // Incremental patch: inject Principal if missing by checking email
+      const existingPrincipal = await User.findOne({
+        email: "principal@college.edu",
+      });
+
+      if (!existingPrincipal) {
+        await User.create({
+          name: "Principal",
+          email: "principal@college.edu",
+          password: "123456",
+          role: "principal",
+        });
+        console.log("✅ Principal created");
+      } else {
+        console.log("✅ Principal already exists");
       }
 
       // Incremental patch for missing demo users (HODs & Staff)
@@ -92,12 +128,121 @@ const autoSeedIfEmpty = async () => {
           { name: 'MECH HOD',         email: 'mechhod@gmail.com',        password: 'password123', role: 'HOD', department: 'Mechanical Engg.', referenceId: 'STF004' },
           { name: 'BCA HOD',          email: 'bcahod@gmail.com',         password: 'password123', role: 'HOD', department: 'Bachelor of Computer App.', referenceId: 'STF005' },
           { name: 'MBA HOD',          email: 'mbahod@gmail.com',         password: 'password123', role: 'HOD', department: 'Master of Business Admin.', referenceId: 'STF006' },
+          { name: 'Dr.Agila',         email: 'agila@gmail.com',          password: 'password123', role: 'HOD', department: 'Information Technology', referenceId: 'HOD001' },
           { name: 'Prof. Karthik S.', email: 'karthik@college.edu',      password: 'password123', role: 'Staff', department: 'Computer Science', referenceId: 'STF007', subjects: ['OS', 'Machine Learning'] }
         ]);
         console.log('✅ Missing HOD/Staff demo users injected successfully.');
       } else {
         console.log(`✅ Database has HOD users — skipping seed.`);
       }
+
+      // Incremental patch for missing approvals
+      const approvalCount = await Approval.countDocuments();
+      if (approvalCount === 0) {
+        console.log('🌱 Patching database: missing Approvals detected. Injecting them now...');
+        await Approval.insertMany([
+          {
+            type: 'Budget Request',
+            department: 'Computer Science',
+            requestedBy: 'CSE HOD',
+            date: 'May 24, 2026',
+            priority: 'High',
+            status: 'Pending',
+            details: 'Requesting ₹1,50,000 for CSE department cloud infrastructure laboratory upgrade (AWS credits and server maintenance).',
+            aiRecommendation: 'Safe to Approve. Within CS quarterly allocation budget limit of ₹2,00,000.',
+            aiScore: 92
+          },
+          {
+            type: 'Leave Request',
+            department: 'Electronics & Comm.',
+            requestedBy: 'ECE HOD',
+            date: 'May 26, 2026',
+            priority: 'Medium',
+            status: 'Pending',
+            details: 'Casual leave request for ECE HOD from May 28 to May 30 due to family wedding.',
+            aiRecommendation: 'Safe to Approve. Staff backup assigned: Dr. Meena Pillai.',
+            aiScore: 97
+          },
+          {
+            type: 'Department Event',
+            department: 'Electrical & Electronics',
+            requestedBy: 'EEE HOD',
+            date: 'May 25, 2026',
+            priority: 'Low',
+            status: 'Pending',
+            details: 'Approval requested to host annual National Energy Conservation Workshop on June 12 in seminar hall.',
+            aiRecommendation: 'Highly Recommended. Fosters college industry exposure and has high placement conversion correlation.',
+            aiScore: 99
+          },
+          {
+            type: 'Placement Drive',
+            department: 'Computer Science',
+            requestedBy: 'CSE HOD',
+            date: 'May 24, 2026',
+            priority: 'High',
+            status: 'Approved',
+            details: 'Microsoft campus hiring drive logistics approval for CSE and ECE students on June 18.',
+            aiRecommendation: 'Approved. Essential institutional driver.',
+            aiScore: 98,
+            remarks: 'Approved. Ensure auditorium is prepared.'
+          }
+        ]);
+        console.log('✅ Approvals seeded successfully.');
+      }
+
+      // Incremental patch for missing Departments
+      const deptCount = await Department.countDocuments();
+      if (deptCount === 0) {
+        console.log('🌱 Patching database: missing Departments detected. Injecting them now...');
+        await Department.insertMany([
+          { id: 'DEPT001', name: 'Computer Science',          code: 'CSE',  hod: 'CSE HOD',          totalStudents: 3 },
+          { id: 'DEPT002', name: 'Electronics & Comm.',       code: 'ECE',  hod: 'ECE HOD',          totalStudents: 2 },
+          { id: 'DEPT003', name: 'Electrical & Electronics',  code: 'EEE',  hod: 'EEE HOD',          totalStudents: 2 },
+          { id: 'DEPT004', name: 'Mechanical Engg.',          code: 'MECH', hod: 'MECH HOD',         totalStudents: 1 },
+          { id: 'DEPT005', name: 'Bachelor of Computer App.', code: 'BCA',  hod: 'BCA HOD',          totalStudents: 1 },
+          { id: 'DEPT006', name: 'Master of Business Admin.', code: 'MBA',  hod: 'MBA HOD',          totalStudents: 1 },
+        ]);
+        console.log('✅ Departments seeded successfully.');
+      }
+
+      // Incremental patch for missing Staff (HODs)
+      const staffCount = await Staff.countDocuments();
+      if (staffCount === 0) {
+        console.log('🌱 Patching database: missing Staff detected. Injecting them now...');
+        await Staff.insertMany([
+          { id: 'STF001', name: 'CSE HOD',          email: 'csehod@gmail.com',    phone: '9900000001', dept: 'Computer Science',          designation: 'HOD',             subjects: ['Algorithms', 'Compiler Design'], workload: 12, attendance: 98 },
+          { id: 'STF002', name: 'ECE HOD',          email: 'ecehod@gmail.com',    phone: '9900000002', dept: 'Electronics & Comm.',       designation: 'HOD',             subjects: ['Signals & Systems'],            workload: 10, attendance: 96 },
+          { id: 'STF003', name: 'EEE HOD',          email: 'eeehod@gmail.com',    phone: '9900000003', dept: 'Electrical & Electronics',  designation: 'HOD',             subjects: ['Circuits', 'Networks'],         workload: 14, attendance: 95 },
+          { id: 'STF004', name: 'MECH HOD',         email: 'mechhod@gmail.com',   phone: '9900000004', dept: 'Mechanical Engg.',          designation: 'HOD',             subjects: ['Thermodynamics'],               workload: 12, attendance: 93 },
+          { id: 'STF005', name: 'BCA HOD',          email: 'bcahod@gmail.com',    phone: '9900000005', dept: 'Bachelor of Computer App.', designation: 'HOD',             subjects: ['Java Programming'],             workload: 12, attendance: 97 },
+          { id: 'STF006', name: 'MBA HOD',          email: 'mbahod@gmail.com',    phone: '9900000006', dept: 'Master of Business Admin.', designation: 'HOD',             subjects: ['Strategic Management'],         workload: 10, attendance: 94 },
+          
+          { id: 'STF007', name: 'Prof. Karthik S.', email: 'karthik@college.edu', phone: '9823456789', dept: 'Computer Science',          designation: 'Assistant Prof.', subjects: ['OS', 'Machine Learning'],       workload: 20, attendance: 89 },
+          { id: 'STF008', name: 'Dr. Ananya Rao',   email: 'ananya@college.edu',  phone: '9876543210', dept: 'Computer Science',          designation: 'Professor',       subjects: ['Data Structures', 'DBMS'],      workload: 18, attendance: 97 },
+          { id: 'STF009', name: 'Dr. Meena Pillai', email: 'meena@college.edu',   phone: '9812987654', dept: 'Electronics & Comm.',       designation: 'Associate Prof.', subjects: ['Microprocessors'],              workload: 16, attendance: 92 },
+        ]);
+        console.log('✅ Staff seeded successfully.');
+      }
+
+      // Incremental patch for missing Students
+      const studentCount = await Student.countDocuments();
+      if (studentCount === 0) {
+        console.log('🌱 Patching database: missing Students detected. Injecting them now...');
+        await Student.insertMany([
+          { id: 'CS2022001', name: 'John Doe',       email: 'john@college.edu',    phone: '9876543210', dept: 'Computer Science',          sem: 'Sem 6', cgpa: 8.6, attendance: 85, status: 'Active',   feeStatus: 'Paid'    },
+          { id: 'CS2021004', name: 'Emily Davis',    email: 'emily@college.edu',   phone: '9823456789', dept: 'Computer Science',          sem: 'Sem 6', cgpa: 8.9, attendance: 98, status: 'Active',   feeStatus: 'Paid'    },
+          { id: 'CS2022002', name: 'David Lee',      email: 'david@college.edu',   phone: '9890123456', dept: 'Computer Science',          sem: 'Sem 3', cgpa: 8.2, attendance: 88, status: 'Active',   feeStatus: 'Partial' },
+          { id: 'EE2022001', name: 'Alice Smith',    email: 'alice@college.edu',   phone: '9845123456', dept: 'Electrical & Electronics',  sem: 'Sem 4', cgpa: 9.1, attendance: 95, status: 'Active',   feeStatus: 'Paid'    },
+          { id: 'EE2022002', name: 'Sarah Wilson',   email: 'sarah@college.edu',   phone: '9801234567', dept: 'Electrical & Electronics',  sem: 'Sem 4', cgpa: 9.5, attendance: 91, status: 'Active',   feeStatus: 'Paid'    },
+          { id: 'EC2022001', name: 'Vikram Seth',    email: 'vikram@college.edu',  phone: '9811122233', dept: 'Electronics & Comm.',       sem: 'Sem 6', cgpa: 8.8, attendance: 90, status: 'Active',   feeStatus: 'Paid'    },
+          { id: 'EC2022002', name: 'Neha Gupta',     email: 'neha@college.edu',    phone: '9822233344', dept: 'Electronics & Comm.',       sem: 'Sem 6', cgpa: 8.5, attendance: 75, status: 'Active',   feeStatus: 'Pending' },
+          { id: 'ME2023001', name: 'Robert Johnson', email: 'robert@college.edu',  phone: '9812987654', dept: 'Mechanical Engg.',          sem: 'Sem 2', cgpa: 7.8, attendance: 68, status: 'Active',   feeStatus: 'Partial' },
+          { id: 'BC2022001', name: 'Karan Malhotra', email: 'karan@college.edu',   phone: '9856789012', dept: 'Bachelor of Computer App.', sem: 'Sem 5', cgpa: 8.7, attendance: 94, status: 'Active',   feeStatus: 'Paid'    },
+          { id: 'MB2022001', name: 'Ritu Sen',       email: 'ritu@college.edu',    phone: '9867123456', dept: 'Master of Business Admin.', sem: 'Sem 4', cgpa: 9.2, attendance: 96, status: 'Active',   feeStatus: 'Paid'    },
+        ]);
+        console.log('✅ Students seeded successfully.');
+      }
+
       return;
     }
     console.log('🌱 Empty database detected – seeding fresh demo data...');
@@ -141,6 +286,7 @@ const autoSeedIfEmpty = async () => {
       { name: 'MECH HOD',         email: 'mechhod@gmail.com',        password: 'password123', role: 'HOD', department: 'Mechanical Engg.', referenceId: 'STF004' },
       { name: 'BCA HOD',          email: 'bcahod@gmail.com',         password: 'password123', role: 'HOD', department: 'Bachelor of Computer App.', referenceId: 'STF005' },
       { name: 'MBA HOD',          email: 'mbahod@gmail.com',         password: 'password123', role: 'HOD', department: 'Master of Business Admin.', referenceId: 'STF006' },
+      { name: 'Dr.Agila',         email: 'agila@gmail.com',          password: 'password123', role: 'HOD', department: 'Information Technology', referenceId: 'HOD001' },
 
       // Staff
       { name: 'Prof. Karthik S.', email: 'karthik@college.edu',      password: 'password123', role: 'Staff', department: 'Computer Science', referenceId: 'STF007', subjects: ['OS', 'Machine Learning'] },
@@ -364,7 +510,77 @@ const autoSeedIfEmpty = async () => {
       { recipient: adminUser._id, title: 'New Leave Request', message: 'Dr. Ananya Rao requested leave for 2 days.', type: 'Info', link: '/admin/leaves' }
     ]);
 
-    console.log('✅ Auto-seed successfully pre-populated! 22 users | 6 departments | 10 students | 9 staff | 9 attendance entries | 13 mark transcripts | 12 fee invoices | 5 books | 3 issues | Transport Setup | Hostel Setup | Placement Setup | Settings Setup | Notifications Setup');
+    // 14. Approvals
+    await Approval.deleteMany();
+    await Approval.insertMany([
+      {
+        type: 'Budget Request',
+        department: 'Computer Science',
+        requestedBy: 'CSE HOD',
+        date: 'May 24, 2026',
+        priority: 'High',
+        status: 'Pending',
+        details: 'Requesting ₹1,50,000 for CSE department cloud infrastructure laboratory upgrade (AWS credits and server maintenance).',
+        aiRecommendation: 'Safe to Approve. Within CS quarterly allocation budget limit of ₹2,00,000.',
+        aiScore: 92
+      },
+      {
+        type: 'Leave Request',
+        department: 'Electronics & Comm.',
+        requestedBy: 'ECE HOD',
+        date: 'May 26, 2026',
+        priority: 'Medium',
+        status: 'Pending',
+        details: 'Casual leave request for ECE HOD from May 28 to May 30 due to family wedding.',
+        aiRecommendation: 'Safe to Approve. Staff backup assigned: Dr. Meena Pillai.',
+        aiScore: 97
+      },
+      {
+        type: 'Department Event',
+        department: 'Electrical & Electronics',
+        requestedBy: 'EEE HOD',
+        date: 'May 25, 2026',
+        priority: 'Low',
+        status: 'Pending',
+        details: 'Approval requested to host annual National Energy Conservation Workshop on June 12 in seminar hall.',
+        aiRecommendation: 'Highly Recommended. Fosters college industry exposure and has high placement conversion correlation.',
+        aiScore: 99
+      },
+      {
+        type: 'Placement Drive',
+        department: 'Computer Science',
+        requestedBy: 'CSE HOD',
+        date: 'May 24, 2026',
+        priority: 'High',
+        status: 'Approved',
+        details: 'Microsoft campus hiring drive logistics approval for CSE and ECE students on June 18.',
+        aiRecommendation: 'Approved. Essential institutional driver.',
+        aiScore: 98,
+        remarks: 'Approved. Ensure auditorium is prepared.'
+      }
+    ]);
+
+    // 15. Exams Timetable
+    await Exam.deleteMany();
+    await Exam.insertMany([
+      { name: 'Mid Term Test', dept: 'Computer Science', subject: 'Data Structures', date: '2026-05-28', time: '10:00 AM - 12:00 PM', room: 'Block A, Room 301', maxMarks: 50, createdBy: 'System' },
+      { name: 'End Sem Theory', dept: 'Computer Science', subject: 'DBMS', date: '2026-06-02', time: '10:00 AM - 01:00 PM', room: 'Main Examination Hall', maxMarks: 100, createdBy: 'System' },
+      { name: 'Semester Lab Exam', dept: 'Electrical Engg.', subject: 'Circuits & Networks', date: '2026-05-30', time: '01:30 PM - 04:30 PM', room: 'EE Core Lab 2', maxMarks: 100, createdBy: 'System' },
+      { name: 'Mid Term Test', dept: 'Mechanical Engg.', subject: 'Thermodynamics', date: '2026-06-12', time: '10:00 AM - 12:00 PM', room: 'Block C, Hall 1', maxMarks: 50, createdBy: 'System' }
+    ]);
+
+    // 16. Salary / Payroll Seed
+    await Salary.insertMany([
+      { staffId: 'STF001', staffName: 'CSE HOD',          designation: 'HOD',             department: 'Computer Science',          billingMonth: 'May 2026', basicPay: 85000, allowances: 15000, deductions: 5000, netSalary: 95000, status: 'Disbursed', paymentDate: new Date('2026-05-25'), paymentMode: 'Bank Transfer' },
+      { staffId: 'STF002', staffName: 'ECE HOD',          designation: 'HOD',             department: 'Electronics & Comm.',       billingMonth: 'May 2026', basicPay: 85000, allowances: 15000, deductions: 5000, netSalary: 95000, status: 'Disbursed', paymentDate: new Date('2026-05-25'), paymentMode: 'Bank Transfer' },
+      { staffId: 'STF003', staffName: 'EEE HOD',          designation: 'HOD',             department: 'Electrical & Electronics',  billingMonth: 'May 2026', basicPay: 85000, allowances: 15000, deductions: 5000, netSalary: 95000, status: 'Disbursed', paymentDate: new Date('2026-05-25'), paymentMode: 'Bank Transfer' },
+      { staffId: 'STF004', staffName: 'MECH HOD',         designation: 'HOD',             department: 'Mechanical Engg.',          billingMonth: 'May 2026', basicPay: 85000, allowances: 15000, deductions: 5000, netSalary: 95000, status: 'Pending',   paymentMode: 'Bank Transfer' },
+      { staffId: 'STF007', staffName: 'Prof. Karthik S.', designation: 'Assistant Prof.', department: 'Computer Science',          billingMonth: 'May 2026', basicPay: 65000, allowances: 10000, deductions: 3000, netSalary: 72000, status: 'Pending',   paymentMode: 'Bank Transfer' },
+      { staffId: 'STF008', staffName: 'Dr. Ananya Rao',   designation: 'Professor',       department: 'Computer Science',          billingMonth: 'May 2026', basicPay: 90000, allowances: 20000, deductions: 8000, netSalary: 102000, status: 'Disbursed', paymentDate: new Date('2026-05-25'), paymentMode: 'Bank Transfer' },
+      { staffId: 'STF009', staffName: 'Dr. Meena Pillai', designation: 'Associate Prof.', department: 'Electronics & Comm.',       billingMonth: 'May 2026', basicPay: 75000, allowances: 12000, deductions: 4000, netSalary: 83000, status: 'Pending',   paymentMode: 'Bank Transfer' },
+    ]);
+
+    console.log('✅ Auto-seed successfully pre-populated! 22 users | 6 departments | 10 students | 9 staff | 9 attendance entries | 13 mark transcripts | 12 fee invoices | 5 books | 3 issues | Transport Setup | Hostel Setup | Placement Setup | Settings Setup | Notifications Setup | Approvals Setup | Exams Seeded | Salary Payroll Seeded');
     console.log('   🔑 CSE HOD login: csehod@gmail.com / password123');
     console.log('   🔑 Student login: john@college.edu / password123');
   } catch (err) {
@@ -388,6 +604,12 @@ app.use('/api/placement', placementRoutes);
 app.use('/api/settings', settingsRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api/approvals', approvalRoutes);
+app.use('/api/exams', examRoutes);
+app.use('/api/results', marksRoutes);
+app.use('/api/salaries', salaryRoutes);
+app.use('/api/timetable', timetableRoutes);
+app.use('/api/assignments', assignmentRoutes);
 
 app.get('/', (req, res) => {
   res.send('College ERP API is running...');
@@ -397,10 +619,10 @@ app.get('/', (req, res) => {
 const startServer = async () => {
   try {
     const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/college_erp';
-    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 2000 });
-    console.log('✅ Connected to Local MongoDB');
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 30000 });
+    console.log('✅ Connected to MongoDB Database');
   } catch (err) {
-    console.log('⚠️ Local MongoDB not found. Falling back to In-Memory Database...');
+    console.log('⚠️ MongoDB connection failed. Falling back to In-Memory Database...', err.message);
     const mongoServer = await MongoMemoryServer.create({
       binary: {
         version: '4.4.29'
@@ -411,11 +633,39 @@ const startServer = async () => {
     console.log('✅ Connected to In-Memory MongoDB (Zero-Config Mode)');
   }
 
+  // Auto-seed the 15 Professional Departments if missing
+  const seedDepartments = async () => {
+    const deptCount = await Department.countDocuments();
+    if (deptCount === 0) {
+      console.log('🌱 Seeding 15 Professional Departments...');
+      await Department.insertMany([
+        { id: 'DEPT01', name: 'Computer Science Engineering', code: 'CSE', status: 'Active', students: 420, staff: 25 },
+        { id: 'DEPT02', name: 'Information Technology', code: 'IT', status: 'Active', students: 380, staff: 22 },
+        { id: 'DEPT03', name: 'Electronics & Communication Engineering', code: 'ECE', status: 'Active', students: 350, staff: 20 },
+        { id: 'DEPT04', name: 'Electrical & Electronics Engineering', code: 'EEE', status: 'Active', students: 300, staff: 18 },
+        { id: 'DEPT05', name: 'Mechanical Engineering', code: 'MECH', status: 'Active', students: 280, staff: 16 },
+        { id: 'DEPT06', name: 'Civil Engineering', code: 'CIVIL', status: 'Active', students: 250, staff: 15 },
+        { id: 'DEPT07', name: 'Artificial Intelligence & Data Science', code: 'AIDS', status: 'Active', students: 180, staff: 10 },
+        { id: 'DEPT08', name: 'Artificial Intelligence & Machine Learning', code: 'AIML', status: 'Active', students: 150, staff: 8 },
+        { id: 'DEPT09', name: 'Cyber Security', code: 'CYBER', status: 'Active', students: 120, staff: 6 },
+        { id: 'DEPT10', name: 'Biomedical Engineering', code: 'BME', status: 'Active', students: 90, staff: 5 },
+        { id: 'DEPT11', name: 'Aeronautical Engineering', code: 'AERO', status: 'Active', students: 80, staff: 5 },
+        { id: 'DEPT12', name: 'Automobile Engineering', code: 'AUTO', status: 'Active', students: 60, staff: 4 },
+        { id: 'DEPT13', name: 'Robotics Engineering', code: 'ROBOTICS', status: 'Active', students: 70, staff: 4 },
+        { id: 'DEPT14', name: 'Chemical Engineering', code: 'CHEM', status: 'Active', students: 50, staff: 3 },
+        { id: 'DEPT15', name: 'Biotechnology Engineering', code: 'BIOTECH', status: 'Active', students: 40, staff: 3 },
+      ]);
+      console.log('✅ Professional Departments Seeded.');
+    }
+  };
+
+  await seedDepartments();
   await autoSeedIfEmpty();
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log(`🚀 Server is running on port ${PORT}`);
     console.log(`🌐 API ready at http://localhost:${PORT}`);
+    console.log(`⚡ WebSocket server is active`);
   });
 };
 

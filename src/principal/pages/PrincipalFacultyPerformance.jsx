@@ -38,6 +38,8 @@ import {
   Radar
 } from 'recharts';
 import '../../pages/Dashboard.css';
+import { getStaff } from '../../api/index.js';
+import { io } from 'socket.io-client';
 
 // Seed data representing faculty and HODs
 const initialFaculty = [
@@ -144,14 +146,47 @@ const initialFeedbackLogs = [
 ];
 
 export default function PrincipalFacultyPerformance() {
-  const [facultyList, setFacultyList] = useState(() => {
-    const saved = localStorage.getItem('principal_faculty_performance');
-    return saved ? JSON.parse(saved) : initialFaculty;
-  });
+  const [facultyList, setFacultyList] = useState([]);
 
   useEffect(() => {
-    localStorage.setItem('principal_faculty_performance', JSON.stringify(facultyList));
-  }, [facultyList]);
+    const fetchFacultyData = async () => {
+      try {
+        const res = await getStaff();
+        const staffData = res.data || [];
+        
+        const formattedFaculty = staffData.map(s => ({
+          id: s.id || s._id,
+          name: s.name,
+          role: s.designation === 'HOD' ? 'HOD' : 'Staff',
+          department: s.dept || 'Unknown',
+          subjects: Array.isArray(s.subjects) && s.subjects.length > 0 ? s.subjects.join(', ') : (typeof s.subjects === 'string' ? s.subjects : 'Not Assigned'),
+          attendance: s.attendance || 90,
+          score: s.rating || 8.0,
+          feedback: s.rating ? s.rating / 2 : 4.0,
+          workload: s.workload || 15,
+          status: s.status === 'Active' ? (s.rating >= 9.0 ? 'Outstanding' : (s.rating < 7.5 ? 'Needs Review' : 'Active')) : s.status,
+          syllabusCompletion: s.passRate || 85,
+          publications: s.publications || 2,
+          joinedDate: s.joinDate ? new Date(s.joinDate).toISOString().split('T')[0] : '2023-01-01'
+        }));
+        
+        setFacultyList(formattedFaculty);
+      } catch (err) {
+        console.warn('Failed to fetch faculty from backend, using fallback', err);
+        setFacultyList(initialFaculty);
+      }
+    };
+    
+    fetchFacultyData();
+    
+    // Auto-refresh when staff is updated elsewhere
+    const socket = io('http://localhost:5000');
+    socket.on('staffUpdated', () => {
+      fetchFacultyData();
+    });
+    
+    return () => socket.disconnect();
+  }, []);
 
   // Tab State
   const [activeTab, setActiveTab] = useState('tracking'); // 'tracking', 'hod-review', 'ai-insights'

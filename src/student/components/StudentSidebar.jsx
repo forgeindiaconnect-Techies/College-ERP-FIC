@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarCheck, BookOpenCheck,
   ClipboardList, CreditCard, Calendar, FileText,
-  Settings, LogOut, ChevronRight
+  Settings, LogOut, ChevronRight, Megaphone, GraduationCap
 } from 'lucide-react';
 import './StudentSidebar.css';
 
@@ -12,8 +12,8 @@ const getStudentSession = () => {
   return JSON.parse(sessionStorage.getItem('student_session') || 'null') || {
     id: 'CS2022001',
     name: 'John Doe',
-    dept: 'Computer Science',
-    sem: 'Sem 6',
+    dept: 'Cyber Security',
+    sem: 'Sem 3',
   };
 };
 
@@ -23,9 +23,11 @@ const StudentSidebar = () => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/student/dashboard', icon: <LayoutDashboard size={19} /> },
+    { name: 'Announcements', path: '/student/announcements', icon: <Megaphone size={19} /> },
     { name: 'My Attendance', path: '/student/attendance', icon: <CalendarCheck size={19} /> },
     { name: 'Semester Marks', path: '/student/marks', icon: <BookOpenCheck size={19} /> },
     { name: 'Assignments', path: '/student/assignments', icon: <ClipboardList size={19} /> },
+    { name: 'Exams', path: '/student/exams', icon: <GraduationCap size={19} /> },
     { name: 'Fee Status', path: '/student/fees', icon: <CreditCard size={19} /> },
     { name: 'Timetable', path: '/student/timetable', icon: <Calendar size={19} /> },
     { name: 'Leave Requests', path: '/student/leaves', icon: <FileText size={19} /> },
@@ -58,7 +60,7 @@ const StudentSidebar = () => {
         </div>
         <div>
           <p className="student-sidebar-name">{student.name}</p>
-          <p className="student-sidebar-sem">{student.dept || student.department || 'Computer Science'} · {student.sem || student.semester || 'Sem 6'}</p>
+          <p className="student-sidebar-sem">{student.dept || student.department || 'Cyber Security'} · {student.sem || student.semester || 'Sem 3'}</p>
         </div>
         <ChevronRight size={14} className="student-chevron" />
       </div>

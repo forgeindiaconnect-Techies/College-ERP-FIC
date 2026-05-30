@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Filter, Trophy, AlertTriangle, TrendingUp, Edit2, X, CheckCircle, BookOpen } from 'lucide-react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { getStudents, getAllMarks, updateMark } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './CgpaManagement.css';
 
 const DEPARTMENTS = ['All','Computer Science','Electrical Engg.','Mechanical Engg.','Civil Engg.','Information Tech.'];
@@ -56,6 +57,9 @@ const CgpaManagement = () => {
     fetchData();
   }, []);
 
+  // Auto-refresh when marks data changes
+  useRealtimeSync(useCallback(() => { fetchData(); }, []), 'marks');
+
   const fetchData = async () => {
     try {
       setLoading(true);
@@ -88,9 +92,31 @@ const CgpaManagement = () => {
 
   /* computed records */
   const records = marks.map(m => {
-    const gpa  = calcGpa(m.internal, m.external);
-    const cgpa = m.cgpaHistory ? (m.cgpaHistory.reduce((a,b)=>a+b,0)/m.cgpaHistory.length).toFixed(2) : gpa.toFixed(2);
-    return { ...m, gpa, cgpa: parseFloat(cgpa), grade: getGrade(gpa), pass: isPassing(m.internal, m.external) };
+    const internal = m.internalMarks !== undefined ? m.internalMarks : (m.internal || 0);
+    const external = m.semesterMarks !== undefined ? m.semesterMarks : (m.external || 0);
+    const gpa = m.gpa !== undefined ? m.gpa : calcGpa(internal, external);
+    const cgpa = m.cgpa !== undefined ? m.cgpa : gpa;
+    const grade = m.grade || getGrade(gpa);
+    
+    let arrears = 0;
+    if (m.arrearStatus !== undefined) {
+      if (m.arrearStatus === 'Arrear') arrears = 1;
+      else if (m.arrearStatus === 'Pass') arrears = 0;
+      else if (!isNaN(m.arrearStatus)) arrears = Number(m.arrearStatus);
+    } else {
+      arrears = m.arrears || 0;
+    }
+
+    return { 
+      ...m, 
+      internal,
+      external,
+      gpa: parseFloat(gpa), 
+      cgpa: parseFloat(cgpa), 
+      grade, 
+      pass: isPassing(internal, external),
+      arrears
+    };
   });
 
   const filtered = records.filter(r => {

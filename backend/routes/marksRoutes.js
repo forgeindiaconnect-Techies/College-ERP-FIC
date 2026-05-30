@@ -5,12 +5,16 @@ import { protect, authorize, departmentScope } from '../middleware/authMiddlewar
 
 const router = express.Router();
 
-const calculateGradeAndGPA = (totalMarks) => {
-  if (totalMarks >= 90) return { grade: 'O', gpa: 10, status: 'Pass' };
-  if (totalMarks >= 80) return { grade: 'A+', gpa: 9, status: 'Pass' };
-  if (totalMarks >= 70) return { grade: 'A', gpa: 8, status: 'Pass' };
-  if (totalMarks >= 60) return { grade: 'B+', gpa: 7, status: 'Pass' };
-  if (totalMarks >= 50) return { grade: 'B', gpa: 6, status: 'Pass' };
+const calculateGradeAndGPA = (internal, external) => {
+  const pct = ((internal + external) / 150) * 100;
+  
+  if (internal < 20 || external < 35) return { grade: 'U', gpa: 0, status: 'Arrear' };
+
+  if (pct >= 90) return { grade: 'O', gpa: 10, status: 'Pass' };
+  if (pct >= 80) return { grade: 'A+', gpa: 9, status: 'Pass' };
+  if (pct >= 70) return { grade: 'A', gpa: 8, status: 'Pass' };
+  if (pct >= 60) return { grade: 'B+', gpa: 7, status: 'Pass' };
+  if (pct >= 50) return { grade: 'B', gpa: 6, status: 'Pass' };
   return { grade: 'U', gpa: 0, status: 'Arrear' };
 };
 
@@ -40,7 +44,11 @@ const processMarkPayload = (data) => {
   const internal = Number(data.internalMarks) || 0;
   const semester = Number(data.semesterMarks) || 0;
   const totalMarks = internal + semester;
-  const { grade, gpa, status } = calculateGradeAndGPA(totalMarks);
+  const calculated = calculateGradeAndGPA(internal, semester);
+  
+  const grade = calculated.grade;
+  const gpa = calculated.gpa;
+  const arrearStatus = calculated.status;
   
   return {
     ...data,
@@ -49,7 +57,7 @@ const processMarkPayload = (data) => {
     totalMarks,
     grade,
     gpa,
-    arrearStatus: status
+    arrearStatus
   };
 };
 
@@ -83,17 +91,32 @@ router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async
   try {
     if (Array.isArray(req.body)) {
       const processed = req.body.map(processMarkPayload);
-      const newRecords = await Mark.insertMany(processed);
       
-      const studentIds = [...new Set(newRecords.map(r => r.studentId))];
+      const bulkOps = processed.map(record => ({
+        updateOne: {
+          filter: {
+            studentId: record.studentId,
+            semester: record.semester,
+            subject: record.subject
+          },
+          update: { $set: record },
+          upsert: true
+        }
+      }));
+      
+      await Mark.bulkWrite(bulkOps);
+      
+      const studentIds = [...new Set(processed.map(r => r.studentId))];
       for (const id of studentIds) {
         await updateStudentCGPA(id);
       }
-      return res.status(201).json(newRecords);
+      req.app.get('io').emit('dataUpdated', { module: 'marks', action: 'created' });
+      return res.status(201).json({ message: 'Bulk marks saved' });
     } else {
       const mark = new Mark(processMarkPayload(req.body));
       const newRecord = await mark.save();
       await updateStudentCGPA(newRecord.studentId);
+      req.app.get('io').emit('dataUpdated', { module: 'marks', action: 'created' });
       return res.status(201).json(newRecord);
     }
   } catch (err) {
@@ -112,6 +135,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), asy
     if (updatedRecord) {
       await updateStudentCGPA(updatedRecord.studentId);
     }
+    req.app.get('io').emit('dataUpdated', { module: 'marks', action: 'updated' });
     res.json(updatedRecord);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -126,6 +150,7 @@ router.delete('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), 
       await Mark.findByIdAndDelete(req.params.id);
       await updateStudentCGPA(record.studentId);
     }
+    req.app.get('io').emit('dataUpdated', { module: 'marks', action: 'deleted' });
     res.json({ message: 'Mark deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

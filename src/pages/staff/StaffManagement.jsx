@@ -1,9 +1,16 @@
-import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Mail, Phone, X, BookOpen } from 'lucide-react';
-import { getStaff, createStaff, updateStaff, deleteStaff } from '../../api/index';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Plus, Filter, MoreVertical, Edit2, Trash2, Mail, Phone, Clock, AlertTriangle, CheckCircle, X, BookOpen } from 'lucide-react';
+import { getStaff, createStaff, updateStaff, deleteStaff, approveStaff } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StaffManagement.css';
 
-const DEPARTMENTS = ['Computer Science', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.'];
+const DEPARTMENTS = [
+  'Computer Science Engineering', 'Information Technology', 'Electronics & Communication Engineering',
+  'Electrical & Electronics Engineering', 'Mechanical Engineering', 'Civil Engineering',
+  'Artificial Intelligence & Data Science', 'Artificial Intelligence & Machine Learning',
+  'Cyber Security', 'Biomedical Engineering', 'Aeronautical Engineering', 'Automobile Engineering',
+  'Robotics Engineering', 'Chemical Engineering', 'Biotechnology Engineering'
+];
 const SUBJECTS = ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'Circuits', 'Thermodynamics', 'Fluid Mechanics', 'Structural Analysis'];
 
 const MOCK_STAFF = [
@@ -32,14 +39,26 @@ const StaffManagement = () => {
     fetchStaff();
   }, []);
 
-  const fetchStaff = async () => {
+  // Auto-refresh when staff data changes on another dashboard
+  useRealtimeSync(useCallback(() => { fetchStaff(false); }, []), 'staff');
+
+  const fetchStaff = async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const res = await getStaff();
-      setStaff(res.data);
+      let allStaff = res.data || [];
+      
+      const local = localStorage.getItem('erp_staff');
+      if (local) {
+        const parsed = JSON.parse(local);
+        const dbIds = new Set(allStaff.map(s => s.id || s._id));
+        parsed.forEach(s => { if (!dbIds.has(s.id)) allStaff.push(s); });
+      }
+      setStaff(allStaff);
     } catch (err) {
       console.error('Failed to fetch staff:', err);
-      setStaff(MOCK_STAFF);
+      const local = localStorage.getItem('erp_staff');
+      setStaff(local ? JSON.parse(local) : []);
     } finally {
       setLoading(false);
     }
@@ -57,20 +76,27 @@ const StaffManagement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (editTarget) {
+    if (editTarget) {
+      const updatedStaff = staff.map(s => s.id === editTarget ? { ...s, ...form } : s);
+      try {
         await updateStaff(editTarget, form);
-        setStaff(prev => prev.map(s => s.id === editTarget ? { ...s, ...form } : s));
-      } else {
-        const newId = `STF${String(staff.length + 1).padStart(3, '0')}`;
-        const payload = { id: newId, ...form };
-        const res = await createStaff(payload);
-        setStaff(prev => [...prev, res.data]);
+      } catch (err) {
+        console.warn('Backend update failed, saving locally.');
       }
-      closeModal();
-    } catch (err) {
-      console.error('Save failed:', err);
-      alert('Failed to save staff. Ensure backend is running.');
+      setStaff(updatedStaff);
+    } else {
+      const newId = `STF${String(staff.length + 1).padStart(3, '0')}`;
+      const payload = { id: newId, ...form };
+      const updatedStaff = [...staff, payload];
+      try {
+        const res = await createStaff(payload);
+        updatedStaff[updatedStaff.length - 1] = res.data;
+        setStaff(updatedStaff);
+        closeModal();
+      } catch (err) {
+        console.error('Backend create failed:', err);
+        alert(`Failed to save staff: ${err.response?.data?.message || err.message}`);
+      }
     }
   };
 
@@ -82,6 +108,18 @@ const StaffManagement = () => {
       } catch (err) {
         console.error('Delete failed:', err);
         alert('Failed to delete staff.');
+      }
+    }
+  };
+
+  const handleApprove = async (id) => {
+    if (window.confirm('Approve this staff onboarding request?')) {
+      try {
+        await approveStaff(id);
+        setStaff(prev => prev.map(s => s.id === id ? { ...s, status: 'Active' } : s));
+      } catch (err) {
+        console.error('Approval failed:', err);
+        alert('Failed to approve staff.');
       }
     }
   };
@@ -172,12 +210,18 @@ const StaffManagement = () => {
                   <td><span className="text-sm">{s.phone || '—'}</span></td>
                   <td><span className={`font-semibold ${getWorkloadColor(s.workload)}`}>{s.workload}h</span></td>
                   <td>
-                    <span className={`status-badge ${s.status === 'Active' ? 'badge-active' : 'badge-inactive'}`}>
+                    <span className={`status-badge ${s.status === 'Active' ? 'badge-active' : s.status === 'Pending Approval' ? 'badge-warning' : 'badge-inactive'}`}
+                          style={s.status === 'Pending Approval' ? { backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#d97706', border: '1px solid rgba(245, 158, 11, 0.3)' } : {}}>
                       {s.status || 'Active'}
                     </span>
                   </td>
                   <td>
                     <div className="action-buttons">
+                      {s.status === 'Pending Approval' && (
+                        <button className="btn-icon text-success" title="Approve Staff" onClick={() => handleApprove(s.id)}>
+                          <CheckCircle size={16} />
+                        </button>
+                      )}
                       <button className="btn-icon" onClick={() => openEdit(s)}><Edit2 size={15} /></button>
                       <button className="btn-icon btn-icon-danger" onClick={() => handleDelete(s.id)}><Trash2 size={15} /></button>
                     </div>

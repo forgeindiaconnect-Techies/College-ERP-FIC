@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CheckSquare, FileText, CheckCircle, XCircle, 
   Clock, AlertTriangle, ArrowRight, ShieldAlert, 
   UserCheck, Download, Edit3, Send, Signature, Search, Filter, HelpCircle
 } from 'lucide-react';
 import '../../pages/Dashboard.css';
+import { getApprovals, submitApprovalAction } from '../../api/index.js';
 
 // --- DATA SETS ---
 
@@ -120,6 +121,23 @@ export default function PrincipalApprovals() {
   const [activeFilter, setActiveFilter] = useState('All'); // All, Pending, Approved, Rejected, Urgent
   const [selectedReq, setSelectedReq] = useState(null); // Currently open request in detail drawer
   const [searchTerm, setSearchTerm] = useState('');
+
+  // Fetch approvals dynamically
+  useEffect(() => {
+    getApprovals()
+      .then(res => {
+        if (Array.isArray(res.data)) {
+          const mapped = res.data.map(item => ({
+            ...item,
+            id: item._id || item.id
+          }));
+          setRequests(mapped);
+        }
+      })
+      .catch(err => {
+        console.warn('API /api/approvals offline. Loading executive mock registry.', err);
+      });
+  }, []);
   
   // Signature credentials state
   const [signatureKey, setSignatureKey] = useState('');
@@ -156,31 +174,41 @@ export default function PrincipalApprovals() {
   };
 
   const handleApprove = (id, remarks = '') => {
-    setRequests(prev => prev.map(req => {
-      if (req.id === id) {
-        // Log activity
-        const newLog = { 
-          text: `Request #${req.id} (${req.type} - ${req.department}) APPROVED by Principal`, 
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today' 
-        };
-        setActivityLogs(prevLogs => [newLog, ...prevLogs]);
+    const finalRemarks = remarks || remarksInput || 'Approved by Principal';
+    
+    // Call real backend API
+    submitApprovalAction(id, 'Approved', finalRemarks)
+      .then(() => {
+        setRequests(prev => prev.map(req => {
+          if (req.id === id) {
+            // Log activity
+            const newLog = { 
+              text: `Request #${req.id} (${req.type} - ${req.department}) APPROVED by Principal`, 
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today' 
+            };
+            setActivityLogs(prevLogs => [newLog, ...prevLogs]);
 
-        // Push alert notification
-        const newAlert = {
-          id: Date.now(),
-          text: `Auto Notification sent: ${req.requestedBy} notified about approval.`,
-          type: 'success'
-        };
-        setNotifications(prevAlerts => [newAlert, ...prevAlerts]);
+            // Push alert notification
+            const newAlert = {
+              id: Date.now(),
+              text: `Auto Notification sent: ${req.requestedBy} notified about approval.`,
+              type: 'success'
+            };
+            setNotifications(prevAlerts => [newAlert, ...prevAlerts]);
 
-        return { ...req, status: 'Approved', remarks: remarks || req.remarks || 'Approved by Principal' };
-      }
-      return req;
-    }));
+            return { ...req, status: 'Approved', remarks: finalRemarks };
+          }
+          return req;
+        }));
 
-    if (selectedReq && selectedReq.id === id) {
-      setSelectedReq(prev => ({ ...prev, status: 'Approved', remarks: remarks || 'Approved by Principal' }));
-    }
+        if (selectedReq && selectedReq.id === id) {
+          setSelectedReq(prev => ({ ...prev, status: 'Approved', remarks: finalRemarks }));
+        }
+      })
+      .catch(err => {
+        console.error('Failed to submit approval action to backend', err);
+        alert('Failed to authorize request. Verify session and try again.');
+      });
   };
 
   const handleReject = (id, remarks = '') => {
@@ -189,32 +217,41 @@ export default function PrincipalApprovals() {
       return;
     }
     const finalRemarks = remarks || remarksInput || 'Rejected';
-    setRequests(prev => prev.map(req => {
-      if (req.id === id) {
-        // Log activity
-        const newLog = { 
-          text: `Request #${req.id} (${req.type} - ${req.department}) REJECTED by Principal`, 
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today' 
-        };
-        setActivityLogs(prevLogs => [newLog, ...prevLogs]);
+    
+    // Call real backend API
+    submitApprovalAction(id, 'Rejected', finalRemarks)
+      .then(() => {
+        setRequests(prev => prev.map(req => {
+          if (req.id === id) {
+            // Log activity
+            const newLog = { 
+              text: `Request #${req.id} (${req.type} - ${req.department}) REJECTED by Principal`, 
+              time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) + ', Today' 
+            };
+            setActivityLogs(prevLogs => [newLog, ...prevLogs]);
 
-        // Push alert notification
-        const newAlert = {
-          id: Date.now(),
-          text: `Auto Notification sent: ${req.requestedBy} notified about rejection.`,
-          type: 'danger'
-        };
-        setNotifications(prevAlerts => [newAlert, ...prevAlerts]);
+            // Push alert notification
+            const newAlert = {
+              id: Date.now(),
+              text: `Auto Notification sent: ${req.requestedBy} notified about rejection.`,
+              type: 'danger'
+            };
+            setNotifications(prevAlerts => [newAlert, ...prevAlerts]);
 
-        return { ...req, status: 'Rejected', remarks: finalRemarks };
-      }
-      return req;
-    }));
+            return { ...req, status: 'Rejected', remarks: finalRemarks };
+          }
+          return req;
+        }));
 
-    if (selectedReq && selectedReq.id === id) {
-      setSelectedReq(prev => ({ ...prev, status: 'Rejected', remarks: finalRemarks }));
-    }
-    setRemarksInput('');
+        if (selectedReq && selectedReq.id === id) {
+          setSelectedReq(prev => ({ ...prev, status: 'Rejected', remarks: finalRemarks }));
+        }
+        setRemarksInput('');
+      })
+      .catch(err => {
+        console.error('Failed to submit rejection to backend', err);
+        alert('Failed to submit rejection. Verify session and try again.');
+      });
   };
 
   const handleVerifySignature = () => {

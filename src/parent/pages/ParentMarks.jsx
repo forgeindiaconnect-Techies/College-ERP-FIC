@@ -1,131 +1,227 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { BookOpen, Award, TrendingUp } from 'lucide-react';
+import { BookOpen, AlertTriangle, ArrowLeft, Percent, GraduationCap, Award } from 'lucide-react';
 import { getStudentById, getMarksByStudent } from '../../api/index';
+import '../../student/pages/StudentMarks.css';
+
+// Fallbacks
+const DEFAULT_PARENT_SESSION = {
+  id: 'P001',
+  name: 'James Doe',
+  childName: 'John Doe',
+  referenceId: 'CS2022001',
+  email: 'parent_john@college.edu'
+};
+
+const calcGpa = (internal, external) => {
+  const pct = ((internal + external) / 150) * 100;
+  if (internal < 20 || external < 35) return 0;
+  if (pct >= 90) return 10;
+  if (pct >= 80) return 9;
+  if (pct >= 70) return 8;
+  if (pct >= 60) return 7;
+  if (pct >= 55) return 6;
+  if (pct >= 50) return 5;
+  return 0;
+};
 
 const ParentMarks = () => {
   const navigate = useNavigate();
-  const [session, setSession] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [cgpa, setCgpa] = useState(8.6);
-  const [subjects, setSubjects] = useState([]);
+  const [parentSession, setParentSession] = useState(DEFAULT_PARENT_SESSION);
+  const [studentDetails, setStudentDetails] = useState(null);
+  const [marksRecord, setMarksRecord] = useState(null);
 
   useEffect(() => {
-    const s = sessionStorage.getItem('parent_session');
-    if (!s) {
+    // 1. Session check
+    const session = sessionStorage.getItem('parent_session');
+    let activeSession = DEFAULT_PARENT_SESSION;
+    if (session) {
+      activeSession = JSON.parse(session);
+      setParentSession(activeSession);
+    } else {
       navigate('/parent/login');
       return;
     }
-    const parsedSession = JSON.parse(s);
-    setSession(parsedSession);
 
-    const loadMarks = async () => {
+    const loadMarksData = async () => {
       try {
+        const studentId = activeSession.parentOf || activeSession.referenceId || activeSession.childId;
         const [studRes, marksRes] = await Promise.all([
-          getStudentById(parsedSession.childId).catch(() => null),
-          getMarksByStudent(parsedSession.childId).catch(() => null)
+          getStudentById(studentId).catch(() => null),
+          getMarksByStudent(studentId).catch(() => null)
         ]);
 
         if (studRes?.data) {
-          setCgpa(studRes.data.cgpa || 8.6);
+          setStudentDetails(studRes.data);
+        } else {
+          setStudentDetails({
+            id: studentId,
+            name: activeSession.childName || 'Your Child',
+            dept: 'Unknown Dept',
+            sem: 'Unknown Sem',
+            cgpa: 8.6,
+            arrears: 0
+          });
         }
 
         if (marksRes?.data && marksRes.data.length > 0) {
-          const mapped = marksRes.data.map((r, idx) => ({
-            code: `CS30${idx + 1}`,
-            name: r.subject,
-            int: r.internalMarks,
-            ext: r.semesterMarks,
-            total: r.internalMarks + r.semesterMarks,
-            grade: r.grade || 'A'
-          }));
-          setSubjects(mapped);
+          const records = marksRes.data;
+          const totalArrears = records.filter(r => r.arrearStatus === 'Arrear').length;
+          const totalGPA = records.reduce((acc, r) => acc + (r.gpa || 0), 0);
+          const currentGpa = records.length > 0 ? Number((totalGPA / records.length).toFixed(2)) : 0;
+
+          setMarksRecord({
+            id: studentId,
+            name: activeSession.childName,
+            dept: studRes?.data?.dept || 'Unknown',
+            sem: studRes?.data?.sem || 'Unknown',
+            internal: records[0]?.internalMarks || 0,
+            external: records[0]?.semesterMarks || 0,
+            arrears: totalArrears,
+            gpa: currentGpa,
+            courses: records.map((r, idx) => ({
+              code: r._id ? `CS30${idx + 1}` : 'CS301',
+              name: r.subject,
+              internal: r.internalMarks,
+              external: r.semesterMarks,
+              gpa: r.gpa || 0,
+              status: r.arrearStatus || 'Pass'
+            }))
+          });
         } else {
-          // Fallback mocks
-          setSubjects([
-            { code: 'CS301', name: 'Data Structures', int: 42, ext: 45, total: 87, grade: 'A' },
-            { code: 'CS302', name: 'Database Systems', int: 38, ext: 42, total: 80, grade: 'A' },
-            { code: 'CS303', name: 'Operating Systems', int: 45, ext: 48, total: 93, grade: 'O' },
-            { code: 'CS304', name: 'Computer Networks', int: 35, ext: 35, total: 70, grade: 'B' },
-          ]);
+          // No marks available
+          setMarksRecord({
+            id: studentId,
+            name: activeSession.childName,
+            dept: studRes?.data?.dept || 'Unknown',
+            sem: studRes?.data?.sem || 'Unknown',
+            internal: 0,
+            external: 0,
+            arrears: 0,
+            gpa: 0,
+            courses: []
+          });
         }
       } catch (err) {
-        console.error('Failed to load child transcript for parent:', err);
+        console.error('Failed to load live child marks for parent:', err);
       } finally {
         setLoading(false);
       }
     };
 
-    loadMarks();
+    loadMarksData();
   }, [navigate]);
 
+  if (loading || !marksRecord || !studentDetails) {
+    return (
+      <div className="student-loading-container">
+        <span className="student-spinner-large"></span>
+      </div>
+    );
+  }
+
+  // Derive grades and statuses
+  const getGrade = (cgpa) => cgpa >= 9.0 ? 'O' : cgpa >= 8.0 ? 'A+' : cgpa >= 7.0 ? 'A' : 'B';
+  const getCgpaColor = (c) => c >= 8.5 ? 'var(--success)' : c >= 7.0 ? 'var(--warning)' : 'var(--danger)';
+
+  // Calculate dynamic GPA values
+  const currentGpa = marksRecord.gpa;
+  const coursesList = marksRecord.courses;
+
   return (
-    <div className="animate-fade-in p-6">
-      <div className="mb-6 flex justify-between items-end">
-        <div>
-          <h1 className="text-2xl font-bold text-[var(--text-main)] flex items-center gap-2">
-            <Award size={24} className="text-[#3b82f6]" /> Academic Performance
-          </h1>
-          <p className="text-[var(--text-muted)] mt-1">
-            Current semester grades for {session?.childName || 'your child'}.
-          </p>
-        </div>
-        <div className="glass-card px-4 py-2 flex items-center gap-3">
-          <TrendingUp className="text-[#10b981]" size={20} />
+    <div className="student-marks-page animate-fade-in">
+      <div className="page-header-student">
+        <div className="header-left-s">
+          <button className="btn-back-s" onClick={() => navigate('/parent/dashboard')}>
+            <ArrowLeft size={16} /> Back
+          </button>
           <div>
-            <div className="text-xs text-[var(--text-muted)]">CGPA</div>
-            <div className="font-bold text-[var(--text-main)]">{cgpa}</div>
+            <h1>Child Semester Grade Card</h1>
+            <p className="text-muted">Review internal assessments, end-semester grades, and CGPA trends for {parentSession.childName || 'your child'}.</p>
           </div>
         </div>
       </div>
 
-      <div className="glass-card overflow-hidden">
-        <div className="p-4 border-b border-[var(--border-color)] bg-[var(--bg-secondary)] flex justify-between items-center">
-          <h3 className="font-semibold text-[var(--text-main)] flex items-center gap-2">
-            <BookOpen size={18} /> Semester Grade Card
-          </h3>
-          <span className="text-xs font-semibold px-2 py-1 bg-[#10b981]/20 text-[#10b981] rounded">PUBLISHED</span>
+      {/* Aggregate Header Grid */}
+      <div className="marks-hero-summary-grid">
+        <div className="glass-card summary-grade-card">
+          <Award size={24} className="icon-s teal" />
+          <div>
+            <p className="summary-label">CUMULATIVE CGPA</p>
+            <h2 style={{ color: getCgpaColor(studentDetails.cgpa) }}>{studentDetails.cgpa}</h2>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse">
+
+        <div className="glass-card summary-grade-card">
+          <GraduationCap size={24} className="icon-s blue" />
+          <div>
+            <p className="summary-label">CURRENT GPA</p>
+            <h2>{currentGpa}</h2>
+          </div>
+        </div>
+
+        <div className="glass-card summary-grade-card">
+          <AlertTriangle size={24} className="icon-s red" />
+          <div>
+            <p className="summary-label">ACTIVE ARREARS</p>
+            <h2 className={marksRecord.arrears > 0 ? 'text-danger' : 'text-success'}>
+              {marksRecord.arrears}
+            </h2>
+          </div>
+        </div>
+      </div>
+
+      {/* Grade Table */}
+      <div className="glass-card table-section-card-s">
+        <div className="table-header-row-s">
+          <h3>Registered Courses Score Sheet</h3>
+          <span className="current-sem-badge">{studentDetails.sem}</span>
+        </div>
+
+        <div className="table-container-s">
+          <table>
             <thead>
-              <tr className="border-b border-[var(--border-color)] text-[var(--text-muted)] text-sm">
-                <th className="p-4 font-medium">Code</th>
-                <th className="p-4 font-medium">Subject</th>
-                <th className="p-4 font-medium">Internal (50)</th>
-                <th className="p-4 font-medium">External (100)</th>
-                <th className="p-4 font-medium">Total (150)</th>
-                <th className="p-4 font-medium">Grade</th>
+              <tr>
+                <th>Code</th>
+                <th>Course Name</th>
+                <th>Internals (50)</th>
+                <th>Externals (100)</th>
+                <th>GPA</th>
+                <th>Grade</th>
+                <th>Result</th>
               </tr>
             </thead>
             <tbody>
-              {loading ? (
+              {coursesList.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="p-4 text-center">
-                    <span className="student-spinner">Loading transcript...</span>
-                  </td>
-                </tr>
-              ) : subjects.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="p-4 text-center text-[var(--text-muted)]">
-                    No transcript records released yet.
+                  <td colSpan="7" className="text-center text-muted" style={{ padding: '3rem' }}>
+                    No semester marks have been published yet.
                   </td>
                 </tr>
               ) : (
-                subjects.map((sub, i) => (
-                  <tr key={i} className="border-b border-[var(--border-color)] last:border-0 hover:bg-[var(--bg-secondary)] transition-colors">
-                    <td className="p-4 font-mono text-sm text-[var(--text-muted)]">{sub.code}</td>
-                    <td className="p-4 text-[var(--text-main)] font-medium">{sub.name}</td>
-                    <td className="p-4 text-[var(--text-main)]">{sub.int}</td>
-                    <td className="p-4 text-[var(--text-main)]">{sub.ext}</td>
-                    <td className="p-4 font-bold text-[var(--text-main)]">{sub.total}</td>
-                    <td className="p-4">
-                      <span className={`inline-flex items-center justify-center w-8 h-8 rounded-full font-bold text-sm ${
-                        sub.grade === 'O' ? 'bg-yellow-500/20 text-yellow-500' :
-                        sub.grade === 'A+' || sub.grade === 'A' ? 'bg-[#10b981]/20 text-[#10b981]' :
-                        'bg-[#3b82f6]/20 text-[#3b82f6]'
-                      }`}>
-                        {sub.grade}
+                coursesList.map((course, idx) => (
+                  <tr key={idx}>
+                    <td><span className="register-no-badge">{course.code}</span></td>
+                    <td><span className="font-semibold">{course.name}</span></td>
+                    <td>{course.internal}</td>
+                    <td>{course.external}</td>
+                    <td className="font-semibold" style={{ color: getCgpaColor(course.gpa) }}>{course.gpa}</td>
+                    <td>
+                      <span
+                        className="grade-badge-cell"
+                        style={{
+                          background: getCgpaColor(course.gpa) + '15',
+                          color: getCgpaColor(course.gpa),
+                          border: `1px solid ${getCgpaColor(course.gpa)}30`
+                        }}
+                      >
+                        {getGrade(course.gpa)}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge-cell ${course.status.toLowerCase() === 'pass' ? 'present' : 'absent'}`}>
+                        {course.status}
                       </span>
                     </td>
                   </tr>

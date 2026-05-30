@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Calendar, MapPin, User, BookOpen, Clock, X, CheckCircle } from 'lucide-react';
+import { getStaff } from '../../api/index';
 import './HodTimetable.css';
 
 // Try to grab logged in HOD session
@@ -47,6 +48,7 @@ const HodTimetable = () => {
   const [loading, setLoading] = useState(true);
   const [schedule, setSchedule] = useState([]);
   const [facultyList, setFacultyList] = useState([]);
+  const [subjectList, setSubjectList] = useState([]);
 
   /* Modal state */
   const [modalOpen, setModalOpen] = useState(false);
@@ -65,16 +67,36 @@ const HodTimetable = () => {
     }
     setSchedule(initialTimetable);
 
-    // Load faculty for the select dropdown
-    const savedStaff = localStorage.getItem('erp_staff');
-    if (savedStaff) {
-      const filteredStaff = JSON.parse(savedStaff).filter(s => s.dept === HOD_DEPT);
-      setFacultyList(filteredStaff.map(s => s.name));
+    // Load subjects for the select dropdown
+    const savedSubjects = localStorage.getItem('erp_subjects');
+    if (savedSubjects) {
+      const allSubs = JSON.parse(savedSubjects);
+      const deptSubs = allSubs.filter(s => s.dept === HOD_DEPT).map(s => s.name);
+      setSubjectList([...new Set(deptSubs)]);
     } else {
-      setFacultyList(['Prof. Rajan Iyer', 'Dr. Ananya Rao', 'Prof. Karthik S.']);
+      setSubjectList([]);
     }
 
-    setLoading(false);
+    // Load faculty for the select dropdown from backend
+    const fetchFaculty = async () => {
+      try {
+        const res = await getStaff();
+        const filteredStaff = (res.data || []).filter(s => s.dept === HOD_DEPT);
+        
+        if (filteredStaff.length > 0) {
+          setFacultyList(filteredStaff.map(s => s.name));
+        } else {
+          setFacultyList([]);
+        }
+      } catch (err) {
+        console.warn('Failed to load faculty', err);
+        setFacultyList([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchFaculty();
   }, []);
 
   const saveTimetable = (newSchedule) => {
@@ -90,15 +112,15 @@ const HodTimetable = () => {
     return deptSchedule.find(s => s.day === day && s.period === periodId);
   };
 
-  const openAdd = (day, periodId) => {
-    setForm({
-      day: day || DAYS[0],
-      period: periodId || 1,
-      subject: '',
-      faculty: facultyList[0] || '',
-      classroom: ''
-    });
+  const openAdd = (dayStr, periodNum) => {
     setEditTarget(null);
+    setForm({ 
+      ...EMPTY_SLOT, 
+      day: dayStr || DAYS[0], 
+      period: periodNum || 1, 
+      faculty: facultyList.length > 0 ? facultyList[0] : '',
+      subject: subjectList.length > 0 ? subjectList[0] : ''
+    });
     setSaved(false);
     setModalOpen(true);
   };
@@ -126,7 +148,8 @@ const HodTimetable = () => {
   const closeModal = () => {
     setModalOpen(false);
     setEditTarget(null);
-    setForm(EMPTY_SLOT);
+    setForm({ ...EMPTY_SLOT, faculty: facultyList.length > 0 ? facultyList[0] : '', subject: subjectList.length > 0 ? subjectList[0] : '' });
+    setSaved(false);
   };
 
   const handleSubmit = (e) => {
@@ -254,13 +277,23 @@ const HodTimetable = () => {
 
                 <div className="form-group">
                   <label><BookOpen size={13} /> Subject Name *</label>
-                  <input required placeholder="e.g. Circuit Theory" value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })} />
+                  <select required value={form.subject || (subjectList.length > 0 ? subjectList[0] : '')} onChange={e => setForm({ ...form, subject: e.target.value })}>
+                    {subjectList.length === 0 ? (
+                      <option value="">No Subjects Available</option>
+                    ) : (
+                      subjectList.map((name, idx) => <option key={`${name}-${idx}`} value={name}>{name}</option>)
+                    )}
+                  </select>
                 </div>
 
                 <div className="form-group">
                   <label><User size={13} /> Assign Faculty</label>
-                  <select value={form.faculty} onChange={e => setForm({ ...form, faculty: e.target.value })}>
-                    {facultyList.map(name => <option key={name} value={name}>{name}</option>)}
+                  <select value={form.faculty || (facultyList.length > 0 ? facultyList[0] : '')} onChange={e => setForm({ ...form, faculty: e.target.value })}>
+                    {facultyList.length === 0 ? (
+                      <option value="">No Faculty Available</option>
+                    ) : (
+                      facultyList.map(name => <option key={name} value={name}>{name}</option>)
+                    )}
                   </select>
                 </div>
 

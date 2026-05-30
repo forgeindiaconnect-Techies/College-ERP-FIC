@@ -34,6 +34,7 @@ const StaffStudents = () => {
   const [staffSession, setStaffSession] = useState(DEFAULT_SESSION);
   const [students, setStudents] = useState([]);
   const [search, setSearch] = useState('');
+  const [mySubjects, setMySubjects] = useState([]);
 
   useEffect(() => {
     // 1. Session check
@@ -51,24 +52,59 @@ const StaffStudents = () => {
     const loadStudents = async () => {
       try {
         const res = await getStudents();
-        if (res?.data) {
+        if (res?.data && res.data.length > 0) {
           setStudents(res.data);
+        } else {
+          // Fallback to local storage if API is restricted or empty
+          const localStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          setStudents(localStudents);
         }
       } catch (err) {
         console.error('Failed to load students:', err);
+        const localStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+        setStudents(localStudents);
       } finally {
         setLoading(false);
       }
     };
     loadStudents();
+
+    // 3. Load dynamically assigned subjects
+    let dynSubjects = [];
+    let deptInitialized = false;
+    const savedSubjects = localStorage.getItem('erp_subjects');
+    if (savedSubjects) {
+      const allSubs = JSON.parse(savedSubjects);
+      const deptSubs = allSubs.filter(s => s.dept === activeStaff.dept);
+      
+      if (deptSubs.length > 0) {
+        deptInitialized = true;
+        const assignedSubs = deptSubs.filter(s => {
+          if (!s.teacher) return false;
+          const t = s.teacher.toLowerCase().trim();
+          const n = activeStaff.name.toLowerCase().trim();
+          return t.includes(n) || n.includes(t);
+        });
+        dynSubjects = [...new Set(assignedSubs.map(s => `${s.name} (${s.sem})`))];
+      }
+    }
+    
+    if (!deptInitialized && dynSubjects.length === 0) {
+      dynSubjects = activeStaff.subjects && activeStaff.subjects.length > 0 ? activeStaff.subjects : ['General Course'];
+    }
+
+    if (dynSubjects.length === 0) {
+      dynSubjects = ['No Subjects Assigned by HOD'];
+    }
+    
+    setMySubjects(dynSubjects);
   }, [navigate]);
 
   const staffDept = staffSession.dept;
-  const mySubjects = staffSession.subjects || ['Data Structures', 'DBMS'];
-  const targetSems = mySubjects.map(sub => SUBJECT_TO_CLASS[sub] || 'Sem 3');
-
-  // Filter students: same department AND currently in a semester taught by this instructor
-  const myClassStudents = students.filter(s => s.dept === staffDept && targetSems.includes(s.sem));
+  
+  // Filter students: For demo purposes, just show all students in the staff's department
+  // instead of strictly filtering by targetSems which may hide students if subjects are unmapped.
+  const myClassStudents = students.filter(s => s.dept === staffDept || s.department === staffDept || !s.dept);
 
   const filteredStudents = myClassStudents.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -95,7 +131,18 @@ const StaffStudents = () => {
 
       {/* Directory Search & Statistics Card */}
       <div className="glass-card search-card-students">
-        <div className="table-filters-bar" style={{ borderBottom: 'none', padding: '1.25rem 1.5rem' }}>
+        <div className="table-filters-bar" style={{ borderBottom: 'none', padding: '1.25rem 1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          
+          {/* Active Subjects Banner */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)' }}>Assigned Subjects:</span>
+            {mySubjects.map((sub, idx) => (
+              <span key={idx} style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', padding: '4px 10px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>
+                {sub}
+              </span>
+            ))}
+          </div>
+
           <div className="search-box-attendance" style={{ width: '100%' }}>
             <Search size={17} className="search-icon" />
             <input

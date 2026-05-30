@@ -292,12 +292,87 @@ const PlacementManagement = () => {
         </div>
       )}
 
-      {/* Placeholders */}
-      {['Eligibility Tracker', 'Interviews'].includes(activeTab) && (
-        <div className="animate-fade-in glass-card p-12 text-center">
-          <Clock size={48} className="text-muted opacity-50 mx-auto mb-4"/>
-          <h2 className="text-xl font-bold mb-2">{activeTab} Module</h2>
-          <p className="text-muted">This module provides comprehensive management features for {activeTab.toLowerCase()}.</p>
+      {activeTab === 'Eligibility Tracker' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Student Eligibility</h2>
+            <div className="search-box">
+              <Search size={16} className="text-muted"/>
+              <input type="text" placeholder="Search by Reg No..." />
+            </div>
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reg No</th>
+                  <th>Student Name</th>
+                  <th>Department</th>
+                  <th>CGPA</th>
+                  <th>Backlogs</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="font-mono text-sm">REG202301</td>
+                  <td className="font-medium">Amit Kumar</td>
+                  <td>Computer Science</td>
+                  <td className="font-bold">8.5</td>
+                  <td>0</td>
+                  <td><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Eligible</span></td>
+                </tr>
+                <tr>
+                  <td className="font-mono text-sm">REG202302</td>
+                  <td className="font-medium">Priya Sharma</td>
+                  <td>Electronics</td>
+                  <td className="font-bold">6.2</td>
+                  <td>2</td>
+                  <td><span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">Not Eligible</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Interviews' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Interview Schedules</h2>
+            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Schedule Interview</button>
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Company</th>
+                  <th>Role</th>
+                  <th>Date & Time</th>
+                  <th>Round</th>
+                  <th>Candidates</th>
+                  <th>Venue/Link</th>
+                </tr>
+              </thead>
+              <tbody>
+                {interviews.map(interview => (
+                  <tr key={interview.interviewId}>
+                    <td className="font-bold text-primary">{interview.company}</td>
+                    <td>{interview.role}</td>
+                    <td>
+                      <div className="flex flex-col">
+                        <span>{new Date(interview.date).toLocaleDateString()}</span>
+                        <span className="text-xs text-muted">{interview.time}</span>
+                      </div>
+                    </td>
+                    <td><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{interview.round}</span></td>
+                    <td>{interview.candidates}</td>
+                    <td>Seminar Hall A</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

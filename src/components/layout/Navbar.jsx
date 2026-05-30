@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from 'react';
 import { Search, Bell, MessageSquare, ChevronDown, Moon, Sun, LayoutGrid, CheckCircle, Menu } from 'lucide-react';
 import { ThemeContext } from '../../App';
 import { NotificationContext } from '../../context/NotificationContext';
+import { getDepartments } from '../../api/index';
+import { formatDeptWithCourse } from '../../utils/courseHelper';
 import './Navbar.css';
 
 const Navbar = ({ role = 'Admin', onMenuToggle }) => {
@@ -10,6 +12,23 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
   const [userName, setUserName] = useState('User');
   const [userRole, setUserRole] = useState(role);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [departments, setDepartments] = useState([
+    { id: '1', name: 'Computer Science Engineering' },
+    { id: '2', name: 'Information Technology' },
+    { id: '3', name: 'Electronics & Communication Engineering' },
+    { id: '4', name: 'Electrical & Electronics Engineering' },
+    { id: '5', name: 'Mechanical Engineering' },
+    { id: '6', name: 'Civil Engineering' },
+    { id: '7', name: 'Artificial Intelligence & Data Science' },
+    { id: '8', name: 'Artificial Intelligence & Machine Learning' },
+    { id: '9', name: 'Cyber Security' },
+    { id: '10', name: 'Biomedical Engineering' },
+    { id: '11', name: 'Aeronautical Engineering' },
+    { id: '12', name: 'Automobile Engineering' },
+    { id: '13', name: 'Robotics Engineering' },
+    { id: '14', name: 'Chemical Engineering' },
+    { id: '15', name: 'Biotechnology Engineering' }
+  ]);
 
   useEffect(() => {
     // Determine which session key to check
@@ -26,6 +45,16 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
         console.error('Error parsing session data', e);
       }
     }
+
+    getDepartments()
+      .then(res => {
+        if (res.data && res.data.length > 0) {
+          // If backend has real departments, use them instead of fallback
+          // setDepartments(res.data); 
+          // Note: Keeping fallback for UI consistency based on user request unless backend is heavily populated
+        }
+      })
+      .catch(err => console.error('Failed to load navbar departments:', err));
   }, [role]);
 
   return (
@@ -45,9 +74,9 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
           <LayoutGrid size={18} className="text-muted" />
           <select className="dept-select">
             <option>All Departments</option>
-            <option>Computer Science</option>
-            <option>Electrical Engg.</option>
-            <option>Mechanical Engg.</option>
+            {departments.map(d => (
+              <option key={d.id || d._id} value={d.name}>{formatDeptWithCourse(d.name)}</option>
+            ))}
           </select>
         </div>
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Users, GraduationCap, CalendarCheck, TrendingUp, BookOpenCheck,
@@ -10,6 +10,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import { getStudents, getStaff } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './HodDashboard.css';
 
 // Default Fallback
@@ -21,9 +22,24 @@ const DEFAULT_SESSION = {
 };
 
 const DEPT_CODE_MAP = {
+  'Computer Science Engineering': 'CSE',
+  'Information Technology': 'IT',
+  'Electronics & Communication Engineering': 'ECE',
+  'Electrical & Electronics Engineering': 'EEE',
+  'Mechanical Engineering': 'MECH',
+  'Civil Engineering': 'CIVIL',
+  'Artificial Intelligence & Data Science': 'AIDS',
+  'Artificial Intelligence & Machine Learning': 'AIML',
+  'Cyber Security': 'CYBER',
+  'Biomedical Engineering': 'BME',
+  'Aeronautical Engineering': 'AERO',
+  'Automobile Engineering': 'AUTO',
+  'Robotics Engineering': 'ROBOTICS',
+  'Chemical Engineering': 'CHEM',
+  'Biotechnology Engineering': 'BIOTECH',
   'Computer Science': 'CSE',
   'Electronics & Comm.': 'ECE',
-  'Electrical & Electronics': 'EEE',
+  'Electrical Engg.': 'EE',
   'Mechanical Engg.': 'MECH',
   'Bachelor of Computer App.': 'BCA',
   'Master of Business Admin.': 'MBA'
@@ -31,28 +47,8 @@ const DEPT_CODE_MAP = {
 
 const DEPARTMENT_METRICS = {
   CSE: {
-    students: 120, staff: 15, subjects: 8, attendance: 92,
-    lowAttendance: 4, pendingLeaves: 2, upcomingExams: 3, performance: 88
-  },
-  ECE: {
-    students: 95, staff: 12, subjects: 7, attendance: 91,
-    lowAttendance: 3, pendingLeaves: 1, upcomingExams: 2, performance: 86
-  },
-  MECH: {
-    students: 110, staff: 14, subjects: 9, attendance: 85,
-    lowAttendance: 6, pendingLeaves: 3, upcomingExams: 4, performance: 82
-  },
-  EEE: {
-    students: 80, staff: 10, subjects: 6, attendance: 90,
-    lowAttendance: 2, pendingLeaves: 0, upcomingExams: 2, performance: 84
-  },
-  BCA: {
-    students: 140, staff: 11, subjects: 8, attendance: 93,
-    lowAttendance: 5, pendingLeaves: 1, upcomingExams: 3, performance: 89
-  },
-  MBA: {
-    students: 90, staff: 13, subjects: 10, attendance: 96,
-    lowAttendance: 1, pendingLeaves: 2, upcomingExams: 2, performance: 91
+    students: 0, staff: 0, subjects: 0, attendance: 0,
+    lowAttendance: 0, pendingLeaves: 0, upcomingExams: 0, performance: 0
   }
 };
 
@@ -66,6 +62,27 @@ const HodDashboard = () => {
   const [students, setStudents] = useState([]);
   const [staff, setStaff] = useState([]);
 
+  const fetchLiveData = useCallback(async () => {
+    try {
+      const [studRes, staffRes] = await Promise.all([
+        getStudents().catch(() => null),
+        getStaff().catch(() => null),
+      ]);
+      if (studRes?.data) setStudents(studRes.data);
+      else {
+        const studRaw = localStorage.getItem('erp_students');
+        if (studRaw) setStudents(JSON.parse(studRaw));
+      }
+      if (staffRes?.data) setStaff(staffRes.data);
+      else {
+        const staffRaw = localStorage.getItem('erp_staff');
+        if (staffRaw) setStaff(JSON.parse(staffRaw));
+      }
+    } catch (err) {
+      console.warn('Dashboard API load failed:', err.message);
+    }
+  }, []);
+
   useEffect(() => {
     // 1. Session check
     const session = sessionStorage.getItem('hod_session');
@@ -75,33 +92,13 @@ const HodDashboard = () => {
       navigate('/login');
       return;
     }
-
-    // 2. Fetch live student + staff data from API
-    const fetchLiveData = async () => {
-      try {
-        const [studRes, staffRes] = await Promise.all([
-          getStudents().catch(() => null),
-          getStaff().catch(() => null),
-        ]);
-        if (studRes?.data) setStudents(studRes.data);
-        else {
-          const studRaw = localStorage.getItem('erp_students');
-          if (studRaw) setStudents(JSON.parse(studRaw));
-        }
-        if (staffRes?.data) setStaff(staffRes.data);
-        else {
-          const staffRaw = localStorage.getItem('erp_staff');
-          if (staffRaw) setStaff(JSON.parse(staffRaw));
-        }
-      } catch (err) {
-        console.warn('Dashboard API load failed:', err.message);
-      }
-    };
     fetchLiveData();
-
     const t = setTimeout(() => setAnimate(true), 100);
     return () => clearTimeout(t);
-  }, [navigate]);
+  }, [navigate, fetchLiveData]);
+
+  // Auto-refresh when students or staff data changes
+  useRealtimeSync(fetchLiveData, ['students', 'staff']);
 
   const HOD_DEPT = hodSession.dept;
   const deptCode = DEPT_CODE_MAP[HOD_DEPT] || hodSession.deptCode || 'CSE';
@@ -114,18 +111,16 @@ const HodDashboard = () => {
   const metrics = DEPARTMENT_METRICS[deptCode] || DEPARTMENT_METRICS.CSE;
 
   // Derive advanced card values
-  const totalStudents = myStudents.length > 0 ? myStudents.length : metrics.students;
-  const totalStaff = myStaff.length > 0 ? myStaff.length : metrics.staff;
-  const activeSubjects = metrics.subjects;
+  const totalStudents = myStudents.length;
+  const totalStaff = myStaff.length;
+  const activeSubjects = 0;
   const todayAttendance = myStudents.length > 0
     ? Math.round(myStudents.reduce((acc, curr) => acc + (parseFloat(curr.attendance) || 0), 0) / myStudents.length)
-    : metrics.attendance;
-  const lowAttendanceCount = myStudents.length > 0
-    ? myStudents.filter(s => parseFloat(s.attendance) < 80).length
-    : metrics.lowAttendance;
-  const pendingStaffLeaves = metrics.pendingLeaves;
-  const upcomingExams = metrics.upcomingExams;
-  const departmentPerformance = metrics.performance;
+    : 0;
+  const lowAttendanceCount = myStudents.filter(s => parseFloat(s.attendance) < 80).length;
+  const pendingStaffLeaves = 0;
+  const upcomingExams = 0;
+  const departmentPerformance = 0;
 
   // Deriving toppers
   const toppers = [...myStudents]
@@ -134,47 +129,17 @@ const HodDashboard = () => {
 
   // Fallback toppers if none exist
   const getToppers = () => {
-    if (toppers.length > 0) return toppers;
-    return [
-      { id: `${deptCode}001`, name: 'Suresh Kumar', sem: 'Sem 5', cgpa: 9.2 },
-      { id: `${deptCode}002`, name: 'Divya', sem: 'Sem 3', cgpa: 8.8 },
-      { id: `${deptCode}003`, name: 'Arun', sem: 'Sem 1', cgpa: 8.5 }
-    ];
+    return toppers;
   };
 
   const getLowAttendanceStudents = () => {
-    const list = myStudents.filter(s => parseFloat(s.attendance) < 80);
-    if (list.length > 0) return list;
-    return [
-      { id: `${deptCode}005`, name: 'Rahul Sharma', sem: 'Sem 3', attendance: '68%' }
-    ];
+    return myStudents.filter(s => parseFloat(s.attendance) < 80);
   };
 
   // Recharts visual datasets
-  const attendanceWeek = [
-    { day: 'Mon', pct: Math.min(100, todayAttendance + 2) },
-    { day: 'Tue', pct: Math.min(100, todayAttendance + 1) },
-    { day: 'Wed', pct: Math.max(0, todayAttendance - 3) },
-    { day: 'Thu', pct: Math.min(100, todayAttendance + 3) },
-    { day: 'Fri', pct: Math.min(100, todayAttendance - 1) },
-    { day: 'Sat', pct: Math.max(0, todayAttendance - 8) },
-  ];
-
-  const cgpaTrend = [
-    { sem: 'Sem 1', avg: 8.2 },
-    { sem: 'Sem 2', avg: 8.3 },
-    { sem: 'Sem 3', avg: 8.5 },
-    { sem: 'Sem 4', avg: 8.4 },
-    { sem: 'Sem 5', avg: 8.7 },
-    { sem: 'Sem 6', avg: 8.9 }
-  ];
-
-  const performanceKPIs = [
-    { name: 'Syllabus Cover %', value: 85 },
-    { name: 'Staff Attendance %', value: 95 },
-    { name: 'Pass Rate %', value: departmentPerformance },
-    { name: 'Research Output %', value: 78 }
-  ];
+  const attendanceWeek = [];
+  const cgpaTrend = [];
+  const performanceKPIs = [];
 
   const getCgpaColor = (c) => c >= 9 ? 'var(--success)' : c < 7.5 ? 'var(--danger)' : 'var(--warning)';
 
@@ -310,18 +275,8 @@ const HodDashboard = () => {
           <h3>📋 Recent Scoped Activities</h3>
           <div style={{ marginTop: '0.75rem', maxHeight: '180px', overflowY: 'auto' }}>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {[
-                { time: '10 mins ago', type: 'Student', text: `New student registration completed for Roll No: ${deptCode}007.` },
-                { time: '1 hour ago', type: 'Staff', text: `Prof. Mehra requested emergency medical leave approval.` },
-                { time: 'Today', type: 'Timetable', text: `Timetable modified for ${deptCode} 2nd Year Section A.` },
-                { time: 'Yesterday', type: 'Exam', text: `Internal exam schedule updated for semester 4.` }
-              ].map((act, i) => (
-                <li key={i} style={{ display: 'flex', gap: '0.6rem', fontSize: '0.8rem', paddingBottom: '0.6rem', borderBottom: '1px solid var(--border-color)', alignItems: 'center' }}>
-                  <span className="text-muted" style={{ fontWeight: 600, minWidth: '70px' }}>{act.time}</span>
-                  <span className="badge-outline" style={{ fontSize: '0.65rem', padding: '0.1rem 0.35rem' }}>{act.type}</span>
-                  <span style={{ color: 'var(--text-main)', flex: 1 }}>{act.text}</span>
-                </li>
-              ))}
+              {/* No mock activities */}
+              {myStudents.length === 0 ? <li style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No recent activities found</li> : null}
             </ul>
           </div>
         </div>
@@ -379,12 +334,7 @@ const HodDashboard = () => {
           <div className="hod-list-content">
             {myStaff.length === 0 ? (
               <div className="hod-list-item">
-                <div className="avatar-xs bg-gradient-blue">R</div>
-                <div className="item-info">
-                  <p className="item-title">Dr. Rajan Iyer</p>
-                  <p className="item-subtitle">Senior Professor</p>
-                </div>
-                <span className="item-metric font-semibold text-success">12 hrs/wk</span>
+                <p className="text-muted text-sm">No staff found for this department.</p>
               </div>
             ) : myStaff.slice(0, 3).map((s, idx) => (
               <div key={idx} className="hod-list-item">

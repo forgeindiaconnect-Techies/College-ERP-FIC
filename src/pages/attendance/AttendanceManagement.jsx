@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   AlertTriangle, 
   CheckCircle, 
@@ -25,6 +25,7 @@ import {
   Area
 } from 'recharts';
 import { getStudents, getAllAttendance, createAttendance } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './AttendanceManagement.css';
 
 const DEPARTMENTS = ['All', 'Computer Science', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.'];
@@ -100,6 +101,9 @@ const AttendanceManagement = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Auto-refresh when attendance or student data changes
+  useRealtimeSync(useCallback(() => { fetchData(); }, []), ['attendance', 'students']);
 
   const fetchData = async () => {
     try {

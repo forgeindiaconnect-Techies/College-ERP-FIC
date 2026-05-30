@@ -18,9 +18,24 @@ const getHodSession = () => {
 };
 
 const DEPT_CODE_MAP = {
+  'Computer Science Engineering': 'CSE',
+  'Information Technology': 'IT',
+  'Electronics & Communication Engineering': 'ECE',
+  'Electrical & Electronics Engineering': 'EEE',
+  'Mechanical Engineering': 'MECH',
+  'Civil Engineering': 'CIVIL',
+  'Artificial Intelligence & Data Science': 'AIDS',
+  'Artificial Intelligence & Machine Learning': 'AIML',
+  'Cyber Security': 'CYBER',
+  'Biomedical Engineering': 'BME',
+  'Aeronautical Engineering': 'AERO',
+  'Automobile Engineering': 'AUTO',
+  'Robotics Engineering': 'ROBOTICS',
+  'Chemical Engineering': 'CHEM',
+  'Biotechnology Engineering': 'BIOTECH',
   'Computer Science': 'CSE',
   'Electronics & Comm.': 'ECE',
-  'Electrical & Electronics': 'EEE',
+  'Electrical Engg.': 'EE',
   'Mechanical Engg.': 'MECH',
   'Bachelor of Computer App.': 'BCA',
   'Master of Business Admin.': 'MBA'
@@ -51,7 +66,8 @@ const YEARS = ['1st Year', '2nd Year', '3rd Year', '4th Year'];
 const SECTIONS = ['A', 'B', 'C', 'D'];
 
 const EMPTY_FORM = {
-  name: '', rollNo: '', section: 'A', email: '', phone: '', sem: 'Sem 1', cgpa: '', attendance: '', feeStatus: 'Pending', status: 'Active'
+  name: '', rollNo: '', section: 'A', email: '', phone: '', sem: 'Sem 1', cgpa: '', attendance: '', feeStatus: 'Pending', status: 'Active',
+  idNumber: '', dob: '', academicYear: '', batch: '', admissionDate: '', hostelRequired: '', roomNumber: '', busRoute: '', pickupPoint: '', transportFeeStatus: ''
 };
 
 // Map semester directly to year
@@ -75,6 +91,12 @@ const getAttColor = (a) => {
 const makeSortIcon = (key, sortKey, sortAsc) => {
   if (sortKey !== key) return <ChevronUp size={12} style={{ opacity: 0.25 }} />;
   return sortAsc ? <ChevronUp size={12} /> : <ChevronDown size={12} />;
+};
+
+/* ── Auto-generate Register No ── */
+const generateRegNo = (deptCode, existingCount) => {
+  const year = new Date().getFullYear();
+  return `${deptCode}${year}${String(existingCount + 1).padStart(3, '0')}`;
 };
 
 const HodStudents = () => {
@@ -118,31 +140,27 @@ const HodStudents = () => {
           cgpa: s.cgpa || 8.2,
           feeStatus: s.feeStatus || 'Paid',
           status: s.status || 'Active',
-          deptCode: DEPT_CODE_MAP[s.dept || s.department] || 'CSE',
+          deptCode: DEPT_CODE_MAP[s.dept || s.department] || s.deptCode || 'CSE',
           dept: s.dept || s.department || HOD_DEPT,
           email: s.email || '',
-          phone: s.phone || ''
+          phone: s.phone || '',
+          idNumber: s.idNumber || '',
+          dob: s.dob || '',
+          academicYear: s.academicYear || '',
+          batch: s.batch || '',
+          admissionDate: s.admissionDate || '',
+          hostelRequired: s.hostelRequired || 'No',
+          roomNumber: s.roomNumber || '',
+          busRoute: s.busRoute || '',
+          pickupPoint: s.pickupPoint || '',
+          transportFeeStatus: s.transportFeeStatus || 'Pending'
         };
       });
 
-      const fallbackList = MOCK_STUDENTS_FALLBACK;
-      const combined = [...mapped];
-      fallbackList.forEach(f => {
-        if (!combined.some(c => c.rollNo === f.rollNo)) {
-          combined.push(f);
-        }
-      });
-
-      setStudents(combined);
+      setStudents(mapped);
     } catch (err) {
       console.warn('Backend connection unavailable, loading localized students list:', err.message);
-      const savedList = localStorage.getItem('erp_students');
-      if (savedList) {
-        setStudents(JSON.parse(savedList));
-      } else {
-        localStorage.setItem('erp_students', JSON.stringify(MOCK_STUDENTS_FALLBACK));
-        setStudents(MOCK_STUDENTS_FALLBACK);
-      }
+      setStudents([]);
     } finally {
       setLoading(false);
     }
@@ -200,12 +218,11 @@ const HodStudents = () => {
   const validate = () => {
     const e = {};
     if (!form.name.trim()) e.name = 'Student Name is required';
-    if (!form.rollNo.trim()) e.rollNo = 'Roll Number is required';
     if (!form.section) e.section = 'Section is required';
     if (!form.email.trim()) e.email = 'Email Address is required';
-    if (!form.sem) e.sem = 'Semester is required';
-    if (form.cgpa === '' || isNaN(form.cgpa) || +form.cgpa < 0 || +form.cgpa > 10) e.cgpa = 'Enter valid CGPA (0-10)';
-    if (!form.attendance.toString().trim()) e.attendance = 'Attendance is required';
+    if (!form.hostelRequired) e.hostelRequired = 'Hostel requirement is required';
+    if (!form.busRoute) e.busRoute = 'Bus Route is required (or N/A)';
+    if (!form.transportFeeStatus) e.transportFeeStatus = 'Transport Fee status is required';
     return e;
   };
 
@@ -214,41 +231,44 @@ const HodStudents = () => {
     const errors = validate();
     if (Object.keys(errors).length) { setFormErrors(errors); return; }
 
-    const formattedAtt = form.attendance.toString().includes('%') ? form.attendance : `${form.attendance}%`;
+    const numAtt = parseInt(form.attendance, 10);
+    
+    // For new students, generate the ID if rollNo is empty
+    const finalRollNo = editTarget ? form.rollNo : generateRegNo(deptCode, students.length);
+
     const payload = {
       ...form,
-      id: form.rollNo,
-      rollNo: form.rollNo,
+      id: finalRollNo,
+      rollNo: finalRollNo,
       year: deriveYearFromSem(form.sem),
-      attendance: formattedAtt,
+      attendance: isNaN(numAtt) ? 0 : numAtt,
+      cgpa: parseFloat(form.cgpa) || 0,
       deptCode: deptCode,
       dept: HOD_DEPT
     };
 
-    let updatedStudents = [...students];
-    if (editTarget) {
-      updatedStudents = students.map(s => s.rollNo === editTarget ? payload : s);
-      try {
-        await updateStudent(editTarget, payload).catch(() => null);
-      } catch (err) {}
-    } else {
-      updatedStudents = [payload, ...students];
-      try {
-        await createStudent(payload).catch(() => null);
-      } catch (err) {}
+    try {
+      if (editTarget) {
+        await updateStudent(editTarget, payload);
+        setStudents(students.map(s => s.rollNo === editTarget ? payload : s));
+      } else {
+        const res = await createStudent(payload);
+        // Fallback to payload if the server doesn't return the full created object immediately
+        const createdStudent = res.data && res.data.id ? res.data : payload; 
+        setStudents([createdStudent, ...students]);
+      }
+      setSaved(true);
+      setTimeout(() => { closeModal(); setSaved(false); }, 800);
+    } catch (err) {
+      console.error('Save failed:', err);
+      alert('Failed to save student. Ensure backend is running and valid data was provided.');
     }
-
-    setStudents(updatedStudents);
-    localStorage.setItem('erp_students', JSON.stringify(updatedStudents));
-    setSaved(true);
-    setTimeout(() => { closeModal(); setSaved(false); }, 800);
   };
 
   const handleDelete = async (rollNo) => {
     if (window.confirm('Delete this student record? This cannot be undone.')) {
       const updated = students.filter(s => s.rollNo !== rollNo);
       setStudents(updated);
-      localStorage.setItem('erp_students', JSON.stringify(updated));
       try {
         await deleteStudent(rollNo).catch(() => null);
       } catch (err) {}
@@ -428,94 +448,185 @@ const HodStudents = () => {
               </div>
             )}
 
-            <form onSubmit={handleSubmit} noValidate>
-              <div className="modal-body">
+            <form onSubmit={handleSubmit} noValidate style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
+              <div className="modal-body" style={{ overflowY: 'auto' }}>
                 <div className="form-grid">
+                  <div className="sm-form-section-title">Personal Information</div>
+
                   {/* Student Name */}
                   <div className={`fld ${formErrors.name ? 'fld-error' : ''}`}>
-                    <label><User size={13} /> STUDENT NAME <span className="req">*</span></label>
+                    <label><User size={13}/> Student Name <span className="req">*</span></label>
                     <input placeholder="e.g. John Doe" {...field('name')} />
                     {formErrors.name && <span className="err-msg">{formErrors.name}</span>}
                   </div>
 
-                  {/* Roll Number */}
-                  <div className={`fld ${formErrors.rollNo ? 'fld-error' : ''}`}>
-                    <label><Hash size={13} /> ROLL NUMBER <span className="req">*</span></label>
-                    <input placeholder="e.g. CSE006" {...field('rollNo')} disabled={!!editTarget} style={editTarget ? { opacity: 0.6, cursor: 'not-allowed' } : {}} />
-                    {formErrors.rollNo && <span className="err-msg">{formErrors.rollNo}</span>}
-                  </div>
-
-                  {/* Department (Locked) */}
-                  <div className="fld">
-                    <label><BookOpen size={13} /> DEPARTMENT (LOCKED)</label>
-                    <input value={HOD_DEPT} disabled style={{ opacity: 0.6, cursor: 'not-allowed' }} />
-                  </div>
-
-                  {/* Section */}
-                  <div className="fld">
-                    <label><Layers size={13} /> SECTION <span className="req">*</span></label>
-                    <select {...field('section')}>
-                      {SECTIONS.map(sec => <option key={sec} value={sec}>{sec}</option>)}
-                    </select>
-                  </div>
+                  {/* Register Number / Roll No - Only show on Edit */}
+                  {editTarget && (
+                    <div className={`fld ${formErrors.rollNo ? 'fld-error' : ''}`}>
+                      <label><Hash size={13}/> Register Number <span className="req">*</span></label>
+                      <input
+                        placeholder="e.g. CSE006"
+                        {...field('rollNo')}
+                        disabled={true}
+                        style={{opacity: 0.6, cursor:'not-allowed'}}
+                      />
+                    </div>
+                  )}
 
                   {/* Email Address */}
                   <div className={`fld ${formErrors.email ? 'fld-error' : ''}`}>
-                    <label><Mail size={13} /> EMAIL ADDRESS <span className="req">*</span></label>
+                    <label><Mail size={13}/> Email Address <span className="req">*</span></label>
                     <input type="email" placeholder="student@college.edu" {...field('email')} />
                     {formErrors.email && <span className="err-msg">{formErrors.email}</span>}
                   </div>
 
                   {/* Phone Number */}
                   <div className="fld">
-                    <label><Phone size={13} /> PHONE NUMBER</label>
+                    <label><Phone size={13}/> Phone Number</label>
                     <input type="tel" placeholder="10-digit mobile number" maxLength={10} {...field('phone')} />
+                  </div>
+
+                  {/* Aadhar/ID Number */}
+                  <div className="fld">
+                    <label>Aadhar/ID Number</label>
+                    <input type="text" placeholder="ID Number" {...field('idNumber')} />
+                  </div>
+
+                  {/* Date of Birth */}
+                  <div className="fld">
+                    <label>Date of Birth</label>
+                    <input type="date" {...field('dob')} />
+                  </div>
+
+                  <div className="sm-form-section-title">Academic Information</div>
+
+                  {/* Department (Locked) */}
+                  <div className="fld">
+                    <label><BookOpen size={13} /> Department (Locked)</label>
+                    <input value={HOD_DEPT} disabled style={{ opacity: 0.6, cursor: 'not-allowed', backgroundColor: 'var(--bg-secondary)' }} />
                   </div>
 
                   {/* Semester */}
                   <div className={`fld ${formErrors.sem ? 'fld-error' : ''}`}>
-                    <label>SEMESTER <span className="req">*</span></label>
+                    <label>Semester</label>
                     <select {...field('sem')}>
                       <option value="">— Select Semester —</option>
-                      {SEMESTERS.map(s => <option key={s} value={s}>{s}</option>)}
+                      {SEMESTERS.map(s => <option key={s}>{s}</option>)}
                     </select>
                     {formErrors.sem && <span className="err-msg">{formErrors.sem}</span>}
                   </div>
 
                   {/* CGPA */}
                   <div className={`fld ${formErrors.cgpa ? 'fld-error' : ''}`}>
-                    <label><Hash size={13} /> CGPA <span className="req">*</span></label>
+                    <label><Hash size={13}/> CGPA</label>
                     <input type="number" step="0.1" min="0" max="10" placeholder="0.0 - 10.0" {...field('cgpa')} />
                     {formErrors.cgpa && <span className="err-msg">{formErrors.cgpa}</span>}
                   </div>
 
                   {/* Attendance */}
                   <div className={`fld ${formErrors.attendance ? 'fld-error' : ''}`}>
-                    <label><Percent size={13} /> % ATTENDANCE % <span className="req">*</span></label>
+                    <label><Percent size={13}/> Attendance %</label>
                     <input type="text" placeholder="0 - 100" {...field('attendance')} />
                     {formErrors.attendance && <span className="err-msg">{formErrors.attendance}</span>}
                   </div>
 
                   {/* Fee Status */}
                   <div className="fld">
-                    <label><DollarSign size={13} /> FEE STATUS</label>
+                    <label><DollarSign size={13}/> Fee Status</label>
                     <select {...field('feeStatus')}>
-                      {FEE_STATUS.map(f => <option key={f} value={f}>{f}</option>)}
+                      {FEE_STATUS.map(f => <option key={f}>{f}</option>)}
                     </select>
                   </div>
 
-                  {/* Student Status */}
+                  {/* Academic Year */}
                   <div className="fld">
-                    <label>STUDENT STATUS</label>
-                    <div className="status-toggle-row">
+                    <label>Academic Year</label>
+                    <input type="text" placeholder="e.g. 2023-2027" {...field('academicYear')} />
+                  </div>
+
+                  {/* Section */}
+                  <div className="fld">
+                    <label>Section <span className="req">*</span></label>
+                    <select {...field('section')}>
+                      {SECTIONS.map(sec => <option key={sec} value={sec}>{sec}</option>)}
+                    </select>
+                  </div>
+
+                  {/* Batch */}
+                  <div className="fld">
+                    <label>Batch</label>
+                    <input type="text" placeholder="e.g. 2024" {...field('batch')} />
+                  </div>
+
+                  {/* Admission Date */}
+                  <div className="fld">
+                    <label>Admission Date</label>
+                    <input type="date" {...field('admissionDate')} />
+                  </div>
+
+                  {/* Status */}
+                  <div className="fld">
+                    <label><CheckCircle size={13}/> Student Status</label>
+                    <div className="status-toggle-row" style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                       {['Active', 'Inactive'].map(opt => (
-                        <label key={opt} className={`status-toggle-opt ${form.status === opt ? 'selected' : ''}`}>
-                          <input type="radio" name="status" value={opt} checked={form.status === opt}
-                            onChange={() => setForm(f => ({ ...f, status: opt }))} style={{ display: 'none' }} />
+                        <button
+                          key={opt} type="button"
+                          className={`status-toggle-opt ${form.status === opt ? 'selected' : ''}`}
+                          onClick={() => setForm(f => ({ ...f, status: opt }))}
+                          style={{
+                            flex: 1, padding: '8px', borderRadius: '6px', border: '1px solid',
+                            borderColor: form.status === opt ? 'var(--primary)' : '#e5e7eb',
+                            backgroundColor: form.status === opt ? 'var(--primary-light)' : 'transparent',
+                            color: form.status === opt ? 'var(--primary)' : '#6b7280',
+                            fontWeight: 'bold', cursor: 'pointer', textTransform: 'uppercase', fontSize: '0.75rem'
+                          }}
+                        >
                           {opt}
-                        </label>
+                        </button>
                       ))}
                     </div>
+                  </div>
+
+                  <div className="sm-form-section-title">Transport & Hostel</div>
+
+                  {/* Hostel Required */}
+                  <div className={`fld ${formErrors.hostelRequired ? 'fld-error' : ''}`}>
+                    <label>Hostel Required? <span className="req">*</span></label>
+                    <select {...field('hostelRequired')}>
+                      <option value="">— Select —</option>
+                      <option value="No">No</option>
+                      <option value="Yes">Yes</option>
+                    </select>
+                    {formErrors.hostelRequired && <span className="err-msg">{formErrors.hostelRequired}</span>}
+                  </div>
+
+                  {/* Room Number */}
+                  <div className="fld">
+                    <label>Room Number</label>
+                    <input type="text" placeholder="e.g. A-102" disabled={form.hostelRequired === 'No' || !form.hostelRequired} {...field('roomNumber')} />
+                  </div>
+
+                  {/* Bus Route */}
+                  <div className={`fld ${formErrors.busRoute ? 'fld-error' : ''}`}>
+                    <label>Bus Route <span className="req">*</span></label>
+                    <input type="text" placeholder="e.g. Route 4 (or N/A)" {...field('busRoute')} />
+                    {formErrors.busRoute && <span className="err-msg">{formErrors.busRoute}</span>}
+                  </div>
+
+                  {/* Pickup Point */}
+                  <div className="fld">
+                    <label>Pickup Point</label>
+                    <input type="text" placeholder="e.g. City Center" {...field('pickupPoint')} />
+                  </div>
+
+                  {/* Transport Fee Status */}
+                  <div className={`fld ${formErrors.transportFeeStatus ? 'fld-error' : ''}`}>
+                    <label>Transport Fee Status <span className="req">*</span></label>
+                    <select {...field('transportFeeStatus')}>
+                      <option value="">— Select —</option>
+                      {FEE_STATUS.map(f => <option key={f}>{f}</option>)}
+                    </select>
+                    {formErrors.transportFeeStatus && <span className="err-msg">{formErrors.transportFeeStatus}</span>}
                   </div>
                 </div>
               </div>

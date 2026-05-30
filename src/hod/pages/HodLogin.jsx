@@ -27,8 +27,8 @@ const HodLogin = () => {
         return;
       }
 
-      sessionStorage.setItem('token', userData.token);
-      sessionStorage.setItem('user_session', JSON.stringify({
+      sessionStorage.setItem('hod_token', userData.token);
+      sessionStorage.setItem('hod_session', JSON.stringify({
         name: userData.name, dept: userData.department, deptCode: userData.department?.substring(0, 2).toUpperCase() || 'CS', role: 'HOD', email: userData.email
       }));
       navigate('/hod');

@@ -151,7 +151,7 @@ const Dashboard = () => {
       score: parseFloat(avgScore.toFixed(1)),
       staff: totalLoad || 12
     };
-  }) : MOCK_DEPT_SCORES;
+  }) : [];
 
   return (
     <div className="dashboard animate-fade-in">
@@ -256,7 +256,7 @@ const Dashboard = () => {
           </div>
           <div className="chart-container">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={MOCK_ATTENDANCE} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <AreaChart data={[]} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.35}/>
@@ -310,7 +310,7 @@ const Dashboard = () => {
           </div>
           <div className="chart-container" style={{ minHeight: '300px' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={MOCK_CGPA} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
+              <LineChart data={[]} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="semester" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                 <YAxis domain={[5, 10]} stroke="var(--text-muted)" fontSize={11} tickLine={false} />

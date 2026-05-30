@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Mail, Phone, X, BookOpen, Download } from 'lucide-react';
-import { getStaff, createStaff, updateStaff } from '../../api/index';
+import { getStaff, createStaff, updateStaff, getDepartments } from '../../api/index';
+import { io } from 'socket.io-client';
 import '../../pages/staff/StaffManagement.css';
 
-const DEPARTMENTS = ['Computer Science', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.'];
 const SUBJECTS = ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'Circuits', 'Thermodynamics', 'Fluid Mechanics', 'Structural Analysis'];
 
 const EMPTY_FORM = { name: '', email: '', phone: '', dept: '', designation: 'Assistant Prof.', subjects: [], workload: '', attendance: '95', status: 'Active' };
@@ -19,16 +19,37 @@ const SubAdminStaff = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [departmentsList, setDepartmentsList] = useState([]);
 
   useEffect(() => {
     fetchStaff();
+    fetchDepartments();
+    
+    const socket = io('http://localhost:5000');
+    socket.on('staffUpdated', () => {
+      fetchStaff();
+    });
+    
+    return () => socket.disconnect();
   }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await getDepartments();
+      const names = (res.data || []).map(d => d.name);
+      setDepartmentsList(names);
+    } catch (err) {
+      console.error('Failed to fetch departments:', err);
+    }
+  };
 
   const fetchStaff = async () => {
     try {
       setLoading(true);
       const res = await getStaff();
-      setStaff(res.data);
+      // Filter out HODs for the Sub Admin view
+      const staffOnly = (res.data || []).filter(s => s.designation !== 'HOD');
+      setStaff(staffOnly);
     } catch (err) {
       console.error('Failed to fetch staff:', err);
     } finally {
@@ -48,20 +69,27 @@ const SubAdminStaff = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (editTarget) {
+    if (editTarget) {
+      const updatedStaff = staff.map(s => s.id === editTarget ? { ...s, ...form } : s);
+      try {
         await updateStaff(editTarget, form);
-        setStaff(prev => prev.map(s => s.id === editTarget ? { ...s, ...form } : s));
-      } else {
-        const newId = `STF${String(staff.length + 1).padStart(3, '0')}`;
-        const payload = { id: newId, ...form };
-        const res = await createStaff(payload);
-        setStaff(prev => [...prev, res.data]);
+      } catch (err) {
+        console.warn('Backend update failed, saving locally.');
       }
-      closeModal();
-    } catch (err) {
-      console.error('Save failed:', err);
-      alert('Failed to save staff. Ensure backend is running.');
+      setStaff(updatedStaff);
+    } else {
+      const newId = `STF${String(staff.length + 1).padStart(3, '0')}`;
+      const payload = { id: newId, ...form };
+      const updatedStaff = [...staff, payload];
+      try {
+        const res = await createStaff(payload);
+        updatedStaff[updatedStaff.length - 1] = res.data;
+        setStaff(updatedStaff);
+        closeModal();
+      } catch (err) {
+        console.error('Backend create failed:', err);
+        alert(`Failed to save staff: ${err.response?.data?.message || err.message}`);
+      }
     }
   };
 
@@ -134,10 +162,10 @@ const SubAdminStaff = () => {
             <input type="text" placeholder="Search by name or ID..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
           <div className="filter-select-wrapper">
-            <select className="filter-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
-              <option value="All">All Departments</option>
-              {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
-            </select>
+            <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)} className="filter-select">
+            <option value="All">All Departments</option>
+            {departmentsList.map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
           </div>
         </div>
 
@@ -172,7 +200,8 @@ const SubAdminStaff = () => {
                   <td><span className="text-sm">{s.phone || '—'}</span></td>
                   <td><span className={`font-semibold ${getWorkloadColor(s.workload)}`}>{s.workload}h</span></td>
                   <td>
-                    <span className={`status-badge ${s.status === 'Active' ? 'badge-active' : 'badge-inactive'}`}>
+                    <span className={`status-badge ${s.status === 'Active' ? 'badge-active' : s.status === 'Pending Approval' ? 'badge-warning' : 'badge-inactive'}`}
+                          style={s.status === 'Pending Approval' ? { backgroundColor: 'rgba(245, 158, 11, 0.15)', color: '#d97706', border: '1px solid rgba(245, 158, 11, 0.3)' } : {}}>
                       {s.status || 'Active'}
                     </span>
                   </td>
@@ -214,9 +243,9 @@ const SubAdminStaff = () => {
                 </div>
                 <div className="form-group">
                   <label>Department</label>
-                  <select required value={form.dept} onChange={e => setForm({ ...form, dept: e.target.value })}>
+                  <select value={form.dept} onChange={e => setForm({...form, dept: e.target.value})} required>
                     <option value="">Select Department</option>
-                    {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+                    {departmentsList.map(d => <option key={d} value={d}>{d}</option>)}
                   </select>
                 </div>
                 <div className="form-group">

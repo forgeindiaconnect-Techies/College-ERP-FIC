@@ -11,171 +11,85 @@ import {
 } from 'recharts';
 import '../../pages/Dashboard.css';
 
-// --- DATA SETS ---
-
-const departmentsData = {
-  CSE: {
-    code: 'CSE',
-    name: 'Computer Science & Engineering',
-    hodName: 'Dr. Amit Sharma',
-    studentsCount: 720,
-    attendanceRate: 92,
-    passRate: 88,
-    staffCount: 45,
-    placementRate: 95,
-    topStudents: [
-      { name: 'Rohan Gupta', gpa: '9.8', placement: 'Placed (Google)', roll: 'CSE-041' },
-      { name: 'Shreya Iyer', gpa: '9.7', placement: 'Placed (Microsoft)', roll: 'CSE-112' },
-      { name: 'Aditya Sen', gpa: '9.6', placement: 'Placed (Amazon)', roll: 'CSE-003' }
-    ],
-    lowAttendance: [
-      { name: 'Aryan Mehta', attendance: 68, roll: 'CSE-201', status: 'Critical' },
-      { name: 'Simran Kaur', attendance: 72, roll: 'CSE-154', status: 'Warning' }
-    ],
-    performanceTrend: [
-      { term: 'Sem 1', gpa: 7.8 },
-      { term: 'Sem 2', gpa: 8.0 },
-      { term: 'Sem 3', gpa: 8.2 },
-      { term: 'Sem 4', gpa: 8.4 },
-      { term: 'Sem 5', gpa: 8.6 },
-      { term: 'Sem 6', gpa: 8.8 }
-    ]
-  },
-  ECE: {
-    code: 'ECE',
-    name: 'Electronics & Communication Engineering',
-    hodName: 'Dr. Ramesh Varma',
-    studentsCount: 640,
-    attendanceRate: 88,
-    passRate: 82,
-    staffCount: 38,
-    placementRate: 85,
-    topStudents: [
-      { name: 'Neha Reddy', gpa: '9.6', placement: 'Placed (Intel)', roll: 'ECE-088' },
-      { name: 'Vivek Joshi', gpa: '9.5', placement: 'Placed (Qualcomm)', roll: 'ECE-012' }
-    ],
-    lowAttendance: [
-      { name: 'Kunal Sen', attendance: 74, roll: 'ECE-311', status: 'Warning' }
-    ],
-    performanceTrend: [
-      { term: 'Sem 1', gpa: 7.5 },
-      { term: 'Sem 2', gpa: 7.7 },
-      { term: 'Sem 3', gpa: 7.8 },
-      { term: 'Sem 4', gpa: 8.0 },
-      { term: 'Sem 5', gpa: 8.1 },
-      { term: 'Sem 6', gpa: 8.2 }
-    ]
-  },
-  EEE: {
-    code: 'EEE',
-    name: 'Electrical & Electronics Engineering',
-    hodName: 'Dr. Priya Iyer',
-    studentsCount: 420,
-    attendanceRate: 85,
-    passRate: 78,
-    staffCount: 30,
-    placementRate: 80,
-    topStudents: [
-      { name: 'Kiran Rao', gpa: '9.4', placement: 'Placed (L&T)', roll: 'EEE-023' },
-      { name: 'Ananya Roy', gpa: '9.3', placement: 'Placed (Siemens)', roll: 'EEE-105' }
-    ],
-    lowAttendance: [
-      { name: 'Rahul Bose', attendance: 65, roll: 'EEE-055', status: 'Critical' }
-    ],
-    performanceTrend: [
-      { term: 'Sem 1', gpa: 7.2 },
-      { term: 'Sem 2', gpa: 7.3 },
-      { term: 'Sem 3', gpa: 7.5 },
-      { term: 'Sem 4', gpa: 7.6 },
-      { term: 'Sem 5', gpa: 7.7 },
-      { term: 'Sem 6', gpa: 7.8 }
-    ]
-  },
-  MECH: {
-    code: 'MECH',
-    name: 'Mechanical Engineering',
-    hodName: 'Dr. Vikram Rao',
-    studentsCount: 580,
-    attendanceRate: 82,
-    passRate: 75,
-    staffCount: 35,
-    placementRate: 72,
-    topStudents: [
-      { name: 'Siddharth Pal', gpa: '9.3', placement: 'Placed (Tata Motors)', roll: 'MEC-122' },
-      { name: 'Meera Nair', gpa: '9.2', placement: 'Placed (Mahindra)', roll: 'MEC-045' }
-    ],
-    lowAttendance: [
-      { name: 'Varun Dhawan', attendance: 61, roll: 'MEC-218', status: 'Critical' }
-    ],
-    performanceTrend: [
-      { term: 'Sem 1', gpa: 7.0 },
-      { term: 'Sem 2', gpa: 7.1 },
-      { term: 'Sem 3', gpa: 7.2 },
-      { term: 'Sem 4', gpa: 7.3 },
-      { term: 'Sem 5', gpa: 7.4 },
-      { term: 'Sem 6', gpa: 7.5 }
-    ]
-  },
-  MBA: {
-    code: 'MBA',
-    name: 'Master of Business Administration',
-    hodName: 'Dr. Sneha Reddy',
-    studentsCount: 360,
-    attendanceRate: 95,
-    passRate: 98,
-    staffCount: 24,
-    placementRate: 92,
-    topStudents: [
-      { name: 'Pooja Hegde', gpa: '9.9', placement: 'Placed (Goldman Sachs)', roll: 'MBA-001' },
-      { name: 'Rishi Kapoor', gpa: '9.8', placement: 'Placed (Deloitte)', roll: 'MBA-089' }
-    ],
-    lowAttendance: [],
-    performanceTrend: [
-      { term: 'Sem 1', gpa: 8.8 },
-      { term: 'Sem 2', gpa: 9.0 },
-      { term: 'Sem 3', gpa: 9.3 },
-      { term: 'Sem 4', gpa: 9.8 }
-    ]
-  },
-  BCA: {
-    code: 'BCA',
-    name: 'Bachelor of Computer Applications',
-    hodName: 'Dr. Sanjay Dutt',
-    studentsCount: 730,
-    attendanceRate: 90,
-    passRate: 85,
-    staffCount: 28,
-    placementRate: 88,
-    topStudents: [
-      { name: 'Aman Varma', gpa: '9.6', placement: 'Placed (TCS)', roll: 'BCA-312' },
-      { name: 'Divya Dutta', gpa: '9.5', placement: 'Placed (Wipro)', roll: 'BCA-004' }
-    ],
-    lowAttendance: [
-      { name: 'Gaurav Gill', attendance: 71, roll: 'BCA-209', status: 'Warning' }
-    ],
-    performanceTrend: [
-      { term: 'Sem 1', gpa: 7.6 },
-      { term: 'Sem 2', gpa: 7.8 },
-      { term: 'Sem 3', gpa: 8.0 },
-      { term: 'Sem 4', gpa: 8.2 },
-      { term: 'Sem 5', gpa: 8.4 },
-      { term: 'Sem 6', gpa: 8.5 }
-    ]
-  }
-};
-
-const analyticsChartData = [
-  { name: 'CSE', Attendance: 92, PassRate: 88, Placements: 95, StaffScore: 94 },
-  { name: 'ECE', Attendance: 88, PassRate: 82, Placements: 85, StaffScore: 86 },
-  { name: 'EEE', Attendance: 85, PassRate: 78, Placements: 80, StaffScore: 82 },
-  { name: 'MECH', Attendance: 82, PassRate: 75, Placements: 72, StaffScore: 78 },
-  { name: 'MBA', Attendance: 95, PassRate: 98, Placements: 92, StaffScore: 96 },
-  { name: 'BCA', Attendance: 90, PassRate: 85, Placements: 88, StaffScore: 88 }
-];
+import { getDepartments } from '../../api/index';
 
 export default function PrincipalDepartments() {
   const [activeTab, setActiveTab] = useState('overview'); // overview, analytics, approvals, reports, permissions, detail
-  const [selectedDept, setSelectedDept] = useState('CSE');
+  const [selectedDept, setSelectedDept] = useState('');
+  
+  const [departmentsData, setDepartmentsData] = useState({});
+  const [analyticsChartData, setAnalyticsChartData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchDepts = async () => {
+      try {
+        const res = await getDepartments();
+        const depts = res.data || [];
+        
+        const newData = {};
+        const newAnalytics = [];
+
+        const deptCodes = {
+          'Computer Science Engineering': 'CSE',
+          'Information Technology': 'IT',
+          'Electronics & Communication Engineering': 'ECE',
+          'Electrical & Electronics Engineering': 'EEE',
+          'Mechanical Engineering': 'MECH',
+          'Civil Engineering': 'CIVIL',
+          'Artificial Intelligence & Data Science': 'AIDS',
+          'Artificial Intelligence & Machine Learning': 'AIML',
+          'Cyber Security': 'CYBER',
+          'Biomedical Engineering': 'BME',
+          'Aeronautical Engineering': 'AERO',
+          'Automobile Engineering': 'AUTO',
+          'Robotics Engineering': 'ROBOTICS',
+          'Chemical Engineering': 'CHEM',
+          'Biotechnology Engineering': 'BIOTECH'
+        };
+
+        depts.forEach((d) => {
+          const code = d.code || deptCodes[d.name] || d.name.substring(0, 4).toUpperCase();
+          newData[code] = {
+            code: code,
+            name: d.name,
+            hodName: d.headOfDepartment || 'TBD',
+            studentsCount: 0,
+            attendanceRate: 0,
+            passRate: 0,
+            staffCount: 0,
+            placementRate: 0,
+            topStudents: [],
+            lowAttendance: [],
+            performanceTrend: [
+              { term: 'Sem 1', gpa: 0 },
+              { term: 'Sem 2', gpa: 0 },
+              { term: 'Sem 3', gpa: 0 }
+            ]
+          };
+          newAnalytics.push({
+            name: code,
+            Attendance: 0,
+            PassRate: 0,
+            Placements: 0,
+            StaffScore: 0
+          });
+        });
+
+        setDepartmentsData(newData);
+        setAnalyticsChartData(newAnalytics);
+        if (depts.length > 0) {
+          const firstCode = depts[0].code || depts[0].name.substring(0, 4).toUpperCase();
+          setSelectedDept(firstCode);
+        }
+      } catch (err) {
+        console.error('Failed to fetch departments:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchDepts();
+  }, []);
   
   // Dynamic approvals lists stored in local React state
   const [approvals, setApprovals] = useState([
@@ -227,6 +141,10 @@ export default function PrincipalDepartments() {
       }, 5000);
     }, 1500);
   };
+
+  if (isLoading) {
+    return <div className="main-content" style={{ padding: '2rem', minHeight: 'calc(100vh - 70px)', background: 'var(--bg-primary)', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><h2>Loading Departments...</h2></div>;
+  }
 
   return (
     <div className="main-content" style={{ padding: '2rem', minHeight: 'calc(100vh - 70px)', background: 'var(--bg-primary)' }}>

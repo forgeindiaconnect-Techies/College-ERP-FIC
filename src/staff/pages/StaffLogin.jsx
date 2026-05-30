@@ -27,8 +27,9 @@ const StaffLogin = () => {
         return;
       }
 
-      sessionStorage.setItem('token', userData.token);
-      sessionStorage.setItem('user_session', JSON.stringify({
+      sessionStorage.setItem('staff_token', userData.token);
+      sessionStorage.setItem('staff_session', JSON.stringify({
+        id: userData.referenceId,
         name: userData.name, dept: userData.department, deptCode: userData.department?.substring(0, 2).toUpperCase() || 'CS', role: 'Staff', email: userData.email, subjects: []
       }));
       navigate('/staff/dashboard');

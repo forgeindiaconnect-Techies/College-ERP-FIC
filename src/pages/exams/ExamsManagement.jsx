@@ -1,16 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, X, Calendar, Clock, MapPin, ClipboardList, BookOpen, AlertTriangle } from 'lucide-react';
-import { getDepartments } from '../../api/index';
+import { getDepartments, getExams, createExam, updateExam, deleteExam } from '../../api/index';
 import './ExamsManagement.css';
-
-const DEFAULT_EXAMS = [
-  { id: 'EXM001', name: 'Mid Term Test', dept: 'Computer Science', subject: 'Data Structures', date: '2026-05-28', time: '10:00 AM - 12:00 PM', room: 'Block A, Room 301', maxMarks: 50 },
-  { id: 'EXM002', name: 'End Sem Theory', dept: 'Computer Science', subject: 'DBMS', date: '2026-06-02', time: '10:00 AM - 01:00 PM', room: 'Main Examination Hall', maxMarks: 100 },
-  { id: 'EXM003', name: 'Semester Lab Exam', dept: 'Electrical Engg.', subject: 'Circuits & Networks', date: '2026-05-30', time: '01:30 PM - 04:30 PM', room: 'EE Core Lab 2', maxMarks: 100 }
-];
 
 const DEPARTMENTS = [
   'Computer Science', 'Electronics & Comm.', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.'
+];
+
+const SEMS = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
+
+const EXAM_TYPES = [
+  {
+    category: 'Internal Exams',
+    options: [
+      'Internal Assessment 1 (IA-1)',
+      'Internal Assessment 2 (IA-2)',
+      'Internal Assessment 3 (IA-3)',
+      'Unit Tests',
+      'Class Tests'
+    ]
+  },
+  {
+    category: 'Semester Exams',
+    options: [
+      'Mid-Semester Examination',
+      'End Semester Examination (ESE)',
+      'University Semester Examination'
+    ]
+  },
+  {
+    category: 'Practical Exams',
+    options: [
+      'Lab Internal Exam',
+      'Lab Practical Examination',
+      'Project Viva'
+    ]
+  }
 ];
 
 const ExamsManagement = () => {
@@ -23,40 +48,37 @@ const ExamsManagement = () => {
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
-  const [form, setForm] = useState({ name: 'Mid Term Test', dept: 'Computer Science', subject: '', date: '', time: '10:00 AM - 12:00 PM', room: '', maxMarks: 100 });
+  const [form, setForm] = useState({ name: 'Internal Assessment 1 (IA-1)', dept: 'Computer Science', sem: 'Sem 3', subject: '', date: '', time: '10:00 AM - 12:00 PM', room: '', maxMarks: 100 });
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const fetchData = () => {
+  const fetchData = async () => {
     setLoading(true);
     // Fetch subjects from localStorage
     const savedSubs = localStorage.getItem('erp_subjects');
     const subsList = savedSubs ? JSON.parse(savedSubs) : [];
     setSubjects(subsList);
 
-    // Fetch exams
-    const savedExams = localStorage.getItem('erp_exams');
-    if (savedExams) {
-      setExams(JSON.parse(savedExams));
-    } else {
-      localStorage.setItem('erp_exams', JSON.stringify(DEFAULT_EXAMS));
-      setExams(DEFAULT_EXAMS);
+    try {
+      const res = await getExams();
+      if (res?.data) {
+        setExams(res.data);
+      }
+    } catch (err) {
+      console.warn('API error fetching exams in ExamsManagement:', err);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
-  };
-
-  const saveExams = (newList) => {
-    setExams(newList);
-    localStorage.setItem('erp_exams', JSON.stringify(newList));
   };
 
   const openAdd = () => {
     const deptSubs = subjects.filter(s => s.dept === form.dept);
     setForm({ 
-      name: 'Mid Term Test', 
+      name: 'Internal Assessment 1 (IA-1)', 
       dept: 'Computer Science', 
+      sem: 'Sem 3',
       subject: deptSubs[0]?.name || 'Core Curriculum', 
       date: new Date(Date.now() + 5*24*60*60*1000).toISOString().split('T')[0], 
       time: '10:00 AM - 12:00 PM', 
@@ -68,8 +90,8 @@ const ExamsManagement = () => {
   };
 
   const openEdit = (ex) => {
-    setForm({ name: ex.name, dept: ex.dept, subject: ex.subject, date: ex.date, time: ex.time, room: ex.room, maxMarks: ex.maxMarks });
-    setEditTarget(ex.id);
+    setForm({ name: ex.name, dept: ex.dept, sem: ex.sem || 'Sem 3', subject: ex.subject, date: ex.date, time: ex.time, room: ex.room, maxMarks: ex.maxMarks });
+    setEditTarget(ex._id || ex.id);
     setModalOpen(true);
   };
 
@@ -78,23 +100,33 @@ const ExamsManagement = () => {
     setEditTarget(null);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (editTarget) {
-      const updated = exams.map(ex => ex.id === editTarget ? { ...ex, ...form, maxMarks: Number(form.maxMarks) } : ex);
-      saveExams(updated);
-    } else {
-      const newId = `EXM${String(exams.length + 1).padStart(3, '0')}`;
-      const newExam = { id: newId, ...form, maxMarks: Number(form.maxMarks) };
-      saveExams([...exams, newExam]);
+    const payload = {
+      ...form,
+      maxMarks: Number(form.maxMarks)
+    };
+    try {
+      if (editTarget) {
+        await updateExam(editTarget, payload);
+      } else {
+        await createExam(payload);
+      }
+      fetchData();
+    } catch (err) {
+      console.error('Error saving exam schedule in Admin console:', err);
     }
     closeModal();
   };
 
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm('Delete this exam schedule slot?')) {
-      const updated = exams.filter(ex => ex.id !== id);
-      saveExams(updated);
+      try {
+        await deleteExam(id);
+        fetchData();
+      } catch (err) {
+        console.error('Error deleting exam in Admin console:', err);
+      }
     }
   };
 
@@ -160,6 +192,7 @@ const ExamsManagement = () => {
               <tr>
                 <th>Exam Category</th>
                 <th>Course / Subject</th>
+                <th>Semester</th>
                 <th>Department</th>
                 <th>Date Schedule</th>
                 <th>Time Window</th>
@@ -185,7 +218,7 @@ const ExamsManagement = () => {
                 </tr>
               ) : (
                 filtered.map((ex) => (
-                  <tr key={ex.id}>
+                  <tr key={ex._id || ex.id}>
                     <td className="font-semibold">{ex.name}</td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -193,6 +226,7 @@ const ExamsManagement = () => {
                         <span className="font-semibold">{ex.subject}</span>
                       </div>
                     </td>
+                    <td><span className="badge-outline">{ex.sem || 'Sem 3'}</span></td>
                     <td><span className="text-muted">{ex.dept}</span></td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -216,7 +250,7 @@ const ExamsManagement = () => {
                     <td>
                       <div className="action-buttons">
                         <button className="btn-icon" onClick={() => openEdit(ex)}><Edit2 size={15} /></button>
-                        <button className="btn-icon btn-icon-danger" onClick={() => handleDelete(ex.id)}><Trash2 size={15} /></button>
+                        <button className="btn-icon btn-icon-danger" onClick={() => handleDelete(ex._id || ex.id)}><Trash2 size={15} /></button>
                       </div>
                     </td>
                   </tr>
@@ -240,10 +274,11 @@ const ExamsManagement = () => {
                 <div className="form-group">
                   <label>Exam Category *</label>
                   <select value={form.name} onChange={e => setForm({ ...form, name: e.target.value })}>
-                    <option value="Mid Term Test">Mid Term Test</option>
-                    <option value="End Sem Theory">End Sem Theory</option>
-                    <option value="Semester Lab Exam">Semester Lab Exam</option>
-                    <option value="Special Supplementary">Special Supplementary</option>
+                    {EXAM_TYPES.map(group => (
+                      <optgroup key={group.category} label={group.category}>
+                        {group.options.map(opt => <option key={opt} value={opt}>{opt}</option>)}
+                      </optgroup>
+                    ))}
                   </select>
                 </div>
                 
@@ -255,6 +290,13 @@ const ExamsManagement = () => {
                     setForm({ ...form, dept: nextDept, subject: nextSubs[0]?.name || 'Core Curriculum' });
                   }}>
                     {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                </div>
+
+                <div className="form-group">
+                  <label>Semester *</label>
+                  <select value={form.sem} onChange={e => setForm({ ...form, sem: e.target.value })}>
+                    {SEMS.map(s => <option key={s} value={s}>{s}</option>)}
                   </select>
                 </div>
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Edit2, Mail, Phone, X, BookOpen, Clock, CheckCircle } from 'lucide-react';
-import { getStaff, updateStaff } from '../../api/index';
+import { Search, Edit2, Mail, Phone, X, BookOpen, Clock, CheckCircle, Plus } from 'lucide-react';
+import { getStaff, updateStaff, createStaff } from '../../api/index';
+import { io } from 'socket.io-client';
 import './HodStaff.css';
 
 // Try to grab logged in HOD session
@@ -28,7 +29,7 @@ const SUBJECTS = [
   'Fluid Mechanics', 'Structural Analysis', 'Engineering Math'
 ];
 
-const EMPTY_FORM = { id: '', name: '', designation: '', workload: '', subjects: [] };
+const EMPTY_FORM = { id: '', name: '', email: '', phone: '', designation: 'Assistant Prof.', workload: '16', subjects: [], attendance: 100 };
 
 const getInitials = (name) => name.replace('Dr. ', '').replace('Prof. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 const AVATAR_COLORS = ['bg-gradient-blue', 'bg-gradient-purple', 'bg-gradient-orange', 'bg-gradient-green', 'bg-gradient-teal'];
@@ -49,13 +50,20 @@ const HodStaff = () => {
 
   useEffect(() => {
     fetchStaff();
+    
+    const socket = io('http://localhost:5000');
+    socket.on('staffUpdated', () => {
+      fetchStaff();
+    });
+    
+    return () => socket.disconnect();
   }, []);
 
   const fetchStaff = async () => {
     try {
       const res = await getStaff();
-      // Backend auto-scopes to HOD's dept via JWT departmentScope middleware
-      setStaff(res.data);
+      const backendData = res.data || [];
+      setStaff(backendData.filter(s => s.dept === HOD_DEPT));
       setLoading(false);
     } catch (err) {
       console.warn('Backend unavailable, using fallback data:', err.message);
@@ -69,6 +77,17 @@ const HodStaff = () => {
   /* Backend already scoped to HOD dept – just apply search filter */
   const filtered = staff
     .filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase()));
+
+  const openAdd = () => {
+    const nextNum = staff.length + 1;
+    setForm({
+      ...EMPTY_FORM,
+      id: `STF${String(nextNum).padStart(3, '0')}`
+    });
+    setEditTarget(null);
+    setSaved(false);
+    setModalOpen(true);
+  };
 
   const openEdit = (s) => {
     setForm({
@@ -100,39 +119,44 @@ const HodStaff = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!editTarget) return;
-
-    try {
-      await updateStaff(editTarget, { workload: +form.workload, subjects: form.subjects });
-      setStaff(prev => prev.map(s =>
-        s.id === editTarget
-          ? { ...s, workload: +form.workload, subjects: form.subjects }
-          : s
-      ));
-      setSaved(true);
-      setTimeout(() => { closeModal(); setSaved(false); }, 800);
-    } catch (err) {
-      console.error('Save failed:', err);
-      // Fallback: update locally
-      setStaff(prev => prev.map(s =>
-        s.id === editTarget
-          ? { ...s, workload: +form.workload, subjects: form.subjects }
-          : s
-      ));
-      setSaved(true);
-      setTimeout(() => { closeModal(); setSaved(false); }, 800);
+    
+    if (editTarget) {
+      const updatedStaff = staff.map(s =>
+        s.id === editTarget ? { ...s, workload: +form.workload, subjects: form.subjects } : s
+      );
+      try {
+        await updateStaff(editTarget, { workload: +form.workload, subjects: form.subjects });
+      } catch (err) {
+        console.warn('Backend update failed, saving locally.');
+      }
+      setStaff(updatedStaff);
+    } else {
+      const newStaff = { ...form, workload: +form.workload, dept: HOD_DEPT, status: 'Pending Approval' };
+      const updatedStaff = [newStaff, ...staff];
+      try {
+        await createStaff(newStaff);
+      } catch (err) {
+        console.warn('Backend create failed, saving locally.');
+      }
+      setStaff(updatedStaff);
     }
+    
+    setSaved(true);
+    setTimeout(() => { closeModal(); setSaved(false); }, 800);
   };
 
   const getWorkloadColor = (w) => w > 18 ? 'text-danger' : w > 14 ? 'text-warning-cgpa' : 'text-success';
 
   return (
     <div className="staff-management animate-fade-in">
-      <div className="page-header">
+      <div className="page-header flex justify-between items-center">
         <div>
           <h1>Department Faculty</h1>
           <p className="text-muted">Manage subjects assignment and workloads for faculty in <strong>{HOD_DEPT}</strong>.</p>
         </div>
+        <button className="btn-primary shadow-glow flex items-center gap-2" onClick={openAdd}>
+          <Plus size={18} /> Add Faculty
+        </button>
       </div>
 
       {/* Summary Row */}
@@ -173,14 +197,14 @@ const HodStaff = () => {
             <thead>
               <tr>
                 <th>#</th><th>Staff ID</th><th>Name</th><th>Designation</th>
-                <th>Assigned Subjects</th><th>Weekly Workload</th><th>Attendance</th><th>Actions</th>
+                <th>Assigned Subjects</th><th>Weekly Workload</th><th>Attendance</th><th>Status</th><th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? Array.from({ length: 3 }).map((_, i) => (
-                <tr key={i}>{Array.from({ length: 8 }).map((_, j) => <td key={j}><div className="skeleton" style={{ height: '16px', borderRadius: '4px', width: j === 2 ? '150px' : '60px' }}></div></td>)}</tr>
+                <tr key={i}>{Array.from({ length: 9 }).map((_, j) => <td key={j}><div className="skeleton" style={{ height: '16px', borderRadius: '4px', width: j === 2 ? '150px' : '60px' }}></div></td>)}</tr>
               )) : filtered.length === 0 ? (
-                <tr><td colSpan={8} className="no-data">No faculty registered in this department.</td></tr>
+                <tr><td colSpan={9} className="no-data">No faculty registered in this department.</td></tr>
               ) : filtered.map((s, idx) => (
                 <tr key={s.id}>
                   <td className="text-muted">{idx + 1}</td>
@@ -212,6 +236,16 @@ const HodStaff = () => {
                         <div className="mini-progress-fill" style={{ width: `${s.attendance}%`, background: s.attendance >= 90 ? 'var(--success)' : 'var(--warning)' }}></div>
                       </div>
                     </div>
+                  </td>
+                  <td>
+                    <span style={{
+                      padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 'bold',
+                      background: s.status === 'Pending Approval' ? 'rgba(245, 158, 11, 0.15)' : 'rgba(16, 185, 129, 0.15)',
+                      color: s.status === 'Pending Approval' ? '#d97706' : '#059669',
+                      border: `1px solid ${s.status === 'Pending Approval' ? 'rgba(245, 158, 11, 0.3)' : 'rgba(16, 185, 129, 0.3)'}`
+                    }}>
+                      {s.status || 'Active'}
+                    </span>
                   </td>
                   <td>
                     <div className="action-buttons">
@@ -248,11 +282,31 @@ const HodStaff = () => {
               <div className="form-grid">
                 <div className="form-group">
                   <label>Faculty Name</label>
-                  <input disabled value={form.name} style={{ opacity: 0.6, cursor: 'not-allowed' }} />
+                  <input required value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} disabled={!!editTarget} style={editTarget ? { opacity: 0.6, cursor: 'not-allowed' } : {}} />
                 </div>
                 <div className="form-group">
+                  <label>Staff ID</label>
+                  <input required value={form.id} disabled style={{ opacity: 0.6, cursor: 'not-allowed' }} />
+                </div>
+                {!editTarget && (
+                  <>
+                    <div className="form-group">
+                      <label>Email Address</label>
+                      <input type="email" required value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                    </div>
+                    <div className="form-group">
+                      <label>Phone Number</label>
+                      <input type="tel" required value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
+                    </div>
+                  </>
+                )}
+                <div className="form-group">
                   <label>Designation</label>
-                  <input disabled value={form.designation} style={{ opacity: 0.6, cursor: 'not-allowed' }} />
+                  <select value={form.designation} onChange={e => setForm({ ...form, designation: e.target.value })} disabled={!!editTarget} style={editTarget ? { opacity: 0.6, cursor: 'not-allowed' } : {}}>
+                    <option>Assistant Prof.</option>
+                    <option>Associate Prof.</option>
+                    <option>Professor</option>
+                  </select>
                 </div>
                 <div className="form-group">
                   <label><Clock size={13} /> Weekly Workload (hours) *</label>

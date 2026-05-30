@@ -4,13 +4,9 @@ import {
   User, BookOpen, Hash, Percent, DollarSign,
   Phone, Mail, ChevronUp, ChevronDown, CheckCircle, Download
 } from 'lucide-react';
-import { getStudents, createStudent, updateStudent } from '../../api/index';
+import { getStudents, createStudent, updateStudent, getDepartments } from '../../api/index';
 import '../../pages/students/StudentManagement.css';
 
-const DEPARTMENTS = [
-  'Computer Science', 'Electrical Engg.', 'Mechanical Engg.',
-  'Civil Engg.', 'Information Tech.',
-];
 const SEMESTERS  = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
 const FEE_STATUS = ['Paid', 'Pending', 'Partial', 'Waived'];
 
@@ -33,8 +29,24 @@ const makeSortIcon  = (key, sortKey, sortAsc) => {
 
 /* ── Auto-generate Register No ── */
 const generateRegNo = (dept, existingCount) => {
-  const codes = { 'Computer Science':'CS', 'Electrical Engg.':'EE', 'Mechanical Engg.':'ME', 'Civil Engg.':'CE', 'Information Tech.':'IT' };
-  const code = codes[dept] || 'ST';
+  const codes = {
+    'Computer Science Engineering': 'CSE',
+    'Information Technology': 'IT',
+    'Electronics & Communication Engineering': 'ECE',
+    'Electrical & Electronics Engineering': 'EEE',
+    'Mechanical Engineering': 'MECH',
+    'Civil Engineering': 'CIVIL',
+    'Artificial Intelligence & Data Science': 'AIDS',
+    'Artificial Intelligence & Machine Learning': 'AIML',
+    'Cyber Security': 'CYBER',
+    'Biomedical Engineering': 'BME',
+    'Aeronautical Engineering': 'AERO',
+    'Automobile Engineering': 'AUTO',
+    'Robotics Engineering': 'ROBOTICS',
+    'Chemical Engineering': 'CHEM',
+    'Biotechnology Engineering': 'BIOTECH'
+  };
+  const code = codes[dept] || dept?.substring(0, 3).toUpperCase() || 'ST';
   const year = new Date().getFullYear();
   return `${code}${year}${String(existingCount + 1).padStart(3,'0')}`;
 };
@@ -55,10 +67,22 @@ const SubAdminStudents = () => {
   const [form,        setForm]        = useState(EMPTY_FORM);
   const [formErrors,  setFormErrors]  = useState({});
   const [saved,       setSaved]       = useState(false); // success flash
+  const [departmentsList, setDepartmentsList] = useState([]);
 
   useEffect(() => {
     fetchStudents();
+    fetchDepartments();
   }, []);
+
+  const fetchDepartments = async () => {
+    try {
+      const res = await getDepartments();
+      const names = (res.data || []).map(d => d.name);
+      setDepartmentsList(names);
+    } catch (err) {
+      console.error('Failed to fetch departments:', err);
+    }
+  };
 
   const fetchStudents = async () => {
     try {
@@ -207,7 +231,7 @@ const SubAdminStudents = () => {
               <Filter size={13} className="text-muted" />
               <select className="filter-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
                 <option value="All">All Departments</option>
-                {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+                {departmentsList.map(d => <option key={d}>{d}</option>)}
               </select>
             </div>
             <div className="filter-select-wrapper">
@@ -371,7 +395,7 @@ const SubAdminStudents = () => {
                     <label><BookOpen size={13}/> Department <span className="req">*</span></label>
                     <select {...field('dept')}>
                       <option value="">— Select Department —</option>
-                      {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
+                      {departmentsList.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>
                     {formErrors.dept && <span className="err-msg">{formErrors.dept}</span>}
                   </div>

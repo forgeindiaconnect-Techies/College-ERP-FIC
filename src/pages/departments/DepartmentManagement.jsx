@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Edit2, Trash2, X, Building2, Users, UserCircle, ArrowRight } from 'lucide-react';
-import { getDepartments, createDepartment, updateDepartment, deleteDepartment } from '../../api/index';
+import { getDepartments, createDepartment, updateDepartment, deleteDepartment, getStaff } from '../../api/index';
 import './DepartmentManagement.css';
 
 const MOCK_DEPARTMENTS = [
@@ -12,7 +12,25 @@ const MOCK_DEPARTMENTS = [
   { id: 'DEPT05', name: 'Information Tech.', code: 'IT', hod: 'Prof. Karthik S.', students: 340, staff: 19, established: 2001, status: 'Active' },
 ];
 
-const HOD_OPTIONS = ['Dr. Ananya Rao', 'Prof. Rajan Iyer', 'Dr. Meena Pillai', 'Dr. Shalini Nair', 'Prof. Karthik S.'];
+
+const STANDARD_DEPARTMENTS = [
+  { name: 'Computer Science Engineering', code: 'CSE' },
+  { name: 'Information Technology', code: 'IT' },
+  { name: 'Electronics & Communication Engineering', code: 'ECE' },
+  { name: 'Electrical & Electronics Engineering', code: 'EEE' },
+  { name: 'Mechanical Engineering', code: 'MECH' },
+  { name: 'Civil Engineering', code: 'CIVIL' },
+  { name: 'Artificial Intelligence & Data Science', code: 'AIDS' },
+  { name: 'Artificial Intelligence & Machine Learning', code: 'AIML' },
+  { name: 'Cyber Security', code: 'CYBER' },
+  { name: 'Biomedical Engineering', code: 'BME' },
+  { name: 'Aeronautical Engineering', code: 'AERO' },
+  { name: 'Automobile Engineering', code: 'AUTO' },
+  { name: 'Robotics Engineering', code: 'ROBOTICS' },
+  { name: 'Chemical Engineering', code: 'CHEM' },
+  { name: 'Biotechnology Engineering', code: 'BIOTECH' },
+];
+
 const EMPTY_FORM = { name: '', code: '', hod: '', students: '', staff: '', established: '2020', status: 'Active' };
 
 const DepartmentManagement = () => {
@@ -22,11 +40,38 @@ const DepartmentManagement = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [availableHods, setAvailableHods] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchDepartments();
+    
+    // Fetch available HODs for the dropdown
+    getStaff().then(res => {
+      const hods = (res.data || []).filter(s => s.role === 'HOD' || s.designation === 'HOD');
+      setAvailableHods(hods);
+    }).catch(err => console.error('Failed to load HODs:', err));
   }, []);
+
+  // Auto-generate Department Code based on Department Name
+  useEffect(() => {
+    if (!editTarget && form.name) {
+      const generateCode = (name) => {
+        const std = STANDARD_DEPARTMENTS.find(d => d.name === name);
+        if (std) return std.code;
+
+        // Fallback (just in case)
+        const words = name.trim().split(/[\s&\-]+/).filter(w => w.length > 0);
+        if (words.length > 1) {
+          return words.map(w => w[0].toUpperCase()).join('');
+        }
+        return name.substring(0, 3).toUpperCase();
+      };
+      setForm(prev => ({ ...prev, code: generateCode(form.name) }));
+    } else if (!editTarget && !form.name) {
+      setForm(prev => ({ ...prev, code: '' }));
+    }
+  }, [form.name, editTarget]);
 
   const fetchDepartments = async () => {
     try {
@@ -36,7 +81,7 @@ const DepartmentManagement = () => {
     } catch (err) {
       console.error('Failed to fetch departments:', err);
       // Fallback
-      setDepts(MOCK_DEPARTMENTS);
+      setDepts([]);
     } finally {
       setLoading(false);
     }
@@ -207,20 +252,26 @@ const DepartmentManagement = () => {
               <div className="form-grid">
                 <div className="form-group">
                   <label>Department Name</label>
-                  <input 
+                  <select 
                     required 
-                    placeholder="e.g. Computer Science" 
                     value={form.name} 
-                    onChange={e => setForm({ ...form, name: e.target.value })} 
-                  />
+                    onChange={e => setForm({ ...form, name: e.target.value })}
+                  >
+                    <option value="">— Select Department —</option>
+                    {STANDARD_DEPARTMENTS.map(d => (
+                      <option key={d.name} value={d.name}>{d.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="form-group">
-                  <label>Department Code</label>
+                  <label>Department Code (Auto)</label>
                   <input 
                     required 
                     placeholder="e.g. CS" 
                     value={form.code} 
-                    onChange={e => setForm({ ...form, code: e.target.value })} 
+                    readOnly
+                    disabled
+                    style={{ background: 'var(--bg-secondary)', cursor: 'not-allowed', color: 'var(--text-muted)' }}
                   />
                 </div>
                 <div className="form-group">
@@ -231,7 +282,10 @@ const DepartmentManagement = () => {
                     onChange={e => setForm({ ...form, hod: e.target.value })}
                   >
                     <option value="">Select HOD</option>
-                    {HOD_OPTIONS.map(h => <option key={h}>{h}</option>)}
+                    {availableHods.map(h => <option key={h.id || h._id} value={h.name}>{h.name}</option>)}
+                    {form.hod && !availableHods.some(h => h.name === form.hod) && (
+                      <option value={form.hod}>{form.hod} (Legacy/Missing)</option>
+                    )}
                   </select>
                 </div>
                 <div className="form-group">

@@ -75,7 +75,7 @@ const AccountsReports = () => {
           </h1>
           <p className="text-[var(--text-muted)] mt-1">Analytics and summaries of the institution's finances.</p>
         </div>
-        <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-[#8b5cf6] to-purple-600 text-white font-medium rounded-lg hover:shadow-lg transition-all">
+        <button style={{ background: 'linear-gradient(to right, #8b5cf6, #9333ea)' }} className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all">
           <FileBarChart size={18} /> Generate Master Report
         </button>
       </div>

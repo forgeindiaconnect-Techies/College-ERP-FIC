@@ -52,7 +52,7 @@ const StaffLeaves = () => {
       setLeaves(JSON.parse(savedLeaves));
     } else {
       localStorage.setItem('erp_leave_requests', JSON.stringify(MOCK_LEAVES));
-      setLeaves(MOCK_LEAVES);
+      setLeaves([]);
     }
 
     setLoading(false);

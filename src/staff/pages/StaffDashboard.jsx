@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   BookOpen, Users, CalendarCheck, BookOpenCheck,
@@ -6,7 +6,8 @@ import {
   ArrowRight, Activity, Plus, AlertCircle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getStudents, getAllMarks, getAllAttendance } from '../../api/index';
+import { getStudents, getAllMarks, getAllAttendance, getExams } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StaffDashboard.css';
 
 // Fallback session
@@ -20,27 +21,11 @@ const DEFAULT_SESSION = {
   subjects: ['Data Structures', 'DBMS']
 };
 
-const SUBJECT_TO_CLASS = {
-  'Data Structures': 'Sem 3',
-  'DBMS': 'Sem 6',
-  'OS': 'Sem 4',
-  'Machine Learning': 'Sem 6',
-  'Circuits': 'Sem 4',
-  'Networks': 'Sem 4',
-  'Thermodynamics': 'Sem 2',
-  'Fluid Mechanics': 'Sem 2',
-  'Structural Analysis': 'Sem 8'
-};
 
-const MOCK_LEAVES = [
-  { id: '1', staffId: 'STF001', staffName: 'Dr. Ananya Rao', type: 'Sick Leave', startDate: '2026-05-10', endDate: '2026-05-11', reason: 'Medical emergency, doctor advised rest.', status: 'Approved' },
-  { id: '2', staffId: 'STF001', staffName: 'Dr. Ananya Rao', type: 'Casual Leave', startDate: '2026-06-05', endDate: '2026-06-06', reason: 'Personal family emergency.', status: 'Pending' }
-];
 
-const MOCK_ASSIGNMENTS = [
-  { id: '1', subject: 'Data Structures', class: 'Sem 3', title: 'Implement Binary Search Tree', description: 'Write a Java program to implement a BST with insert, delete, and search operations.', dueDate: '2026-05-28', submissionsCount: 12, faculty: 'Dr. Ananya Rao' },
-  { id: '2', subject: 'DBMS', class: 'Sem 6', title: 'SQL Join Queries Practice', description: 'Complete the SQL exercises sheet on nested queries and multi-table joins.', dueDate: '2026-05-25', submissionsCount: 8, faculty: 'Dr. Ananya Rao' }
-];
+const MOCK_LEAVES = [];
+
+const MOCK_ASSIGNMENTS = [];
 
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
@@ -56,11 +41,51 @@ const StaffDashboard = () => {
   const [attendanceLogs, setAttendanceLogs] = useState({});
   const [assignments, setAssignments] = useState([]);
   const [leaves, setLeaves] = useState([]);
+  const [exams, setExams] = useState([]);
 
   // Leave Form State
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [leaveForm, setLeaveForm] = useState({ type: 'Casual Leave', startDate: '', endDate: '', reason: '' });
   const [leaveSuccess, setLeaveSuccess] = useState(false);
+
+  const loadDashboardData = useCallback(async () => {
+    try {
+      const [studRes, marksRes, attRes, examsRes] = await Promise.all([
+        getStudents(),
+        getAllMarks(),
+        getAllAttendance(),
+        getExams().catch(() => ({ data: [] }))
+      ]);
+
+      if (studRes?.data) setStudents(studRes.data);
+      if (examsRes?.data) setExams(examsRes.data);
+      if (marksRes?.data) {
+        const mappedMarks = marksRes.data.map(m => ({
+          id: m.studentId,
+          name: m.studentName,
+          dept: m.department,
+          sem: m.semester,
+          internal: m.internalMarks,
+          external: m.semesterMarks,
+          arrears: m.arrearStatus === 'Arrear' ? 1 : 0
+        }));
+        setMarks(mappedMarks);
+      }
+      if (attRes?.data) {
+        const dailyMap = {};
+        attRes.data.forEach(record => {
+          const dateStr = new Date(record.date).toLocaleDateString('en-CA');
+          if (!dailyMap[dateStr]) {
+            dailyMap[dateStr] = {};
+          }
+          dailyMap[dateStr][record.studentId] = record.status?.toLowerCase() || 'present';
+        });
+        setAttendanceLogs(dailyMap);
+      }
+    } catch (err) {
+      console.error('Failed to load live staff dashboard data:', err);
+    }
+  }, []);
 
   useEffect(() => {
     // 1. Session check
@@ -74,43 +99,6 @@ const StaffDashboard = () => {
       return;
     }
 
-    const loadDashboardData = async () => {
-      try {
-        const [studRes, marksRes, attRes] = await Promise.all([
-          getStudents(),
-          getAllMarks(),
-          getAllAttendance()
-        ]);
-
-        if (studRes?.data) setStudents(studRes.data);
-        if (marksRes?.data) {
-          const mappedMarks = marksRes.data.map(m => ({
-            id: m.studentId,
-            name: m.studentName,
-            dept: m.department,
-            sem: m.semester,
-            internal: m.internalMarks,
-            external: m.semesterMarks,
-            arrears: m.arrearStatus === 'Arrear' ? 1 : 0
-          }));
-          setMarks(mappedMarks);
-        }
-        if (attRes?.data) {
-          const dailyMap = {};
-          attRes.data.forEach(record => {
-            const dateStr = new Date(record.date).toLocaleDateString('en-CA');
-            if (!dailyMap[dateStr]) {
-              dailyMap[dateStr] = {};
-            }
-            dailyMap[dateStr][record.studentId] = record.status?.toLowerCase() || 'present';
-          });
-          setAttendanceLogs(dailyMap);
-        }
-      } catch (err) {
-        console.error('Failed to load live staff dashboard data:', err);
-      }
-    };
-
     loadDashboardData();
 
     // Timetable Setup
@@ -123,7 +111,7 @@ const StaffDashboard = () => {
       setAssignments(JSON.parse(assignRaw));
     } else {
       localStorage.setItem('erp_assignments', JSON.stringify(MOCK_ASSIGNMENTS));
-      setAssignments(MOCK_ASSIGNMENTS);
+      setAssignments([]);
     }
 
     // Leaves Setup
@@ -132,31 +120,66 @@ const StaffDashboard = () => {
       setLeaves(JSON.parse(leaveRaw));
     } else {
       localStorage.setItem('erp_leave_requests', JSON.stringify(MOCK_LEAVES));
-      setLeaves(MOCK_LEAVES);
+      setLeaves([]);
     }
 
     // Trigger animations
     const t = setTimeout(() => setAnimate(true), 100);
     return () => clearTimeout(t);
-  }, [navigate]);
+  }, [navigate, loadDashboardData]);
+
+  // Auto-refresh when student/marks/attendance/exam data changes
+  useRealtimeSync(loadDashboardData, ['students', 'marks', 'attendance', 'exams']);
 
   // Calculations scoped to current staff member
   const staffName = staffSession.name;
-  const staffId = staffSession.id || 'STF001';
+  const staffId = staffSession.referenceId || staffSession.id || staffSession._id || 'STF001';
   const staffDept = staffSession.dept;
 
-  // 1. Subjects they teach (from staff profile or timetable assignments)
-  const mySubjects = staffSession.subjects || ['Data Structures', 'DBMS'];
+  const [mySubjects, setMySubjects] = useState([]);
+  const [myClasses, setMyClasses] = useState([]);
 
-  // 2. Classes they teach (e.g. Sem 3, Sem 6)
-  const myClasses = mySubjects.map(sub => ({
-    subject: sub,
-    sem: SUBJECT_TO_CLASS[sub] || 'Sem 3',
-    dept: staffDept
-  }));
+  useEffect(() => {
+    let dynSubjects = [];
+    let classesMap = [];
+    let deptInitialized = false;
+    const savedSubjects = localStorage.getItem('erp_subjects');
+    if (savedSubjects) {
+      const allSubs = JSON.parse(savedSubjects);
+      const deptSubs = allSubs.filter(s => s.dept === staffDept);
+      
+      if (deptSubs.length > 0) {
+        deptInitialized = true;
+        const mySubs = deptSubs.filter(sub => {
+          if (!sub.teacher) return false;
+          const t = sub.teacher.toLowerCase().trim();
+          const n = staffSession.name.toLowerCase().trim();
+          return t.includes(n) || n.includes(t);
+        });
+        dynSubjects = [...new Set(mySubs.map(s => s.name))];
+        classesMap = mySubs.map(sub => ({
+          subject: sub.name,
+          sem: sub.sem || 'Sem 3',
+          dept: staffDept
+        }));
+      }
+    }
+    
+    if (!deptInitialized && dynSubjects.length === 0) {
+      dynSubjects = staffSession.subjects || ['General Course'];
+      classesMap = dynSubjects.map(sub => ({
+        subject: sub,
+        sem: 'Sem 3',
+        dept: staffDept
+      }));
+    }
+    
+    setMySubjects(dynSubjects);
+    setMyClasses(classesMap);
+  }, [staffDept, staffSession.subjects, staffSession.name]);
 
   // 3. Timetable filter
-  const myTimetable = timetable.filter(slot => slot.faculty === staffName);
+  const myTimetable = timetable.filter(slot => slot.dept === staffDept);
   const totalClasses = myTimetable.length;
 
   const todayName = DAYS[new Date().getDay()] || 'Monday';
@@ -185,6 +208,9 @@ const StaffDashboard = () => {
   // 8. Leave requests for this staff
   const myLeaves = leaves.filter(l => l.staffId === staffId);
 
+  // 9. Exams in staff's department
+  const myExams = exams.filter(ex => ex.dept?.toLowerCase() === staffSession.dept?.toLowerCase());
+
   // Leave Form Submission
   const handleApplyLeave = (e) => {
     e.preventDefault();
@@ -210,14 +236,7 @@ const StaffDashboard = () => {
   };
 
   // Chart: Mock performance average across subjects taught
-  const chartData = [
-    { name: 'Unit 1', avg: 74 },
-    { name: 'Unit 2', avg: 78 },
-    { name: 'Internal 1', avg: 82 },
-    { name: 'Unit 3', avg: 80 },
-    { name: 'Internal 2', avg: 85 },
-    { name: 'Model Exam', avg: 88 },
-  ];
+  const chartData = [];
 
   return (
     <div className={`staff-dashboard ${animate ? 'animate-fade-in' : ''}`}>
@@ -406,6 +425,40 @@ const StaffDashboard = () => {
                     </div>
                     <p className="leave-dates"><Clock size={12} /> {l.startDate} to {l.endDate}</p>
                     <p className="leave-reason">"{l.reason}"</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Dynamic Upcoming Exams */}
+          <div className="glass-card leave-status-card" style={{ marginTop: '1.5rem' }}>
+            <div className="staff-card-header" style={{ marginBottom: '1.25rem' }}>
+              <h3><Calendar size={18} className="text-primary" /> Upcoming Exams</h3>
+              <span className="badge-blue" style={{ background: 'rgba(59,130,246,0.1)', color: '#3b82f6', padding: '0.15rem 0.45rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700 }}>
+                {myExams.length} Active
+              </span>
+            </div>
+
+            <div className="leave-list" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+              {myExams.length === 0 ? (
+                <p className="no-leave-data">No exams scheduled for your department.</p>
+              ) : (
+                myExams.map((ex, i) => (
+                  <div key={ex._id || ex.id || i} className="leave-item" style={{ borderLeft: '3px solid #8b5cf6', paddingLeft: '0.75rem', marginBottom: '0.8rem' }}>
+                    <div className="leave-item-header">
+                      <span className="leave-type" style={{ color: 'var(--text-main)', fontWeight: 700 }}>{ex.name}</span>
+                      <span className="status-badge-leave approved" style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', fontSize: '0.7rem', padding: '1px 5px', borderRadius: '4px' }}>
+                        {ex.sem || 'Sem 3'}
+                      </span>
+                    </div>
+                    <p className="leave-dates" style={{ fontSize: '0.82rem', margin: '2px 0 4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <BookOpen size={12} className="text-muted" /> {ex.subject}
+                    </p>
+                    <p className="leave-reason" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                      📅 <strong>{ex.date}</strong> · ⏱ {ex.time} <br />
+                      📍 Venue: <strong>{ex.room || ex.hall || 'Main Hall'}</strong> ({ex.maxMarks} Marks)
+                    </p>
                   </div>
                 ))
               )}

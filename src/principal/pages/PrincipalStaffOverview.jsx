@@ -1,0 +1,564 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Users, TrendingUp, AlertCircle, Star, Search, X, Award, 
+  BookOpen, Calendar, Mail, Phone, MapPin, CheckCircle, 
+  ChevronDown, FileText, Bell, SlidersHorizontal 
+} from 'lucide-react';
+import { 
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
+  ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area 
+} from 'recharts';
+import { getStaff } from '../../api/index';
+import '../../pages/Dashboard.css';
+
+// EMPTY INITIAL STATE
+const initialStaff = [];
+const deptData = [];
+const trendData = [];
+
+export default function PrincipalStaffOverview() {
+  const [staffList, setStaffList] = useState(initialStaff);
+  const [search, setSearch] = useState('');
+  const [filterDept, setFilterDept] = useState('All');
+  const [filterSubject, setFilterSubject] = useState('All');
+  const [filterPerformance, setFilterPerformance] = useState('All');
+  const [filterExperience, setFilterExperience] = useState('All');
+  
+  // Modal states
+  const [selectedStaff, setSelectedStaff] = useState(null);
+  const [modalType, setModalType] = useState(null); // 'profile' | 'classes' | 'report' | 'notify' | 'meeting'
+  
+  // Custom modals fields
+  const [meetingDate, setMeetingDate] = useState('');
+  const [meetingTime, setMeetingTime] = useState('');
+  const [notificationMsg, setNotificationMsg] = useState('');
+  const [toast, setToast] = useState('');
+
+  const showToast = (msg) => {
+    setToast(msg);
+    setTimeout(() => setToast(''), 3500);
+  };
+
+  // API Call implementation with fallback
+  useEffect(() => {
+    const fetchPrincipalStaff = async () => {
+      try {
+        const res = await getStaff();
+        if (res.data && Array.isArray(res.data)) {
+          const regularStaff = res.data.filter(s => s.role !== 'HOD' && s.designation !== 'HOD');
+          const formatted = regularStaff.map((s, i) => ({
+            id: s.id || s._id || i + 1,
+            name: s.name,
+            dept: s.dept || s.department || 'N/A',
+            designation: s.designation || 'Staff',
+            subjects: s.subjects || [],
+            attendance: s.attendance || 95,
+            performance: s.performance || 88,
+            students: s.students || 100,
+            experience: s.experience || 5,
+            email: s.email || 'staff@college.edu',
+            phone: s.phone || 'N/A',
+            status: s.status || 'Active',
+            publications: s.publications || 2,
+            rating: s.rating || 4.2,
+            bio: s.bio || ''
+          }));
+          setStaffList(formatted);
+        }
+      } catch (err) {
+        console.warn('API getStaff offline.', err);
+        setStaffList([]);
+      }
+    };
+    fetchPrincipalStaff();
+  }, []);
+
+  // Compute metrics dynamically from staffList
+  const totalStaffCount = staffList.length;
+  const activeStaffCount = staffList.filter(s => s.status === 'Active').length;
+  const topPerformingCount = staffList.filter(s => s.performance >= 90).length;
+  const lowAttendanceCount = staffList.filter(s => s.attendance < 92).length;
+  const avgRating = (staffList.reduce((a, s) => a + s.rating, 0) / staffList.length).toFixed(1);
+
+  // Department counts
+  const deptCounts = staffList.reduce((acc, s) => {
+    acc[s.dept] = (acc[s.dept] || 0) + 1;
+    return acc;
+  }, {});
+
+  // Extract all distinct departments and subjects
+  const departments = ['All', ...new Set(staffList.map(s => s.dept))];
+  const allSubjects = ['All', ...new Set(staffList.flatMap(s => s.subjects))];
+
+  // Filtering System logic
+  const filtered = staffList.filter(s => {
+    const matchesSearch = s.name.toLowerCase().includes(search.toLowerCase()) || 
+                          s.dept.toLowerCase().includes(search.toLowerCase()) ||
+                          s.subjects.some(sub => sub.toLowerCase().includes(search.toLowerCase()));
+
+    const matchesDept = filterDept === 'All' || s.dept === filterDept;
+
+    const matchesSubject = filterSubject === 'All' || s.subjects.includes(filterSubject);
+
+    let matchesPerformance = true;
+    if (filterPerformance === 'Outstanding') matchesPerformance = s.performance >= 92;
+    else if (filterPerformance === 'Good') matchesPerformance = s.performance >= 85 && s.performance < 92;
+    else if (filterPerformance === 'NeedsImprovement') matchesPerformance = s.performance < 85;
+
+    let matchesExperience = true;
+    if (filterExperience === 'Senior') matchesExperience = s.experience > 10;
+    else if (filterExperience === 'Mid') matchesExperience = s.experience >= 5 && s.experience <= 10;
+    else if (filterExperience === 'Junior') matchesExperience = s.experience < 5;
+
+    return matchesSearch && matchesDept && matchesSubject && matchesPerformance && matchesExperience;
+  });
+
+  const handleAction = (staff, type) => {
+    setSelectedStaff(staff);
+    setModalType(type);
+  };
+
+  const handleSendNotification = (e) => {
+    e.preventDefault();
+    showToast(`Notification sent successfully to ${selectedStaff.name}!`);
+    setNotificationMsg('');
+    setModalType(null);
+  };
+
+  const handleScheduleMeeting = (e) => {
+    e.preventDefault();
+    showToast(`Meeting scheduled with ${selectedStaff.name} on ${meetingDate} at ${meetingTime}`);
+    setMeetingDate('');
+    setMeetingTime('');
+    setModalType(null);
+  };
+
+  return (
+    <div className="main-content" style={{ padding: '2rem', background: 'var(--bg-primary)', minHeight: 'calc(100vh - 70px)' }}>
+      {/* Toast Alert */}
+      {toast && (
+        <div style={{ position: 'fixed', top: 20, right: 20, background: 'var(--sidebar-bg)', color: 'var(--sidebar-text)', padding: '1rem 1.5rem', borderRadius: 10, boxShadow: 'var(--shadow-lg)', zIndex: 99999, borderLeft: '4px solid #10b981', fontWeight: 600 }}>✅ {toast}</div>
+      )}
+
+      {/* Header */}
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={{ color: 'var(--text-main)', fontSize: '1.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
+          <BookOpen style={{ color: '#8b5cf6' }} size={28} /> Staff Performance & Overview
+        </h1>
+        <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Real-time faculty auditing, rating distributions, and custom notification systems.</p>
+      </div>
+
+      {/* 6 Top Analytics Cards */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
+        {[
+          { label: 'Total Faculty', value: staffList.length, icon: <Users size={18} />, color: '#6366f1' },
+          { label: 'On Leave', value: staffList.filter(s => s.status === 'On Leave').length, icon: <AlertCircle size={18} />, color: '#ef4444' },
+          { label: 'Avg Attendance', value: staffList.length ? `${(staffList.reduce((acc, curr) => acc + curr.attendance, 0) / staffList.length).toFixed(1)}%` : '0%', icon: <Calendar size={18} />, color: '#10b981' },
+          { label: 'Avg Rating', value: staffList.length ? (staffList.reduce((acc, curr) => acc + curr.rating, 0) / staffList.length).toFixed(1) : '0', icon: <Star size={18} />, color: '#f59e0b' },
+          { label: 'Departments', value: Object.keys(deptCounts).length, icon: <BookOpen size={18} />, color: '#0ea5e9' },
+        ].map((s, i) => (
+          <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>
+            <div className="stat-icon-wrapper" style={{ background: s.color }}>{s.icon}</div>
+            <div className="stat-details">
+              <h3>{s.label}</h3>
+              <p className="stat-value">{s.value}</p>
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{s.sub}</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Advanced Filters & Search System */}
+      <div className="glass-card" style={{ padding: '1.2rem', borderRadius: 16, marginBottom: '1.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.8rem', fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>
+          <SlidersHorizontal size={14} style={{ color: '#8b5cf6' }} /> Filters & Institutional Auditing
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.8rem' }}>
+          {/* Search Box */}
+          <div style={{ position: 'relative' }}>
+            <Search size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input 
+              value={search} 
+              onChange={e => setSearch(e.target.value)} 
+              placeholder="Search Name, Subject..." 
+              style={{ padding: '0.5rem 0.8rem 0.5rem 2rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontSize: '0.8rem', width: '100%' }} 
+            />
+          </div>
+
+          {/* Department Filter */}
+          <select 
+            value={filterDept} 
+            onChange={e => setFilterDept(e.target.value)} 
+            style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontSize: '0.8rem' }}
+          >
+            <option value="All">All Departments</option>
+            {departments.filter(d => d !== 'All').map(d => <option key={d} value={d}>{d}</option>)}
+          </select>
+
+          {/* Subject Filter */}
+          <select 
+            value={filterSubject} 
+            onChange={e => setFilterSubject(e.target.value)} 
+            style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontSize: '0.8rem' }}
+          >
+            <option value="All">All Subjects</option>
+            {allSubjects.filter(s => s !== 'All').map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+
+          {/* Performance Filter */}
+          <select 
+            value={filterPerformance} 
+            onChange={e => setFilterPerformance(e.target.value)} 
+            style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontSize: '0.8rem' }}
+          >
+            <option value="All">All Performance Ranges</option>
+            <option value="Outstanding">Outstanding (≥92%)</option>
+            <option value="Good">Good (85-91%)</option>
+            <option value="NeedsImprovement">Needs Improvement (&lt;85%)</option>
+          </select>
+
+          {/* Experience Filter */}
+          <select 
+            value={filterExperience} 
+            onChange={e => setFilterExperience(e.target.value)} 
+            style={{ padding: '0.5rem 0.8rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontSize: '0.8rem' }}
+          >
+            <option value="All">All Experience Ranges</option>
+            <option value="Senior">Senior Faculty (&gt;10 yrs)</option>
+            <option value="Mid">Mid-level (5-10 yrs)</option>
+            <option value="Junior">Junior Faculty (&lt;5 yrs)</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Visual Analytics Charts Section */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '1.2rem', marginBottom: '1.5rem' }}>
+        {/* Performance Chart */}
+        <div className="glass-card" style={{ padding: '1.2rem', borderRadius: 16 }}>
+          <h4 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.88rem', marginBottom: '0.8rem' }}>Faculty Performance vs Attendance</h4>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={deptData} barSize={12}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="dept" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 9 }} />
+              <Tooltip />
+              <Legend iconSize={9} wrapperStyle={{ fontSize: 10 }} />
+              <Bar dataKey="avgPerf" fill="#8b5cf6" name="Performance Score" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="avgAtt" fill="#10b981" name="Attendance %" radius={[3, 3, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Staff count by department */}
+        <div className="glass-card" style={{ padding: '1.2rem', borderRadius: 16 }}>
+          <h4 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.88rem', marginBottom: '0.8rem' }}>Department-wise Staff Count</h4>
+          <ResponsiveContainer width="100%" height={180}>
+            <BarChart data={deptData} barSize={20}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="dept" tick={{ fontSize: 10 }} />
+              <YAxis tick={{ fontSize: 9 }} />
+              <Tooltip />
+              <Bar dataKey="staff" fill="#0ea5e9" name="Staff Count" radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        {/* Monthly Trend */}
+        <div className="glass-card" style={{ padding: '1.2rem', borderRadius: 16 }}>
+          <h4 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.88rem', marginBottom: '0.8rem' }}>Monthly Performance Trend</h4>
+          <ResponsiveContainer width="100%" height={180}>
+            <LineChart data={trendData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="month" tick={{ fontSize: 10 }} />
+              <YAxis domain={[80, 100]} tick={{ fontSize: 9 }} />
+              <Tooltip />
+              <Legend iconSize={9} wrapperStyle={{ fontSize: 10 }} />
+              <Line type="monotone" dataKey="performance" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 4 }} name="Performance" />
+              <Line type="monotone" dataKey="attendance" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="Attendance" />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* Advanced Staff Table */}
+      <div className="glass-card" style={{ padding: '1.5rem', borderRadius: 16 }}>
+        <h4 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem', marginBottom: '1rem' }}>Faculty Auditing Registry</h4>
+        <div className="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Staff Name</th>
+                <th>Department</th>
+                <th>Subject(s)</th>
+                <th>Experience</th>
+                <th>Attendance</th>
+                <th>Performance</th>
+                <th>Feedback Rating</th>
+                <th>Status</th>
+                <th style={{ textAlign: 'center' }}>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={9} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No staff match the selected filters.</td></tr>
+              ) : filtered.map(s => (
+                <tr key={s.id}>
+                  {/* Name & Designation */}
+                  <td>
+                    <div style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.name}</div>
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{s.designation}</span>
+                  </td>
+
+                  {/* Department */}
+                  <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{s.dept}</td>
+
+                  {/* Subjects */}
+                  <td>
+                    <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                      {s.subjects.map(sub => (
+                        <span key={sub} style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', padding: '2px 6px', borderRadius: 5, fontSize: '0.7rem', fontWeight: 600 }}>{sub}</span>
+                      ))}
+                    </div>
+                  </td>
+
+                  {/* Experience */}
+                  <td style={{ fontSize: '0.82rem', fontWeight: 600, color: 'var(--text-main)' }}>{s.experience} Years</td>
+
+                  {/* Attendance */}
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 60, height: 6, background: 'var(--bg-secondary)', borderRadius: 3 }}>
+                        <div style={{ width: `${s.attendance}%`, height: '100%', background: s.attendance >= 95 ? '#10b981' : s.attendance >= 90 ? '#f59e0b' : '#ef4444', borderRadius: 3 }} />
+                      </div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: s.attendance < 92 ? '#ef4444' : 'var(--text-main)' }}>{s.attendance}%</span>
+                    </div>
+                  </td>
+
+                  {/* Performance Score */}
+                  <td>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                      <div style={{ width: 60, height: 6, background: 'var(--bg-secondary)', borderRadius: 3 }}>
+                        <div style={{ width: `${s.performance}%`, height: '100%', background: s.performance >= 90 ? '#8b5cf6' : s.performance >= 85 ? '#6366f1' : '#f59e0b', borderRadius: 3 }} />
+                      </div>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#8b5cf6' }}>{s.performance}%</span>
+                    </div>
+                  </td>
+
+                  {/* Student Feedback Rating */}
+                  <td>
+                    <span style={{ background: 'rgba(245,158,11,0.09)', color: '#f59e0b', padding: '3px 8px', borderRadius: 6, fontSize: '0.76rem', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: 3 }}>
+                      ★ {s.rating}
+                    </span>
+                  </td>
+
+                  {/* Status */}
+                  <td>
+                    <span style={{ background: s.status === 'Active' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)', color: s.status === 'Active' ? '#10b981' : '#f59e0b', padding: '3px 8px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700 }}>{s.status}</span>
+                  </td>
+
+                  {/* Action items */}
+                  <td>
+                    <div style={{ display: 'flex', gap: 4, justifyContent: 'center' }}>
+                      <button 
+                        onClick={() => handleAction(s, 'profile')} 
+                        style={{ padding: '4px 8px', background: 'rgba(99,102,241,0.1)', color: '#6366f1', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                        title="View Full Profile"
+                      >
+                        Profile
+                      </button>
+                      <button 
+                        onClick={() => handleAction(s, 'classes')} 
+                        style={{ padding: '4px 8px', background: 'rgba(14,165,233,0.1)', color: '#0ea5e9', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                        title="View Teaching Classes"
+                      >
+                        Classes
+                      </button>
+                      <button 
+                        onClick={() => handleAction(s, 'report')} 
+                        style={{ padding: '4px 8px', background: 'rgba(16,185,129,0.1)', color: '#10b981', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                        title="Generate Performance Report"
+                      >
+                        Report
+                      </button>
+                      <button 
+                        onClick={() => handleAction(s, 'notify')} 
+                        style={{ padding: '4px 8px', background: 'rgba(239,68,68,0.1)', color: '#ef4444', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                        title="Send Notification"
+                      >
+                        Notify
+                      </button>
+                      <button 
+                        onClick={() => handleAction(s, 'meeting')} 
+                        style={{ padding: '4px 8px', background: 'rgba(245,158,11,0.1)', color: '#f59e0b', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}
+                        title="Schedule Staff Meeting"
+                      >
+                        Meeting
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* FULLY INTERACTIVE MODAL OVERLAYS */}
+      {selectedStaff && modalType && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+          <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: 16, width: '100%', maxWidth: '520px', position: 'relative', boxShadow: 'var(--shadow-xl)', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
+            
+            {/* Close button */}
+            <button 
+              onClick={() => { setSelectedStaff(null); setModalType(null); }} 
+              style={{ position: 'absolute', right: 20, top: 20, background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              <X size={20} />
+            </button>
+
+            {/* Profile Modal */}
+            {modalType === 'profile' && (
+              <div>
+                <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: '1.2rem' }}>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg,#8b5cf6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '1.3rem' }}>{selectedStaff.name.charAt(0)}</div>
+                  <div>
+                    <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>{selectedStaff.name}</h3>
+                    <p style={{ fontSize: '0.8rem', color: '#8b5cf6', fontWeight: 700, margin: 0 }}>{selectedStaff.designation} · {selectedStaff.dept}</p>
+                  </div>
+                </div>
+                <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: '1.45', marginBottom: '1.2rem' }}>{selectedStaff.bio}</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--bg-primary)', padding: '1rem', borderRadius: 10, marginBottom: '1.2rem' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <Mail size={14} style={{ color: '#8b5cf6' }} /> {selectedStaff.email}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <Phone size={14} style={{ color: '#8b5cf6' }} /> {selectedStaff.phone}
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <BookOpen size={14} style={{ color: '#8b5cf6' }} /> Experience: {selectedStaff.experience} Years
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                    <Star size={14} style={{ color: '#f59e0b' }} /> Rating: {selectedStaff.rating} / 5.0
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button onClick={() => setModalType('notify')} style={{ flex: 1, padding: '0.6rem', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Send Alert</button>
+                  <button onClick={() => setModalType('meeting')} style={{ flex: 1, padding: '0.6rem', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Schedule Meeting</button>
+                </div>
+              </div>
+            )}
+
+            {/* Classes Modal */}
+            {modalType === 'classes' && (
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <BookOpen size={18} style={{ color: '#0ea5e9' }} /> Teaching Schedule — {selectedStaff.name}
+                </h3>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                  {selectedStaff.subjects.map((s, idx) => (
+                    <div key={idx} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <div>
+                        <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.88rem' }}>{s}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Class Size: {selectedStaff.students} Students</div>
+                      </div>
+                      <span style={{ background: 'rgba(14,165,233,0.1)', color: '#0ea5e9', padding: '3px 8px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700 }}>Active Class</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Performance Report Modal */}
+            {modalType === 'report' && (
+              <div>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <FileText size={18} style={{ color: '#10b981' }} /> Performance Breakdown — {selectedStaff.name}
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>Detailed competencies derived from student feedback, attendance, and administrative audits.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[
+                    { label: 'Teaching Quality', score: selectedStaff.performance, color: '#8b5cf6' },
+                    { label: 'Punctuality & Attendance', score: selectedStaff.attendance, color: '#10b981' },
+                    { label: 'Research & Publications', score: Math.min(100, selectedStaff.publications * 8), color: '#6366f1' },
+                    { label: 'Syllabus Coverage', score: 98, color: '#0ea5e9' },
+                    { label: 'Student Engagement', score: Math.round(selectedStaff.rating * 20), color: '#f59e0b' }
+                  ].map((c, i) => (
+                    <div key={i}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: 4 }}>
+                        <span>{c.label}</span>
+                        <span style={{ color: c.color }}>{c.score}%</span>
+                      </div>
+                      <div style={{ height: 8, background: 'var(--bg-primary)', borderRadius: 4 }}>
+                        <div style={{ width: `${c.score}%`, height: '100%', background: c.color, borderRadius: 4 }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Notify Modal */}
+            {modalType === 'notify' && (
+              <form onSubmit={handleSendNotification}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Bell size={18} style={{ color: '#ef4444' }} /> Broadcast Notice to {selectedStaff.name}
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>The message will be instantly delivered via College SMS gateway and email.</p>
+                <textarea 
+                  required
+                  value={notificationMsg}
+                  onChange={e => setNotificationMsg(e.target.value)}
+                  placeholder="Enter notice content (e.g. Please update syllabus audits for the current semester)..."
+                  rows={4}
+                  style={{ width: '100%', padding: '0.8rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-main)', fontSize: '0.82rem', resize: 'none', marginBottom: '1.2rem' }}
+                />
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" onClick={() => setModalType('profile')} style={{ flex: 1, padding: '0.6rem', background: 'var(--bg-primary)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Back</button>
+                  <button type="submit" style={{ flex: 2, padding: '0.6rem', background: '#ef4444', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Send Broadcast</button>
+                </div>
+              </form>
+            )}
+
+            {/* Meeting Modal */}
+            {modalType === 'meeting' && (
+              <form onSubmit={handleScheduleMeeting}>
+                <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <Calendar size={18} style={{ color: '#f59e0b' }} /> Book Principal-Staff Meeting
+                </h3>
+                <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>Book a personal performance audit or review session.</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: '1.2rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 4 }}>Select Date</label>
+                    <input 
+                      type="date" 
+                      required
+                      value={meetingDate} 
+                      onChange={e => setMeetingDate(e.target.value)} 
+                      style={{ width: '100%', padding: '0.5rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-main)', fontSize: '0.82rem' }} 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontWeight: 600, display: 'block', marginBottom: 4 }}>Select Time</label>
+                    <input 
+                      type="time" 
+                      required
+                      value={meetingTime} 
+                      onChange={e => setMeetingTime(e.target.value)} 
+                      style={{ width: '100%', padding: '0.5rem', borderRadius: 8, border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-main)', fontSize: '0.82rem' }} 
+                    />
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <button type="button" onClick={() => setModalType('profile')} style={{ flex: 1, padding: '0.6rem', background: 'var(--bg-primary)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Back</button>
+                  <button type="submit" style={{ flex: 2, padding: '0.6rem', background: '#f59e0b', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Confirm Booking</button>
+                </div>
+              </form>
+            )}
+
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}

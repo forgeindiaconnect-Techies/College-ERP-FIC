@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, Heart, Mail, Phone, User, Link2, CheckCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, Heart, Mail, Phone, User, Link2, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { getUsers, getStudents, createUser, updateUser, deleteUser } from '../../api/index';
 import './ParentsManagement.css';
 
@@ -15,6 +15,7 @@ const ParentsManagement = () => {
   const [form, setForm] = useState({ name: '', email: '', phone: '', parentOf: '', password: '' });
   const [formErrors, setFormErrors] = useState({});
   const [successFlash, setSuccessFlash] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchInitialData();
@@ -23,26 +24,22 @@ const ParentsManagement = () => {
   const fetchInitialData = async () => {
     try {
       setLoading(true);
-      const [usersRes, studentsRes] = await Promise.all([
-        getUsers(),
-        getStudents()
-      ]);
+      let parentUsers = [];
+      try {
+        const usersRes = await getUsers();
+        const allUsers = usersRes?.data || [];
+        parentUsers = allUsers.filter(u => u.role === 'Parent');
+        setParents(parentUsers);
+      } catch (err) {
+        console.error('Failed to load users:', err);
+      }
       
-      const allUsers = usersRes?.data || [];
-      const parentUsers = allUsers.filter(u => u.role === 'Parent');
-      setParents(parentUsers);
-      setStudents(studentsRes?.data || []);
-    } catch (err) {
-      console.error('Failed to load parents/students:', err);
-      // Fallback
-      setParents([
-        { _id: '1', name: 'James Doe', email: 'parent_john@college.edu', phone: '9876543210', parentOf: 'CS2022001', role: 'Parent' },
-        { _id: '2', name: 'Mary Smith', email: 'parent_alice@college.edu', phone: '9845123456', parentOf: 'EE2022001', role: 'Parent' }
-      ]);
-      setStudents([
-        { id: 'CS2022001', name: 'John Doe', dept: 'Computer Science' },
-        { id: 'EE2022001', name: 'Alice Smith', dept: 'Electrical Engg.' }
-      ]);
+      try {
+        const studentsRes = await getStudents();
+        setStudents(studentsRes?.data || []);
+      } catch (err) {
+        console.error('Failed to load students:', err);
+      }
     } finally {
       setLoading(false);
     }
@@ -61,6 +58,7 @@ const ParentsManagement = () => {
     setForm({ name: '', email: '', phone: '', parentOf: '', password: 'password123' });
     setEditTarget(null);
     setFormErrors({});
+    setShowPassword(false);
     setModalOpen(true);
   };
 
@@ -68,6 +66,7 @@ const ParentsManagement = () => {
     setForm({ name: p.name, email: p.email, phone: p.phone || '', parentOf: p.parentOf || '', password: '' });
     setEditTarget(p._id);
     setFormErrors({});
+    setShowPassword(false);
     setModalOpen(true);
   };
 
@@ -120,7 +119,7 @@ const ParentsManagement = () => {
       }, 700);
     } catch (err) {
       console.error('Failed to save parent:', err);
-      alert(err.response?.data?.message || 'Failed to save parent account.');
+      alert(err.response?.data?.message || err.message || 'Failed to save parent account.');
     }
   };
 
@@ -314,12 +313,23 @@ const ParentsManagement = () => {
 
                 <div className="form-group">
                   <label>Login Password {editTarget && '(Leave empty to keep current)'}</label>
-                  <input 
-                    type="password"
-                    placeholder={editTarget ? '••••••••' : 'Enter login password'}
-                    value={form.password} 
-                    onChange={e => setForm({ ...form, password: e.target.value })} 
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      type={showPassword ? "text" : "password"}
+                      placeholder={editTarget ? '••••••••' : 'Enter login password'}
+                      value={form.password} 
+                      onChange={e => setForm({ ...form, password: e.target.value })} 
+                      style={{ paddingRight: '2.5rem', width: '100%', boxSizing: 'border-box' }}
+                    />
+                    <button 
+                      type="button" 
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{ position: 'absolute', right: '0.75rem', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      title={showPassword ? "Hide Password" : "Show Password"}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                   {formErrors.password && <span className="text-danger text-xs">{formErrors.password}</span>}
                 </div>
               </div>

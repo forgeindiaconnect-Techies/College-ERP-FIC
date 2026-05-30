@@ -172,8 +172,8 @@ const AnnouncementsManagement = () => {
                       </div>
                     </td>
                     <td>
-                      <span className={`notice-badge ${ann.targetAudience.toLowerCase()}`}>
-                        {ann.targetAudience}
+                      <span className={`notice-badge ${(ann.targetAudience || 'All Departments').toLowerCase()}`}>
+                        {ann.targetAudience || 'All Departments'}
                       </span>
                     </td>
                     <td>

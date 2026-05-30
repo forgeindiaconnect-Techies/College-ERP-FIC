@@ -27,8 +27,8 @@ const StudentLogin = () => {
         return;
       }
 
-      sessionStorage.setItem('token', userData.token);
-      sessionStorage.setItem('user_session', JSON.stringify({
+      sessionStorage.setItem('student_token', userData.token);
+      sessionStorage.setItem('student_session', JSON.stringify({
         id: userData.referenceId,
         name: userData.name,
         dept: userData.department,

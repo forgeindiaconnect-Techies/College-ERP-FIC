@@ -15,6 +15,10 @@ api.interceptors.request.use(
       const path = window.location.pathname;
       if (path.startsWith('/admin')) {
         token = sessionStorage.getItem('admin_token');
+      } else if (path.startsWith('/subadmin')) {
+        token = sessionStorage.getItem('subadmin_token');
+      } else if (path.startsWith('/principal')) {
+        token = sessionStorage.getItem('principal_token');
       } else if (path.startsWith('/hod')) {
         token = sessionStorage.getItem('hod_token');
       } else if (path.startsWith('/staff')) {
@@ -28,6 +32,8 @@ api.interceptors.request.use(
       } else {
         // Fallback: Check all in priority
         token = sessionStorage.getItem('admin_token')
+          || sessionStorage.getItem('subadmin_token')
+          || sessionStorage.getItem('principal_token')
           || sessionStorage.getItem('hod_token')
           || sessionStorage.getItem('staff_token')
           || sessionStorage.getItem('student_token')
@@ -49,6 +55,33 @@ api.interceptors.request.use(
   }
 );
 
+// Add a response interceptor to catch 401 Unauthorized errors (session expired/database reset)
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      // Do not trigger session expiry redirect if the 401 comes from a login attempt (which just means bad credentials)
+      if (error.config && error.config.url && error.config.url.includes('/login')) {
+        return Promise.reject(error);
+      }
+      
+      console.warn('Session expired or unauthorized! Clearing session storage and redirecting to login...');
+      const keys = [
+        'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token',
+        'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'
+      ];
+      keys.forEach(k => sessionStorage.removeItem(k));
+      
+      // Prevent infinite redirect loops if already on login page
+      if (!window.location.pathname.endsWith('/login')) {
+        window.location.href = '/login?expired=true';
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+
 // Auth Endpoints
 export const loginUser = (credentials) => api.post('/auth/login', {
   email: credentials.email?.trim().toLowerCase(),
@@ -68,7 +101,12 @@ export const deleteStudent = (id) => api.delete(`/students/${id}`);
 export const getStaff = () => api.get('/staff');
 export const createStaff = (staffData) => api.post('/staff', staffData);
 export const updateStaff = (id, staffData) => api.put(`/staff/${id}`, staffData);
+export const approveStaff = (id) => api.put(`/staff/${id}/approve`);
 export const deleteStaff = (id) => api.delete(`/staff/${id}`);
+
+// Timetable Endpoints
+export const getTimetable = (dept, sem) => api.get(`/timetable?dept=${encodeURIComponent(dept)}&sem=${encodeURIComponent(sem)}`);
+export const publishTimetable = (timetableData) => api.post('/timetable', timetableData);
 
 // Department Endpoints
 export const getDepartments = () => api.get('/departments');
@@ -96,6 +134,13 @@ export const getFeesByStudent = (studentId) => api.get(`/fees/student/${studentI
 export const createFee = (feeData) => api.post('/fees', feeData);
 export const updateFee = (id, feeData) => api.put(`/fees/${id}`, feeData);
 export const deleteFee = (id) => api.delete(`/fees/${id}`);
+
+// Salary / Payroll Endpoints
+export const getSalaries = () => api.get('/salaries');
+export const getSalariesByStaff = (staffId) => api.get(`/salaries/staff/${staffId}`);
+export const createSalary = (data) => api.post('/salaries', data);
+export const updateSalary = (id, data) => api.put(`/salaries/${id}`, data);
+export const deleteSalary = (id) => api.delete(`/salaries/${id}`);
 
 // Reports Endpoints
 export const getAttendanceReport = () => api.get('/reports/attendance');
@@ -149,4 +194,25 @@ export const createUser = (userData) => api.post('/auth/users', userData);
 export const updateUser = (id, userData) => api.put(`/auth/users/${id}`, userData);
 export const deleteUser = (id) => api.delete(`/auth/users/${id}`);
 
+// Principal Approvals Workflows
+export const getApprovals = () => api.get('/approvals');
+export const getPendingApprovals = () => api.get('/approvals/pending');
+export const submitApprovalAction = (id, status, comments) => api.put(`/approvals/${id}`, { status, comments });
+
+// AI Predictive Analytics
+export const getAIInsights = () => api.get('/analytics/ai-insights');
+
+// Unified Exam Timetable System
+export const getExams = () => api.get('/exams');
+export const createExam = (data) => api.post('/exams', data);
+export const updateExam = (id, data) => api.put(`/exams/${id}`, data);
+export const deleteExam = (id) => api.delete(`/exams/${id}`);
+
 export default api;
+
+// Assignments
+export const getAssignments = (params) => api.get('/assignments', { params });
+export const createAssignment = (assignmentData) => api.post('/assignments', assignmentData);
+export const submitAssignment = (assignmentId, data) => api.post(`/assignments/${assignmentId}/submit`, data);
+export const getAssignmentSubmissions = (assignmentId) => api.get(`/assignments/${assignmentId}/submissions`);
+export const getStudentSubmissions = (studentId) => api.get(`/assignments/student/${studentId}`);

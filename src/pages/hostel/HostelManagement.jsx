@@ -4,7 +4,7 @@ import {
   CreditCard, AlertOctagon, UserPlus, Clock, FileText,
   Plus, Search, BedDouble, CheckCircle, AlertCircle, Phone, Download
 } from 'lucide-react';
-import { getHostelBlocks, getHostelRooms, getHostelStudents, getHostelComplaints } from '../../api/index';
+import { getHostelBlocks, getHostelRooms, getHostelStudents, getHostelComplaints, getStudents } from '../../api/index';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell
@@ -36,23 +36,71 @@ const HostelManagement = () => {
 
   React.useEffect(() => {
     fetchHostelData();
+
+    // Listen for changes from the HOD tab
+    const handleStorage = (e) => {
+      if (e.key === 'erp_students') fetchHostelData();
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
   const fetchHostelData = async () => {
     try {
       setLoading(true);
-      const [blocksRes, roomsRes, studentsRes, complaintsRes] = await Promise.all([
-        getHostelBlocks(),
-        getHostelRooms(),
-        getHostelStudents(),
-        getHostelComplaints()
+      const [blocksRes, roomsRes, studentsRes, complaintsRes, allStudentsRes] = await Promise.all([
+        getHostelBlocks().catch(() => ({ data: [] })),
+        getHostelRooms().catch(() => ({ data: [] })),
+        getHostelStudents().catch(() => ({ data: [] })),
+        getHostelComplaints().catch(() => ({ data: [] })),
+        getStudents().catch(() => ({ data: [] }))
       ]);
-      setBlocks(blocksRes.data);
-      setRooms(roomsRes.data);
-      setStudents(studentsRes.data);
-      setComplaints(complaintsRes.data);
+      setBlocks(blocksRes?.data || []);
+      setRooms(roomsRes?.data || []);
+      
+      const adminHostelers = (allStudentsRes?.data || [])
+        .filter(s => s.hostelRequired === 'Yes')
+        .map(s => ({
+            studentId: s.id,
+            name: s.name,
+            block: 'Pending Allocation',
+            room: s.roomNumber || 'Unassigned'
+        }));
+
+      // Pull hostel students created locally via HOD portal
+      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const localHostelers = erpStudents
+        .filter(s => s.hostelerStatus === 'Hosteler' || s.hostelRequired === 'Yes')
+        .map(s => ({
+            studentId: s.rollNo || s.id,
+            name: s.name,
+            block: 'Pending Allocation',
+            room: s.roomNumber || 'Unassigned'
+        }));
+
+      const backendHostelers = studentsRes?.data || [];
+      const combinedHostelers = [...backendHostelers];
+      
+      [...adminHostelers, ...localHostelers].forEach(lh => {
+        if (!combinedHostelers.find(ch => ch.studentId === lh.studentId)) {
+          combinedHostelers.push(lh);
+        }
+      });
+
+      setStudents(combinedHostelers);
+      setComplaints(complaintsRes?.data || []);
     } catch (error) {
       console.error('Failed to load hostel data', error);
+      // Fallback
+      setBlocks([]);
+      setRooms([]);
+      
+      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      setStudents(erpStudents
+        .filter(s => s.hostelerStatus === 'Hosteler' || s.hostelRequired === 'Yes')
+        .map(s => ({ studentId: s.rollNo || s.id, name: s.name, block: 'Pending Allocation', room: s.roomNumber || 'Unassigned' }))
+      );
+      setComplaints([]);
     } finally {
       setLoading(false);
     }
@@ -282,12 +330,194 @@ const HostelManagement = () => {
         </div>
       )}
 
-      {/* Placeholders for other tabs to keep demo concise */}
-      {['Wardens', 'Hostel Fees', 'Complaints', 'Visitors', 'Attendance'].includes(activeTab) && (
-        <div className="animate-fade-in glass-card p-12 text-center">
-          <AlertCircle size={48} className="text-muted opacity-50 mx-auto mb-4"/>
-          <h2 className="text-xl font-bold mb-2">{activeTab} Module</h2>
-          <p className="text-muted">This module provides comprehensive management features for {activeTab.toLowerCase()}.</p>
+      {activeTab === 'Wardens' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Hostel Wardens</h2>
+            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Add Warden</button>
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Block Assigned</th>
+                  <th>Contact No</th>
+                  <th>Shift</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="font-medium">Mr. Ramesh Kumar</td>
+                  <td>Block A</td>
+                  <td>+91 9876543210</td>
+                  <td>Day Shift</td>
+                  <td><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Active</span></td>
+                </tr>
+                <tr>
+                  <td className="font-medium">Mrs. Sunita Verma</td>
+                  <td>Block B</td>
+                  <td>+91 9876543211</td>
+                  <td>Night Shift</td>
+                  <td><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Active</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Hostel Fees' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Fee Defaulters</h2>
+            <div className="search-box">
+              <Search size={16} className="text-muted"/>
+              <input type="text" placeholder="Search student..." />
+            </div>
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Reg No</th>
+                  <th>Student Name</th>
+                  <th>Total Fee</th>
+                  <th>Paid</th>
+                  <th>Due</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td className="font-mono text-sm">STU1001</td>
+                  <td className="font-medium">Aditya Singh</td>
+                  <td>₹ 80,000</td>
+                  <td>₹ 50,000</td>
+                  <td className="text-danger font-bold">₹ 30,000</td>
+                  <td><button className="btn-secondary text-xs py-1 px-2">Send Reminder</button></td>
+                </tr>
+                <tr>
+                  <td className="font-mono text-sm">STU1002</td>
+                  <td className="font-medium">Neha Gupta</td>
+                  <td>₹ 80,000</td>
+                  <td>₹ 80,000</td>
+                  <td className="text-success font-bold">₹ 0</td>
+                  <td><button className="btn-secondary text-xs py-1 px-2">View Receipt</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Complaints' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Maintenance Complaints</h2>
+            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Log Complaint</button>
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Room</th>
+                  <th>Issue</th>
+                  <th>Logged By</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {complaints.map(comp => (
+                  <tr key={comp.complaintId}>
+                    <td className="font-mono text-xs">{comp.complaintId}</td>
+                    <td className="font-bold">{comp.room}</td>
+                    <td>{comp.issue}</td>
+                    <td>{comp.student}</td>
+                    <td>{new Date(comp.date).toLocaleDateString()}</td>
+                    <td>
+                      <span className={`text-xs font-bold px-2 py-1 rounded ${comp.status === 'Resolved' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                        {comp.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Visitors' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Visitor Log</h2>
+            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> New Entry</button>
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Visitor Name</th>
+                  <th>Relation</th>
+                  <th>Student Name</th>
+                  <th>In Time</th>
+                  <th>Out Time</th>
+                </tr>
+              </thead>
+              <tbody>
+                {MOCK_VISITORS.map(vis => (
+                  <tr key={vis.id}>
+                    <td>{vis.date}</td>
+                    <td className="font-medium">{vis.name}</td>
+                    <td>{vis.relation}</td>
+                    <td>{vis.student}</td>
+                    <td className="font-mono">{vis.inTime}</td>
+                    <td className="font-mono">{vis.outTime}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Attendance' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Night Attendance</h2>
+            <input type="date" className="border border-gray-300 dark:border-gray-700 p-2 rounded-lg bg-white dark:bg-gray-800 text-sm" />
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Block</th>
+                  <th>Total Students</th>
+                  <th>Present</th>
+                  <th>Absent</th>
+                  <th>On Leave</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {blocks.map(block => (
+                  <tr key={block.blockId}>
+                    <td className="font-bold">{block.name}</td>
+                    <td>{block.occupied}</td>
+                    <td className="text-success font-bold">{Math.max(0, block.occupied - 2)}</td>
+                    <td className="text-danger font-bold">1</td>
+                    <td className="text-blue-500 font-bold">1</td>
+                    <td><button className="btn-secondary text-xs py-1 px-2">View Absentees</button></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 

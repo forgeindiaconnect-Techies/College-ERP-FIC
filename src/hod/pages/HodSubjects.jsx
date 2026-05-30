@@ -9,14 +9,16 @@ const getHodSession = () => {
 
 const SEMESTERS = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
 
-const DEFAULT_SUBJECTS = [
-  { id:'SUB001', code:'CS301', name:'Data Structures & Algorithms', sem:'Sem 3', teacher:'Dr. Ananya Rao',    credits:4, hours:4 },
-  { id:'SUB002', code:'CS302', name:'Database Management Systems',   sem:'Sem 3', teacher:'Dr. Ananya Rao',    credits:4, hours:4 },
-  { id:'SUB003', code:'CS401', name:'Operating Systems',             sem:'Sem 4', teacher:'Prof. Karthik S.',  credits:4, hours:4 },
-  { id:'SUB004', code:'CS402', name:'Computer Networks',             sem:'Sem 4', teacher:'Prof. Karthik S.',  credits:3, hours:3 },
-  { id:'SUB005', code:'CS501', name:'Machine Learning',              sem:'Sem 5', teacher:'Prof. Karthik S.',  credits:3, hours:3 },
-  { id:'SUB006', code:'CS502', name:'Compiler Design',               sem:'Sem 5', teacher:'Dr. Ananya Rao',    credits:4, hours:4 },
-];
+const DEPT_SUBJECTS = {
+  'Computer Science': ['Data Structures', 'DBMS', 'OS', 'Machine Learning', 'Computer Networks'],
+  'Electronics & Comm.': ['Signals & Systems', 'Microprocessors', 'VLSI Design', 'Digital Electronics'],
+  'Electrical & Electronics': ['Circuits', 'Networks', 'Power Systems', 'Control Systems'],
+  'Mechanical Engg.': ['Thermodynamics', 'Fluid Mechanics', 'Heat Transfer', 'Kinematics'],
+  'Cyber Security': ['Network Security', 'Cryptography', 'Ethical Hacking', 'Cyber Forensics'],
+  'Artificial Intelligence & Data Science': ['Machine Learning', 'Deep Learning', 'Data Mining', 'Big Data'],
+  'Bachelor of Computer App.': ['C Programming', 'Java', 'Web Technologies', 'Software Engineering'],
+  'Master of Business Admin.': ['Marketing Management', 'Financial Accounting', 'HR Management', 'Business Analytics']
+};
 
 const HodSubjects = () => {
   const hod = getHodSession();
@@ -31,16 +33,40 @@ const HodSubjects = () => {
 
   useEffect(() => {
     const saved = localStorage.getItem('erp_subjects');
-    if (saved) {
-      const all = JSON.parse(saved);
-      const deptSubs = all.filter(s => s.dept === DEPT);
-      setSubjects(deptSubs.length ? deptSubs : DEFAULT_SUBJECTS);
+    let existingAll = saved ? JSON.parse(saved) : [];
+    const deptSubs = existingAll.filter(s => s.dept === DEPT);
+    
+    if (deptSubs.length > 0) {
+      setSubjects(deptSubs);
     } else {
-      setSubjects(DEFAULT_SUBJECTS);
+      // Auto-inject mock subjects based on department role
+      const mockNames = DEPT_SUBJECTS[DEPT] || ['General Course 1', 'General Course 2'];
+      const autoMocks = mockNames.map((name, i) => ({
+        id: `SUB_${DEPT.substring(0,3).toUpperCase()}_${Date.now()}_${i}`,
+        code: `${DEPT.substring(0,2).toUpperCase()}${300 + i}`,
+        name: name,
+        sem: SEMESTERS[i % SEMESTERS.length],
+        teacher: 'Unassigned',
+        credits: 4,
+        hours: 4,
+        dept: DEPT
+      }));
+      setSubjects(autoMocks);
+      
+      // Save these injected subjects to local storage immediately
+      const otherDeptSubjects = existingAll.filter(s => s.dept !== DEPT);
+      localStorage.setItem('erp_subjects', JSON.stringify([...otherDeptSubjects, ...autoMocks]));
     }
   }, [DEPT]);
 
-  const save = (list) => { setSubjects(list); };
+  const save = (list) => { 
+    setSubjects(list); 
+    // Also save all subjects (including other departments) back to local storage
+    const existing = JSON.parse(localStorage.getItem('erp_subjects') || '[]');
+    // Filter out current dept subjects and merge the updated list
+    const otherDeptSubjects = existing.filter(s => s.dept !== DEPT);
+    localStorage.setItem('erp_subjects', JSON.stringify([...otherDeptSubjects, ...list]));
+  };
 
   const openAdd = () => { setForm({ code:'', name:'', sem:'Sem 1', teacher:'', credits:4, hours:4 }); setEditId(null); setModalOpen(true); };
   const openEdit = (s) => { setForm({ code:s.code, name:s.name, sem:s.sem, teacher:s.teacher, credits:s.credits, hours:s.hours }); setEditId(s.id); setModalOpen(true); };

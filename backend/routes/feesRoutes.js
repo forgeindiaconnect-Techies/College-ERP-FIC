@@ -1,7 +1,7 @@
 import express from 'express';
 import Fee from '../models/Fee.js';
 import Student from '../models/Student.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -47,9 +47,11 @@ const updateStudentFeeStatus = async (studentId) => {
 };
 
 // Get all fees
-router.get('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Principal', 'Accounts', 'HOD'), departmentScope, async (req, res) => {
   try {
-    const fees = await Fee.find().sort({ createdAt: -1 });
+    const dept = req.dept || req.query.dept;
+    const query = dept ? { department: dept } : {};
+    const fees = await Fee.find(query).sort({ createdAt: -1 });
     res.json(fees);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -80,11 +82,13 @@ router.post('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (re
       for (const id of studentIds) {
         await updateStudentFeeStatus(id);
       }
+      req.app.get('io').emit('dataUpdated', { module: 'fees', action: 'created' });
       return res.status(201).json(newRecords);
     } else {
       const fee = new Fee(processFeePayload(req.body));
       const newRecord = await fee.save();
       await updateStudentFeeStatus(newRecord.studentId);
+      req.app.get('io').emit('dataUpdated', { module: 'fees', action: 'created' });
       return res.status(201).json(newRecord);
     }
   } catch (err) {
@@ -103,6 +107,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (
     if (updatedFee) {
       await updateStudentFeeStatus(updatedFee.studentId);
     }
+    req.app.get('io').emit('dataUpdated', { module: 'fees', action: 'updated' });
     res.json(updatedFee);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -117,6 +122,7 @@ router.delete('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), asyn
       await Fee.findByIdAndDelete(req.params.id);
       await updateStudentFeeStatus(record.studentId);
     }
+    req.app.get('io').emit('dataUpdated', { module: 'fees', action: 'deleted' });
     res.json({ message: 'Fee record deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -51,20 +51,20 @@
 
 .accounts-metrics-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .accounts-metrics-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .accounts-metrics-grid { grid-template-columns: 1fr; }
 }
 
 .a-metric-card {
-  padding: 1rem; display: flex; flex-direction: row; align-items: center; gap: 1rem;
+  padding: 1.25rem; display: flex; flex-direction: row; align-items: center; gap: 1rem;
   transition: all 0.3s ease; overflow: hidden;
 }
 .a-metric-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
@@ -72,13 +72,13 @@
 .a-metric-details { display: flex; flex-direction: column; flex: 1; }
 
 .card-title-a {
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   color: var(--text-muted);
-  font-weight: 600; margin: 0 0 0.15rem 0; line-height: 1.2;
+  font-weight: 600; margin: 0 0 0.25rem 0; line-height: 1.2;
 }
 
 .metric-icon-a {
-  width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+  width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
 
@@ -90,11 +90,11 @@
 .metric-icon-a.red { background-color: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
 .metric-value-a {
-  font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.1rem 0; line-height: 1.2;
+  font-size: 1.45rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.15rem 0; line-height: 1.2;
 }
 
 .metric-sub-a {
-  font-size: 0.72rem; font-weight: 500; margin: 0; color: var(--text-muted);
+  font-size: 0.74rem; font-weight: 500; margin: 0; color: var(--text-muted);
   display: flex; align-items: center; gap: 4px;
 }
 
@@ -120,12 +120,19 @@
 
 .chart-container-a {
   margin-top: 20px;
+  position: relative;
+  width: 100%;
+  height: 250px;
 }
 
 .flex-center {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+.mt-6 {
+  margin-top: 1.5rem !important;
 }
 
 .a-transactions-card {
@@ -213,3 +220,30 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Missing txn-status badge variants */
+.txn-status.paid {
+  background-color: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+}
+
+.txn-status.partial {
+  background-color: rgba(245, 158, 11, 0.12);
+  color: #f59e0b;
+}
+
+/* Spinner keyframe */
+@keyframes aSpin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Hover-bg fallback variable */
+:root {
+  --hover-bg: rgba(0, 0, 0, 0.04);
+}
+
+.dark {
+  --hover-bg: rgba(255, 255, 255, 0.05);
+}
+

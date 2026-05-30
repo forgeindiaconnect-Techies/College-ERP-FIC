@@ -16,17 +16,7 @@ const DEFAULT_SESSION = {
   subjects: ['Data Structures', 'DBMS']
 };
 
-const SUBJECT_TO_CLASS = {
-  'Data Structures': 'Sem 3',
-  'DBMS': 'Sem 6',
-  'OS': 'Sem 4',
-  'Machine Learning': 'Sem 6',
-  'Circuits': 'Sem 4',
-  'Networks': 'Sem 4',
-  'Thermodynamics': 'Sem 2',
-  'Fluid Mechanics': 'Sem 2',
-  'Structural Analysis': 'Sem 8'
-};
+
 
 const getTodayDateStr = () => {
   const d = new Date();
@@ -53,6 +43,8 @@ const StaffAttendance = () => {
   const [selectedSubject, setSelectedSubject] = useState('');
   const [selectedDate, setSelectedDate] = useState(getTodayDateStr());
   const [search, setSearch] = useState('');
+  const [targetSem, setTargetSem] = useState('Sem 1');
+  const [subjectsList, setSubjectsList] = useState([]);
 
   // Marking state
   const [markingState, setMarkingState] = useState({});
@@ -61,11 +53,22 @@ const StaffAttendance = () => {
   const loadData = async (activeStaff) => {
     try {
       const [studRes, attRes] = await Promise.all([
-        getStudents(),
-        getAllAttendance()
+        getStudents().catch(() => ({ data: [] })),
+        getAllAttendance().catch(() => ({ data: [] }))
       ]);
 
-      if (studRes?.data) setStudents(studRes.data);
+      const backendStudents = studRes?.data || [];
+      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      
+      const combinedStudents = [...backendStudents];
+      erpStudents.forEach(ls => {
+        if (!combinedStudents.find(cs => cs.id === ls.id || cs.rollNo === ls.rollNo)) {
+          combinedStudents.push(ls);
+        }
+      });
+      
+      setStudents(combinedStudents);
+
       if (attRes?.data) {
         setRawAttendanceList(attRes.data);
         
@@ -99,16 +102,40 @@ const StaffAttendance = () => {
       return;
     }
 
-    // Load subjects
-    if (activeStaff.subjects && activeStaff.subjects.length > 0) {
-      setSelectedSubject(activeStaff.subjects[0]);
+    let dynSubjects = [];
+    let deptInitialized = false;
+    const savedSubjects = localStorage.getItem('erp_subjects');
+    if (savedSubjects) {
+      const allSubs = JSON.parse(savedSubjects);
+      const deptSubs = allSubs.filter(s => s.dept === activeStaff.dept);
+      
+      if (deptSubs.length > 0) {
+        deptInitialized = true;
+        const mySubs = deptSubs.filter(s => {
+          if (!s.teacher) return false;
+          const t = s.teacher.toLowerCase().trim();
+          const n = activeStaff.name.toLowerCase().trim();
+          return t.includes(n) || n.includes(t);
+        });
+        dynSubjects = [...new Set(mySubs.map(s => s.name))];
+      }
     }
+    
+    if (!deptInitialized && dynSubjects.length === 0) {
+      dynSubjects = activeStaff.subjects && activeStaff.subjects.length > 0 ? activeStaff.subjects : ['General Course'];
+    }
+
+    if (dynSubjects.length === 0) {
+      dynSubjects = ['No Subjects Assigned'];
+    }
+    
+    setSubjectsList(dynSubjects);
+    setSelectedSubject(dynSubjects[0]);
 
     loadData(activeStaff);
   }, [navigate]);
 
   const staffDept = staffSession.dept;
-  const targetSem = SUBJECT_TO_CLASS[selectedSubject] || 'Sem 3';
 
   // Filter students to current department and class semester
   const myClassStudents = students.filter(s => s.dept === staffDept && s.sem === targetSem);
@@ -119,7 +146,12 @@ const StaffAttendance = () => {
       const matches = rawAttendanceList.filter(r => r.studentId === s.id);
       const presentDays = matches.filter(r => r.status.toLowerCase() === 'present').length;
       const totalDays = matches.length;
-      const percent = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : s.attendance || 85;
+      let baseAtt = 85;
+      if (s.attendance) {
+        const parsed = parseInt(String(s.attendance).replace('%', '').trim());
+        if (!isNaN(parsed)) baseAtt = parsed;
+      }
+      const percent = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : baseAtt;
 
       return {
         ...s,
@@ -137,15 +169,14 @@ const StaffAttendance = () => {
     r.name.toLowerCase().includes(search.toLowerCase()) || r.id.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Synchronize markingState when date, subject, or logs change
   useEffect(() => {
     const existing = dailyLogs[selectedDate] || {};
     const initialMarking = {};
     myClassStudents.forEach(s => {
-      initialMarking[s.id] = existing[s.id] || 'present'; // default present
+      initialMarking[s.id] = existing[s.id] || ''; // default unmarked
     });
     setMarkingState(initialMarking);
-  }, [selectedDate, selectedSubject, dailyLogs, students]);
+  }, [selectedDate, selectedSubject, dailyLogs, students, targetSem]);
 
   // Bulk marking
   const handleBulkMark = (status) => {
@@ -159,12 +190,18 @@ const StaffAttendance = () => {
   const handleMarkStudent = (studentId, status) => {
     setMarkingState(prev => ({
       ...prev,
-      [studentId]: status
+      [studentId]: prev[studentId] === status ? '' : status
     }));
   };
 
   // Save attendance
   const handleSaveAttendance = async () => {
+    const unmarked = myClassStudents.filter(s => !markingState[s.id]);
+    if (unmarked.length > 0) {
+      alert(`Please mark attendance for all students. ${unmarked.length} student(s) unmarked.`);
+      return;
+    }
+
     try {
       const bulkRecords = myClassStudents.map(s => ({
         studentId: s.id,
@@ -172,7 +209,7 @@ const StaffAttendance = () => {
         department: staffDept,
         semester: targetSem,
         date: new Date(selectedDate),
-        status: (markingState[s.id] || 'present') === 'present' ? 'Present' : 'Absent',
+        status: markingState[s.id] === 'present' ? 'Present' : 'Absent',
         subject: selectedSubject,
         markedBy: staffSession.name
       }));
@@ -187,6 +224,56 @@ const StaffAttendance = () => {
       }
     } catch (err) {
       console.error('Failed to save attendance:', err);
+    }
+  };
+
+  // Save Full Day attendance
+  const handleSaveFullDayAttendance = async () => {
+    const unmarked = myClassStudents.filter(s => !markingState[s.id]);
+    if (unmarked.length > 0) {
+      alert(`Please mark attendance for all students. ${unmarked.length} student(s) unmarked.`);
+      return;
+    }
+
+    try {
+      const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const dayName = dayNames[new Date(selectedDate).getDay()];
+      const savedTimetable = JSON.parse(localStorage.getItem('erp_timetable') || '[]');
+      
+      let todaySubjects = savedTimetable
+        .filter(s => s.dept === staffDept && s.day.toLowerCase() === dayName.toLowerCase())
+        .map(s => s.subject);
+        
+      todaySubjects = [...new Set(todaySubjects)];
+      if (todaySubjects.length === 0) {
+        todaySubjects = subjectsList; // Fallback to all assigned subjects
+      }
+
+      let allBulkRecords = [];
+      todaySubjects.forEach(subject => {
+        const recordsForSubject = myClassStudents.map(s => ({
+          studentId: s.id,
+          studentName: s.name,
+          department: staffDept,
+          semester: targetSem,
+          date: new Date(selectedDate),
+          status: markingState[s.id] === 'present' ? 'Present' : 'Absent',
+          subject: subject,
+          markedBy: staffSession.name
+        }));
+        allBulkRecords = [...allBulkRecords, ...recordsForSubject];
+      });
+
+      const res = await createAttendance(allBulkRecords);
+      if (res?.status === 201 || res?.status === 200) {
+        setSaveSuccess(true);
+        await loadData(staffSession);
+        setTimeout(() => {
+          setSaveSuccess(false);
+        }, 1500);
+      }
+    } catch (err) {
+      console.error('Failed to save full day attendance:', err);
     }
   };
 
@@ -222,20 +309,23 @@ const StaffAttendance = () => {
               onChange={e => setSelectedSubject(e.target.value)}
               className="selector-select"
             >
-              {(staffSession.subjects || []).map(sub => (
+              {subjectsList.map(sub => (
                 <option key={sub} value={sub}>{sub}</option>
               ))}
             </select>
           </div>
 
           <div className="selector-group">
-            <label><Calendar size={14} /> Class Group</label>
-            <input
-              type="text"
-              disabled
-              value={`${staffDept} - ${targetSem}`}
-              className="selector-input-disabled"
-            />
+            <label><Calendar size={14} /> Class Group (Semester)</label>
+            <select
+              value={targetSem}
+              onChange={e => setTargetSem(e.target.value)}
+              className="selector-select"
+            >
+              {['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'].map(sem => (
+                <option key={sem} value={sem}>{staffDept} - {sem}</option>
+              ))}
+            </select>
           </div>
 
           <div className="selector-group">
@@ -302,7 +392,7 @@ const StaffAttendance = () => {
                 </tr>
               ) : (
                 filteredRecords.map((r, idx) => {
-                  const status = markingState[r.id] || 'present';
+                  const status = markingState[r.id] || '';
                   return (
                     <tr key={r.id}>
                       <td className="text-muted">{idx + 1}</td>
@@ -363,14 +453,26 @@ const StaffAttendance = () => {
           <p className="text-muted text-sm">
             Make sure to double check all fields before logging the attendance sheet.
           </p>
-          <button
-            type="button"
-            className="btn-save-attendance-sheet"
-            onClick={handleSaveAttendance}
-            disabled={filteredRecords.length === 0}
-          >
-            <Save size={16} /> Save Daily Logs
-          </button>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button
+              type="button"
+              className="btn-save-attendance-sheet"
+              style={{ background: 'var(--bg-secondary)', color: 'var(--text-main)', border: '1px solid var(--border-color)', boxShadow: 'none' }}
+              onClick={handleSaveFullDayAttendance}
+              disabled={filteredRecords.length === 0}
+              title="Saves this attendance status for ALL subjects scheduled today"
+            >
+              <CheckCircle size={16} /> Save Full Day
+            </button>
+            <button
+              type="button"
+              className="btn-save-attendance-sheet"
+              onClick={handleSaveAttendance}
+              disabled={filteredRecords.length === 0}
+            >
+              <Save size={16} /> Save Subject Only
+            </button>
+          </div>
         </div>
       </div>
     </div>

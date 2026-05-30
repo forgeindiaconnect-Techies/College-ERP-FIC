@@ -4,6 +4,117 @@ import { GraduationCap, Lock, Mail, Eye, EyeOff, ArrowRight, Shield, Award, User
 import { loginUser } from '../api/index';
 import './Login.css';
 
+// ── Offline Mock Auth (used when backend is unreachable) ──────────────────────
+// Mirrors the exact seed data in backend/server.js so demo login always works.
+const MOCK_USERS = {
+  'admin@college.edu':        { name: 'System Admin',     role: 'Admin',     token: 'mock-admin-token',     _id: 'mock1' },
+  'principal@college.edu':   { name: 'Dr. Suresh Kumar', role: 'Principal', token: 'mock-principal-token', _id: 'mock2' },
+
+  'john@college.edu':        { name: 'John Doe',         role: 'Student',   token: 'mock-student-token',   _id: 'mock4', department: 'Computer Science',          referenceId: 'CS2022001' },
+  'emily@college.edu':       { name: 'Emily Davis',      role: 'Student',   token: 'mock-student-token2',  _id: 'mock5', department: 'Computer Science',          referenceId: 'CS2021004' },
+  'alice@college.edu':       { name: 'Alice Smith',      role: 'Student',   token: 'mock-student-token3',  _id: 'mock6', department: 'Electrical & Electronics',  referenceId: 'EE2022001' },
+  'parent_john@college.edu': { name: 'Parent of John',   role: 'Parent',    token: 'mock-parent-token',    _id: 'mock7', referenceId: 'CS2022001' },
+  'parent_alice@college.edu':{ name: 'Parent of Alice',  role: 'Parent',    token: 'mock-parent-token2',   _id: 'mock8', referenceId: 'EE2022001' },
+  'accounts@college.edu':    { name: 'Accounts Officer', role: 'Accounts',  token: 'mock-accounts-token',  _id: 'mock9' },
+  'karthik@college.edu':     { name: 'Prof. Karthik S.', role: 'Staff',     token: 'mock-staff-token',     _id: 'mock10', department: 'Computer Science' },
+  'csehod@gmail.com':        { name: 'CSE HOD',          role: 'HOD',       token: 'mock-hod-token',       _id: 'mock11', department: 'Computer Science',          referenceId: 'STF001' },
+  'ecehod@gmail.com':        { name: 'ECE HOD',          role: 'HOD',       token: 'mock-hod-token2',      _id: 'mock12', department: 'Electronics & Comm.',       referenceId: 'STF002' },
+  'eeehod@gmail.com':        { name: 'EEE HOD',          role: 'HOD',       token: 'mock-hod-token3',      _id: 'mock13', department: 'Electrical & Electronics',  referenceId: 'STF003' },
+  'mechhod@gmail.com':       { name: 'MECH HOD',         role: 'HOD',       token: 'mock-hod-token4',      _id: 'mock14', department: 'Mechanical Engg.',          referenceId: 'STF004' },
+  'bcahod@gmail.com':        { name: 'BCA HOD',          role: 'HOD',       token: 'mock-hod-token5',      _id: 'mock15', department: 'Bachelor of Computer App.', referenceId: 'STF005' },
+  'mbahod@gmail.com':        { name: 'MBA HOD',          role: 'HOD',       token: 'mock-hod-token6',      _id: 'mock16', department: 'Master of Business Admin.', referenceId: 'STF006' },
+};
+const MOCK_PASSWORD = 'password123';
+
+const mockLogin = (email, password) => {
+  const normalizedEmail = email.trim().toLowerCase();
+  let user = MOCK_USERS[normalizedEmail];
+  
+  // Check dynamically registered students in demo cache
+  if (!user) {
+    try {
+      const storedStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const foundStudent = storedStudents.find(s => s.email?.toLowerCase() === normalizedEmail);
+      if (foundStudent) {
+        user = {
+          name: foundStudent.name,
+          role: 'Student',
+          token: `mock-student-token-dynamic-${foundStudent.rollNo}`,
+          _id: `dyn-stu-${foundStudent.rollNo}`,
+          department: foundStudent.dept || 'Computer Science',
+          referenceId: foundStudent.rollNo
+        };
+      }
+    } catch (e) {}
+  }
+
+  // Check dynamically registered staff in demo cache
+  if (!user) {
+    try {
+      const storedStaff = JSON.parse(localStorage.getItem('erp_staff') || '[]');
+      const foundStaff = storedStaff.find(s => s.email?.toLowerCase() === normalizedEmail);
+      if (foundStaff) {
+        user = {
+          name: foundStaff.name,
+          role: foundStaff.designation?.includes('HOD') ? 'HOD' : 'Staff',
+          token: `mock-staff-token-dynamic-${foundStaff.id}`,
+          _id: `dyn-stf-${foundStaff.id}`,
+          department: foundStaff.dept || 'Computer Science',
+          referenceId: foundStaff.id,
+          subjects: foundStaff.subjects || []
+        };
+      }
+    } catch (e) {}
+  }
+
+  if (!user) return null;
+  if (password.trim() !== MOCK_PASSWORD) return null;
+  return { ...user, email: normalizedEmail };
+};
+
+const applySession = (userData) => {
+  // Normalize role to Title Case to match destinations dictionary
+  const roleMap = {
+    'admin': 'Admin', 'sub admin': 'Sub Admin', 'subadmin': 'Sub Admin',
+    'principal': 'Principal', 'hod': 'HOD', 'staff': 'Staff',
+    'student': 'Student', 'parent': 'Parent', 'accounts': 'Accounts', 'accountant': 'Accounts'
+  };
+  const role = roleMap[userData.role?.toLowerCase()] || userData.role;
+  const roleKey = role.toLowerCase().replace(/\s+/g, '');
+  const allKeys = ['admin_token','subadmin_token','principal_token','hod_token','staff_token','student_token','parent_token','accounts_token',
+                   'admin_session','subadmin_session','principal_session','hod_session','staff_session','student_session','parent_session','accounts_session'];
+  allKeys.forEach(k => sessionStorage.removeItem(k));
+
+  sessionStorage.setItem(`${roleKey}_token`, userData.token);
+
+  const sessionPayload = {
+    _id: userData._id, name: userData.name, email: userData.email,
+    role, department: userData.department || null,
+    referenceId: userData.referenceId || null,
+    permissions: userData.permissions || []
+  };
+  if (role === 'HOD' || role === 'Staff') {
+    sessionPayload.dept = userData.department;
+    sessionPayload.deptCode = (userData.department || '').substring(0, 2).toUpperCase() || 'CS';
+    sessionPayload.subjects = userData.subjects || [];
+  } else if (role === 'Student') {
+    sessionPayload.id = userData.referenceId;
+    sessionPayload.dept = userData.department;
+  } else if (role === 'Parent') {
+    sessionPayload.childId = userData.referenceId;
+    sessionPayload.childName = 'John Doe';
+  }
+  sessionStorage.setItem(`${roleKey}_session`, JSON.stringify(sessionPayload));
+
+  const destinations = {
+    'Admin': '/admin/dashboard', 'Sub Admin': '/subadmin/dashboard',
+    'Principal': '/principal/dashboard', 'HOD': '/hod',
+    'Staff': '/staff/dashboard', 'Student': '/student/dashboard',
+    'Parent': '/parent/dashboard', 'Accounts': '/accounts/dashboard'
+  };
+  return destinations[role] || null;
+};
+
 const UnifiedLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
@@ -19,90 +130,22 @@ const UnifiedLogin = () => {
     setError('');
 
     try {
+      // Try backend first
       const res = await loginUser({ email, password });
       const userData = res.data;
-      const role = userData.role;
-
-      // Remove any leftover tokens/sessions from other roles
-      const allKeys = ['admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token',
-                       'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
-      allKeys.forEach(k => sessionStorage.removeItem(k));
-
-      // Clean check to ensure role is valid
-      const allowedRoles = ['Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Student', 'Parent', 'Accounts'];
-      if (!allowedRoles.includes(role)) {
-        setError('Unauthorized role returned.');
-        setLoading(false);
-        return;
-      }
-
-      // Store in role-specific session storage to avoid multi-tab conflicts
-      // NOTE: 'Sub Admin' has a space so we must normalize it to 'subadmin'
-      const roleKey = role.toLowerCase().replace(/\s+/g, '');
-      const tokenKey = `${roleKey}_token`;
-      const sessionKey = `${roleKey}_session`;
-
-      sessionStorage.setItem(tokenKey, userData.token);
-      
-      // Customize session payload by role
-      const sessionPayload = {
-        _id: userData._id,
-        name: userData.name,
-        email: userData.email,
-        role: role,
-        department: userData.department || null,
-        referenceId: userData.referenceId || null,
-        permissions: userData.permissions || []
-      };
-      
-      if (role === 'HOD') {
-        sessionPayload.dept = userData.department;
-        sessionPayload.deptCode = userData.department?.substring(0, 2).toUpperCase() || 'CS';
-      } else if (role === 'Staff') {
-        sessionPayload.dept = userData.department;
-        sessionPayload.deptCode = userData.department?.substring(0, 2).toUpperCase() || 'CS';
-        sessionPayload.subjects = [];
-      } else if (role === 'Student') {
-        sessionPayload.id = userData.referenceId;
-        sessionPayload.dept = userData.department;
-      } else if (role === 'Parent') {
-        sessionPayload.childId = userData.referenceId;
-        sessionPayload.childName = 'John Doe';
-      }
-
-      sessionStorage.setItem(sessionKey, JSON.stringify(sessionPayload));
-
-      // Redirect target based on role
-      switch (role) {
-        case 'Admin':
-          window.location.href = '/admin/dashboard';
-          break;
-        case 'Sub Admin':
-          window.location.href = '/subadmin/dashboard';
-          break;
-        case 'Principal':
-          window.location.href = '/principal/dashboard';
-          break;
-        case 'HOD':
-          window.location.href = '/hod';
-          break;
-        case 'Staff':
-          window.location.href = '/staff/dashboard';
-          break;
-        case 'Student':
-          window.location.href = '/student/dashboard';
-          break;
-        case 'Parent':
-          window.location.href = '/parent/dashboard';
-          break;
-        case 'Accounts':
-          window.location.href = '/accounts/dashboard';
-          break;
-        default:
-          setError('Unknown dashboard destination.');
-      }
+      const dest = applySession(userData);
+      if (dest) { navigate(dest); return; }
+      setError('Unknown role. Cannot redirect.');
+      setLoading(false);
     } catch (err) {
-      setError(err.response?.data?.message || 'Invalid email or password. Check demo users below.');
+      // Backend unavailable — fall back to offline mock auth
+      const mockUser = mockLogin(email, password);
+      if (mockUser) {
+        const dest = applySession(mockUser);
+        if (dest) { navigate(dest); return; }
+      }
+      // Real bad credentials (mock also failed)
+      setError('Invalid email or password. Please check the demo credentials below.');
       setLoading(false);
     }
   };
@@ -110,59 +153,25 @@ const UnifiedLogin = () => {
   const handleDemoLogin = (demoEmail) => {
     setEmail(demoEmail);
     setPassword('password123');
-    // We execute standard form validation via timeout to let react state commit
-    setTimeout(() => {
-      setLoading(true);
-      setError('');
-      loginUser({ email: demoEmail, password: 'password123' })
-        .then((res) => {
-          const userData = res.data;
-          const role = userData.role;
-
-          // Remove any leftover tokens/sessions from other roles
-          const allKeys = ['admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token',
-                           'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
-          allKeys.forEach(k => sessionStorage.removeItem(k));
-
-          const roleKey = role.toLowerCase().replace(/\s+/g, '');
-          const tokenKey = `${roleKey}_token`;
-          const sessionKey = `${roleKey}_session`;
-          
-          sessionStorage.setItem(tokenKey, userData.token);
-          
-          const sessionPayload = {
-            _id: userData._id,
-            name: userData.name,
-            email: userData.email,
-            role: role,
-            department: userData.department || null,
-            referenceId: userData.referenceId || null,
-            permissions: userData.permissions || []
-          };
-          
-          if (role === 'HOD' || role === 'Staff') {
-            sessionPayload.dept = userData.department;
-            sessionPayload.deptCode = userData.department?.substring(0, 2).toUpperCase() || 'CS';
-          } else if (role === 'Student') {
-            sessionPayload.id = userData.referenceId;
-            sessionPayload.dept = userData.department;
-          } else if (role === 'Parent') {
-            sessionPayload.childId = userData.parentOf || userData.referenceId;
-            sessionPayload.childName = 'John Doe';
-          }
-          
-          sessionStorage.setItem(sessionKey, JSON.stringify(sessionPayload));
-
-          if (role === 'HOD') window.location.href = '/hod';
-          else if (role === 'Sub Admin') window.location.href = '/subadmin/dashboard';
-          else if (role === 'Principal') window.location.href = '/principal/dashboard';
-          else window.location.href = `/${role.toLowerCase()}/dashboard`;
-        })
-        .catch((err) => {
-          setError(err.response?.data?.message || 'Failed to authenticate demo user.');
-          setLoading(false);
-        });
-    }, 100);
+    setLoading(true);
+    setError('');
+    // Try backend, fall back to offline mock if unreachable
+    loginUser({ email: demoEmail, password: 'password123' })
+      .then((res) => {
+        const dest = applySession(res.data);
+        if (dest) { window.location.href = dest; }
+        else { setError('Unknown role.'); setLoading(false); }
+      })
+      .catch(() => {
+        // Backend down — use offline mock auth
+        const mockUser = mockLogin(demoEmail, 'password123');
+        if (mockUser) {
+          const dest = applySession(mockUser);
+          if (dest) { window.location.href = dest; return; }
+        }
+        setError('Demo login failed. Email not found in mock user list.');
+        setLoading(false);
+      });
   };
 
   return (
@@ -305,7 +314,7 @@ const UnifiedLogin = () => {
                   {[
                     { name: 'Admin', email: 'admin@college.edu', icon: Shield, color: '#3b82f6' },
                     { name: 'Principal', email: 'principal@college.edu', icon: Award, color: '#0284c7' },
-                    { name: 'Sub Admin', email: 'subadmin@college.edu', icon: Shield, color: '#0ea5e9' },
+
                     { name: 'HODs (6 Depts)', email: 'csehod@gmail.com', icon: Award, color: '#10b981', isSelector: true },
                     { name: 'Staff', email: 'karthik@college.edu', icon: BookOpen, color: '#8b5cf6' },
                     { name: 'Student', email: 'john@college.edu', icon: GraduationCap, color: '#f59e0b' },

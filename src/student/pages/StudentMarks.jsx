@@ -89,21 +89,17 @@ const StudentMarks = () => {
             }))
           });
         } else {
-          // Fallback mocks
+          // No marks available - do not use dummy fallbacks
           setMarksRecord({
             id: activeStud.id,
             name: activeStud.name,
             dept: activeStud.dept,
             sem: activeStud.sem,
-            internal: 42,
-            external: 85,
+            internal: 0,
+            external: 0,
             arrears: 0,
-            gpa: 8.5,
-            courses: [
-              { code: 'CS301', name: 'Data Structures', internal: 42, external: 85, gpa: 9, status: 'Pass' },
-              { code: 'CS302', name: 'Database Management Systems', internal: 40, external: 87, gpa: 8.9, status: 'Pass' },
-              { code: 'CS303', name: 'Operating Systems', internal: 44, external: 78, gpa: 8.2, status: 'Pass' }
-            ]
+            gpa: 0,
+            courses: []
           });
         }
       } catch (err) {
@@ -196,32 +192,40 @@ const StudentMarks = () => {
               </tr>
             </thead>
             <tbody>
-              {coursesList.map((course, idx) => (
-                <tr key={idx}>
-                  <td><span className="register-no-badge">{course.code}</span></td>
-                  <td><span className="font-semibold">{course.name}</span></td>
-                  <td>{course.internal}</td>
-                  <td>{course.external}</td>
-                  <td className="font-semibold" style={{ color: getCgpaColor(course.gpa) }}>{course.gpa}</td>
-                  <td>
-                    <span
-                      className="grade-badge-cell"
-                      style={{
-                        background: getCgpaColor(course.gpa) + '15',
-                        color: getCgpaColor(course.gpa),
-                        border: `1px solid ${getCgpaColor(course.gpa)}30`
-                      }}
-                    >
-                      {getGrade(course.gpa)}
-                    </span>
-                  </td>
-                  <td>
-                    <span className={`status-badge-cell ${course.status.toLowerCase() === 'pass' ? 'present' : 'absent'}`}>
-                      {course.status}
-                    </span>
+              {coursesList.length === 0 ? (
+                <tr>
+                  <td colSpan="7" className="text-center text-muted" style={{ padding: '3rem' }}>
+                    No semester marks have been published yet.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                coursesList.map((course, idx) => (
+                  <tr key={idx}>
+                    <td><span className="register-no-badge">{course.code}</span></td>
+                    <td><span className="font-semibold">{course.name}</span></td>
+                    <td>{course.internal}</td>
+                    <td>{course.external}</td>
+                    <td className="font-semibold" style={{ color: getCgpaColor(course.gpa) }}>{course.gpa}</td>
+                    <td>
+                      <span
+                        className="grade-badge-cell"
+                        style={{
+                          background: getCgpaColor(course.gpa) + '15',
+                          color: getCgpaColor(course.gpa),
+                          border: `1px solid ${getCgpaColor(course.gpa)}30`
+                        }}
+                      >
+                        {getGrade(course.gpa)}
+                      </span>
+                    </td>
+                    <td>
+                      <span className={`status-badge-cell ${course.status.toLowerCase() === 'pass' ? 'present' : 'absent'}`}>
+                        {course.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

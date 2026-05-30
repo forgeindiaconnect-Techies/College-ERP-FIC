@@ -34,7 +34,6 @@ import AIAssistant from './pages/ai/AIAssistant';
 import SettingsSecurity from './pages/settings/SettingsSecurity';
 import LandingPage from './pages/landing/LandingPage';
 
-// Principal Layout & Pages
 import PrincipalLayout from './principal/components/PrincipalLayout';
 import PrincipalDashboard from './principal/pages/PrincipalDashboard';
 import PrincipalPlaceholder from './principal/pages/PrincipalPlaceholder';
@@ -45,16 +44,17 @@ import PrincipalCommunicationCenter from './principal/pages/PrincipalCommunicati
 import PrincipalMeetingsEvents from './principal/pages/PrincipalMeetingsEvents';
 import PrincipalAcademicPlanning from './principal/pages/PrincipalAcademicPlanning';
 import PrincipalFacultyPerformance from './principal/pages/PrincipalFacultyPerformance';
+import PrincipalStudentWelfare from './principal/pages/PrincipalStudentWelfare';
+import PrincipalHodManagement from './principal/pages/PrincipalHodManagement';
+import PrincipalStaffOverview from './principal/pages/PrincipalStaffOverview';
+import PrincipalStudentsOverview from './principal/pages/PrincipalStudentsOverview';
+import PrincipalAttendanceAnalytics from './principal/pages/PrincipalAttendanceAnalytics';
+import PrincipalExamsResults from './principal/pages/PrincipalExamsResults';
+import PrincipalFeesOverview from './principal/pages/PrincipalFeesOverview';
+import PrincipalPlacements from './principal/pages/PrincipalPlacements';
+import PrincipalAssignments from './principal/pages/PrincipalAssignments';
 
-// Sub Admin Layout & Pages
-import SubAdminLayout from './subadmin/components/SubAdminLayout';
-import SubAdminDashboard from './subadmin/pages/SubAdminDashboard';
-import SubAdminStudents from './subadmin/pages/SubAdminStudents';
-import SubAdminStaff from './subadmin/pages/SubAdminStaff';
-import SubAdminAttendance from './subadmin/pages/SubAdminAttendance';
-import SubAdminAnnouncements from './subadmin/pages/SubAdminAnnouncements';
-import SubAdminReports from './subadmin/pages/SubAdminReports';
-import SubAdminNotifications from './subadmin/pages/SubAdminNotifications';
+
 
 // HOD Layout & Pages
 import HodLayout from './hod/components/HodLayout';
@@ -72,6 +72,7 @@ import HodLeaves from './hod/pages/HodLeaves';
 import HodReports from './hod/pages/HodReports';
 import HodAnnouncements from './hod/pages/HodAnnouncements';
 import HodSettings from './hod/pages/HodSettings';
+import HodAssignments from './hod/pages/HodAssignments';
 
 // Staff Layout & Pages
 import StaffLayout from './staff/components/StaffLayout';
@@ -83,6 +84,8 @@ import StaffAssignments from './staff/pages/StaffAssignments';
 import StaffTimetable from './staff/pages/StaffTimetable';
 import StaffStudents from './staff/pages/StaffStudents';
 import StaffLeaves from './staff/pages/StaffLeaves';
+import StaffAnnouncements from './staff/pages/StaffAnnouncements';
+import StaffExams from './staff/pages/StaffExams';
 
 // Student Layout & Pages
 import StudentLayout from './student/components/StudentLayout';
@@ -95,6 +98,8 @@ import StudentFees from './student/pages/StudentFees';
 import StudentTimetable from './student/pages/StudentTimetable';
 import StudentLeaves from './student/pages/StudentLeaves';
 import StudentSettings from './student/pages/StudentSettings';
+import StudentAnnouncements from './student/pages/StudentAnnouncements';
+import StudentExams from './student/pages/StudentExams';
 
 // Parent Layout & Pages
 import ParentLayout from './parent/components/ParentLayout';
@@ -146,12 +151,7 @@ const PrincipalGuard = ({ children }) => {
   return <Navigate to="/login" replace />;
 };
 
-const SubAdminGuard = ({ children }) => {
-  const session = sessionStorage.getItem('subadmin_session');
-  if (session) return children;
-  if (hasAnyOtherSession('subadmin_session')) return <Navigate to="/unauthorized" replace />;
-  return <Navigate to="/login" replace />;
-};
+
 
 const HodGuard = ({ children }) => {
   const session = sessionStorage.getItem('hod_session');
@@ -253,27 +253,9 @@ function App() {
             <Route path="settings"      element={<SettingsSecurity />} />
             <Route path="activity-logs" element={<ActivityLogs />} />
             <Route path="analytics"     element={<SystemAnalytics />} />
-            <Route path="settings"      element={<Settings />} />
           </Route>
 
-          {/* ── SUB ADMIN ROUTES ── */}
-          <Route path="/subadmin" element={<SubAdminGuard><SubAdminLayout /></SubAdminGuard>}>
-            <Route index element={<Navigate to="/subadmin/dashboard" replace />} />
-            <Route path="dashboard"     element={<SubAdminDashboard />} />
-            <Route path="students"      element={<SubAdminStudents />} />
-            <Route path="staff"         element={<SubAdminStaff />} />
 
-            <Route path="attendance"    element={<SubAdminAttendance />} />
-            <Route path="timetable"     element={<TimetableManagement />} />
-            <Route path="departments"   element={<DepartmentManagement />} />
-            <Route path="announcements" element={<SubAdminAnnouncements />} />
-            <Route path="reports"       element={<SubAdminReports />} />
-            <Route path="placement"     element={<PlacementManagement />} />
-            <Route path="notifications" element={<SubAdminNotifications />} />
-            <Route path="activity-logs" element={<ActivityLogs />} />
-            <Route path="profile"       element={<Placeholder title="Sub Admin Profile" />} />
-            {/* The sidebar will restrict what they can click based on permissions, but the guard inside the component can also check, or we let the backend handle the 403s. */}
-          </Route>
 
           {/* ── PRINCIPAL ROUTES ── */}
           <Route path="/principal" element={<PrincipalGuard><PrincipalLayout /></PrincipalGuard>}>
@@ -281,18 +263,20 @@ function App() {
             <Route path="dashboard"     element={<PrincipalDashboard />} />
             <Route path="approvals"     element={<PrincipalApprovals />} />
             <Route path="departments"   element={<PrincipalDepartments />} />
-            <Route path="hods"          element={<PrincipalPlaceholder title="HOD Management" />} />
-            <Route path="staff"         element={<PrincipalPlaceholder title="Staff Overview" />} />
-            <Route path="students"      element={<PrincipalPlaceholder title="Students Overview" />} />
-            <Route path="attendance"    element={<PrincipalPlaceholder title="Attendance Analytics" />} />
-            <Route path="exams"         element={<PrincipalPlaceholder title="Exam & Results" />} />
-            <Route path="fees"          element={<PrincipalPlaceholder title="Fees Overview" />} />
+            <Route path="hods"          element={<PrincipalHodManagement />} />
+            <Route path="staff"         element={<PrincipalStaffOverview />} />
+            <Route path="students"      element={<PrincipalStudentsOverview />} />
+            <Route path="attendance"    element={<PrincipalAttendanceAnalytics />} />
+            <Route path="exams"         element={<PrincipalExamsResults />} />
+            <Route path="assignments"   element={<PrincipalAssignments />} />
+            <Route path="fees"          element={<PrincipalFeesOverview />} />
             <Route path="communication" element={<PrincipalCommunicationCenter />} />
             <Route path="meetings"       element={<PrincipalMeetingsEvents />} />
             <Route path="academic-planning" element={<PrincipalAcademicPlanning />} />
             <Route path="faculty-performance" element={<PrincipalFacultyPerformance />} />
+            <Route path="student-welfare" element={<PrincipalStudentWelfare />} />
             <Route path="reports"       element={<PrincipalReports />} />
-            <Route path="placement"     element={<PrincipalPlaceholder title="Placements" />} />
+            <Route path="placement"     element={<PrincipalPlacements />} />
             <Route path="settings"      element={<PrincipalPlaceholder title="Settings" />} />
           </Route>
 
@@ -304,6 +288,7 @@ function App() {
             <Route path="attendance"    element={<HodAttendance />} />
             <Route path="marks"         element={<HodMarks />} />
             <Route path="timetable"     element={<HodTimetable />} />
+            <Route path="assignments"   element={<HodAssignments />} />
             <Route path="subjects"      element={<HodSubjects />} />
             <Route path="exams"         element={<HodExams />} />
             <Route path="reports"       element={<HodReports />} />
@@ -322,6 +307,8 @@ function App() {
             <Route path="timetable"  element={<StaffTimetable />} />
             <Route path="students"   element={<StaffStudents />} />
             <Route path="leaves"     element={<StaffLeaves />} />
+            <Route path="announcements" element={<StaffAnnouncements />} />
+            <Route path="exams"      element={<StaffExams />} />
           </Route>
 
           {/* ── STUDENT ROUTES ── */}
@@ -335,6 +322,8 @@ function App() {
             <Route path="timetable"   element={<StudentTimetable />} />
             <Route path="leaves"      element={<StudentLeaves />} />
             <Route path="settings"    element={<StudentSettings />} />
+            <Route path="announcements" element={<StudentAnnouncements />} />
+            <Route path="exams"       element={<StudentExams />} />
           </Route>
 
           {/* ── PARENT ROUTES ── */}

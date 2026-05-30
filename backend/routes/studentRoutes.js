@@ -1,14 +1,16 @@
 import express from 'express';
 import Student from '../models/Student.js';
 import { protect, authorize, departmentScope, requirePermission } from '../middleware/authMiddleware.js';
+import User from '../models/User.js';
+import bcrypt from 'bcryptjs';
 
 const router = express.Router();
 
 // Get all students
-router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('manage_students'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Accounts'), requirePermission('manage_students'), departmentScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
-    const query = dept ? { dept: dept } : {};
+    const query = dept ? { $or: [{ dept: dept }, { department: dept }] } : {};
     const students = await Student.find(query);
     res.json(students);
   } catch (err) {
@@ -40,10 +42,30 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // Create new student
-router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Accounts'), requirePermission('manage_students'), async (req, res) => {
   const student = new Student(req.body);
   try {
     const newStudent = await student.save();
+    
+    // Create a User account for login with default password
+    try {
+      const existingUser = await User.findOne({ email: newStudent.email });
+      if (!existingUser) {
+        const user = new User({
+          name: newStudent.name,
+          email: newStudent.email,
+          password: 'password123',
+          role: 'Student',
+          department: newStudent.dept,
+          referenceId: newStudent.id
+        });
+        await user.save();
+      }
+    } catch (userErr) {
+      console.error('Failed to create User account for Student:', userErr);
+    }
+
+    req.app.get('io').emit('dataUpdated', { module: 'students', action: 'created' });
     res.status(201).json(newStudent);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -58,6 +80,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'),
       req.body,
       { new: true }
     );
+    req.app.get('io').emit('dataUpdated', { module: 'students', action: 'updated' });
     res.json(updatedStudent);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -68,6 +91,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'),
 router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), async (req, res) => {
   try {
     await Student.findOneAndDelete({ id: req.params.id });
+    req.app.get('io').emit('dataUpdated', { module: 'students', action: 'deleted' });
     res.json({ message: 'Student deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus, Search, Edit2, Trash2, Filter, X,
   User, BookOpen, Hash, Percent, DollarSign,
   Phone, Mail, ChevronUp, ChevronDown, CheckCircle
 } from 'lucide-react';
 import { getStudents, createStudent, updateStudent, deleteStudent } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StudentManagement.css';
 
 const DEPARTMENTS = [
-  'Computer Science', 'Electrical Engg.', 'Mechanical Engg.',
-  'Civil Engg.', 'Information Tech.',
+  'Computer Science Engineering', 'Information Technology', 'Electronics & Communication Engineering',
+  'Electrical & Electronics Engineering', 'Mechanical Engineering', 'Civil Engineering',
+  'Artificial Intelligence & Data Science', 'Artificial Intelligence & Machine Learning',
+  'Cyber Security', 'Biomedical Engineering', 'Aeronautical Engineering', 'Automobile Engineering',
+  'Robotics Engineering', 'Chemical Engineering', 'Biotechnology Engineering'
 ];
 const SEMESTERS  = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
 const FEE_STATUS = ['Paid', 'Pending', 'Partial', 'Waived'];
@@ -30,6 +34,9 @@ const MOCK_STUDENTS = [
 const EMPTY_FORM = {
   name:'', email:'', phone:'', dept:'', sem:'',
   cgpa:'', attendance:'', status:'Active', feeStatus:'Pending',
+  idNumber: '', dob: '', academicYear: '', section: '', batch: '',
+  admissionDate: '', hostelRequired: '', roomNumber: '',
+  busRoute: '', pickupPoint: '', transportFeeStatus: ''
 };
 
 const getInitials   = (name) => name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
@@ -46,10 +53,18 @@ const makeSortIcon  = (key, sortKey, sortAsc) => {
 
 /* ── Auto-generate Register No ── */
 const generateRegNo = (dept, existingCount) => {
-  const codes = { 'Computer Science':'CS', 'Electrical Engg.':'EE', 'Mechanical Engg.':'ME', 'Civil Engg.':'CE', 'Information Tech.':'IT' };
+  const codes = { 
+    'Computer Science Engineering':'CSE', 'Information Technology':'IT',
+    'Electronics & Communication Engineering':'ECE', 'Electrical & Electronics Engineering':'EEE',
+    'Mechanical Engineering':'MECH', 'Civil Engineering':'CIVIL',
+    'Artificial Intelligence & Data Science':'AIDS', 'Artificial Intelligence & Machine Learning':'AIML',
+    'Cyber Security':'CYBER', 'Biomedical Engineering':'BME',
+    'Aeronautical Engineering':'AERO', 'Automobile Engineering':'AUTO',
+    'Robotics Engineering':'ROBOTICS', 'Chemical Engineering':'CHEM', 'Biotechnology Engineering':'BIOTECH'
+  };
   const code = codes[dept] || 'ST';
   const year = new Date().getFullYear();
-  return `${code}${year}${String(existingCount + 1).padStart(3,'0')}`;
+  return `${code}${year}-${String(existingCount + 1).padStart(3,'0')}`;
 };
 
 /* ══════════════════════════════════════════════════════════════ */
@@ -74,15 +89,46 @@ const StudentManagement = () => {
     fetchStudents();
   }, []);
 
+  // Auto-refresh when student data changes anywhere
+  useRealtimeSync(useCallback(() => { fetchStudents(); }, []), 'students');
+
+  // Auto-generate batch code
+  useEffect(() => {
+    if (form.dept && !editTarget) {
+      const codes = { 
+        'Computer Science':'CSE', 'Electronics & Comm.':'ECE', 'Electrical Engg.':'EEE', 
+        'Mechanical Engg.':'MECH', 'Civil Engg.':'CE', 'Information Tech.':'IT',
+        'Bachelor of Computer App.':'BCA', 'Master of Business Admin.':'MBA'
+      };
+      const code = codes[form.dept] || '';
+      if (code) {
+        let yearStr = new Date().getFullYear() + 4;
+        if (form.academicYear) {
+          const match = form.academicYear.match(/\d{4}-(\d{4})/);
+          if (match) yearStr = match[1];
+        }
+        setForm(f => ({ ...f, batch: `${code}${yearStr}` }));
+      }
+    }
+  }, [form.dept, form.academicYear, editTarget]);
+
   const fetchStudents = async () => {
     try {
       setLoading(true);
       const res = await getStudents();
-      setStudents(res.data);
+      let allStudents = res.data || [];
+      
+      const local = localStorage.getItem('erp_students');
+      if (local) {
+        const parsed = JSON.parse(local);
+        const dbIds = new Set(allStudents.map(s => s.id || s._id));
+        parsed.forEach(s => { if (!dbIds.has(s.id)) allStudents.push(s); });
+      }
+      setStudents(allStudents);
     } catch (err) {
       console.error('Failed to fetch students:', err);
-      // Fallback to mock data if backend isn't running
-      setStudents(MOCK_STUDENTS);
+      const local = localStorage.getItem('erp_students');
+      setStudents(local ? JSON.parse(local) : []);
     } finally {
       setLoading(false);
     }
@@ -115,14 +161,16 @@ const StudentManagement = () => {
   /* ── Validation ── */
   const validate = () => {
     const e = {};
-    if (!form.name.trim())       e.name       = 'Name is required';
-    if (!form.email.trim())      e.email      = 'Email is required';
+    if (!form.name || !form.name.trim())       e.name       = 'Name is required';
+    if (!form.email || !form.email.trim())      e.email      = 'Email is required';
     if (!form.dept)              e.dept       = 'Select a department';
-    if (!form.sem)               e.sem        = 'Select a semester';
-    if (form.cgpa === '' || isNaN(form.cgpa) || +form.cgpa < 0 || +form.cgpa > 10)
+    if (form.cgpa && (isNaN(form.cgpa) || +form.cgpa < 0 || +form.cgpa > 10))
                                  e.cgpa       = 'Enter valid CGPA (0–10)';
-    if (form.attendance === '' || isNaN(form.attendance) || +form.attendance < 0 || +form.attendance > 100)
+    if (form.attendance && (isNaN(form.attendance) || +form.attendance < 0 || +form.attendance > 100))
                                  e.attendance = 'Enter valid % (0–100)';
+    if (!form.hostelRequired)    e.hostelRequired = 'Required';
+    if (!form.busRoute || !form.busRoute.trim())   e.busRoute = 'Required';
+    if (!form.transportFeeStatus) e.transportFeeStatus = 'Required';
     return e;
   };
 
@@ -138,7 +186,8 @@ const StudentManagement = () => {
         await updateStudent(editTarget, payload);
         setStudents(prev => prev.map(s => s.id === editTarget ? { ...s, ...payload } : s));
       } else {
-        const newId = generateRegNo(form.dept, students.length);
+        const deptStudentsCount = students.filter(s => s.dept === form.dept).length;
+        const newId = generateRegNo(form.dept, deptStudentsCount);
         const payload = { id: newId, ...form, cgpa: +form.cgpa, attendance: +form.attendance };
         const res = await createStudent(payload);
         setStudents(prev => [res.data, ...prev]);
@@ -343,6 +392,7 @@ const StudentManagement = () => {
             <form onSubmit={handleSubmit} noValidate>
               <div className="modal-body">
                 <div className="form-grid">
+                  <div className="sm-form-section-title">Personal Information</div>
 
                   {/* Student Name */}
                   <div className={`fld ${formErrors.name ? 'fld-error' : ''}`}>
@@ -376,6 +426,20 @@ const StudentManagement = () => {
                     <input type="tel" placeholder="10-digit mobile number" maxLength={10} {...field('phone')} />
                   </div>
 
+                  {/* Aadhar/ID Number */}
+                  <div className="fld">
+                    <label>Aadhar/ID Number</label>
+                    <input type="text" placeholder="ID Number" {...field('idNumber')} />
+                  </div>
+
+                  {/* Date of Birth */}
+                  <div className="fld">
+                    <label>Date of Birth</label>
+                    <input type="date" {...field('dob')} />
+                  </div>
+
+                  <div className="sm-form-section-title">Academic Information</div>
+
                   {/* Department */}
                   <div className={`fld ${formErrors.dept ? 'fld-error' : ''}`}>
                     <label><BookOpen size={13}/> Department <span className="req">*</span></label>
@@ -388,7 +452,7 @@ const StudentManagement = () => {
 
                   {/* Semester */}
                   <div className={`fld ${formErrors.sem ? 'fld-error' : ''}`}>
-                    <label>Semester <span className="req">*</span></label>
+                    <label>Semester</label>
                     <select {...field('sem')}>
                       <option value="">— Select Semester —</option>
                       {SEMESTERS.map(s => <option key={s}>{s}</option>)}
@@ -398,14 +462,14 @@ const StudentManagement = () => {
 
                   {/* CGPA */}
                   <div className={`fld ${formErrors.cgpa ? 'fld-error' : ''}`}>
-                    <label><Hash size={13}/> CGPA <span className="req">*</span></label>
+                    <label><Hash size={13}/> CGPA</label>
                     <input type="number" step="0.1" min="0" max="10" placeholder="0.0 – 10.0" {...field('cgpa')} />
                     {formErrors.cgpa && <span className="err-msg">{formErrors.cgpa}</span>}
                   </div>
 
                   {/* Attendance */}
                   <div className={`fld ${formErrors.attendance ? 'fld-error' : ''}`}>
-                    <label><Percent size={13}/> Attendance % <span className="req">*</span></label>
+                    <label><Percent size={13}/> Attendance %</label>
                     <input type="number" min="0" max="100" placeholder="0 – 100" {...field('attendance')} />
                     {formErrors.attendance && <span className="err-msg">{formErrors.attendance}</span>}
                   </div>
@@ -416,14 +480,35 @@ const StudentManagement = () => {
                     <select {...field('feeStatus')}>
                       {FEE_STATUS.map(f => <option key={f}>{f}</option>)}
                     </select>
-                    <div className="fee-preview">
-                      <span className={`fee-badge ${getFeeClass(form.feeStatus)}`}>{form.feeStatus || 'Pending'}</span>
-                    </div>
+                  </div>
+
+                  {/* Academic Year */}
+                  <div className="fld">
+                    <label>Academic Year</label>
+                    <input type="text" placeholder="e.g. 2023-2027" {...field('academicYear')} />
+                  </div>
+
+                  {/* Section */}
+                  <div className="fld">
+                    <label>Section</label>
+                    <input type="text" placeholder="e.g. A" {...field('section')} />
+                  </div>
+
+                  {/* Batch */}
+                  <div className="fld">
+                    <label>Batch</label>
+                    <input type="text" placeholder="Auto-generated" {...field('batch')} readOnly style={{ opacity: 0.8, cursor: 'not-allowed', backgroundColor: 'var(--bg-secondary)' }} />
+                  </div>
+
+                  {/* Admission Date */}
+                  <div className="fld">
+                    <label>Admission Date</label>
+                    <input type="date" {...field('admissionDate')} />
                   </div>
 
                   {/* Status */}
                   <div className="fld">
-                    <label>Student Status</label>
+                    <label><CheckCircle size={13}/> Student Status</label>
                     <div className="status-toggle-row">
                       {['Active', 'Inactive'].map(opt => (
                         <label key={opt} className={`status-toggle-opt ${form.status === opt ? 'selected' : ''}`}>
@@ -433,6 +518,48 @@ const StudentManagement = () => {
                         </label>
                       ))}
                     </div>
+                  </div>
+
+                  <div className="sm-form-section-title">Transport & Hostel</div>
+
+                  {/* Hostel Required */}
+                  <div className={`fld ${formErrors.hostelRequired ? 'fld-error' : ''}`}>
+                    <label>Hostel Required? <span className="req">*</span></label>
+                    <select {...field('hostelRequired')}>
+                      <option value="">— Select —</option>
+                      <option value="No">No</option>
+                      <option value="Yes">Yes</option>
+                    </select>
+                    {formErrors.hostelRequired && <span className="err-msg">{formErrors.hostelRequired}</span>}
+                  </div>
+
+                  {/* Room Number */}
+                  <div className="fld">
+                    <label>Room Number</label>
+                    <input type="text" placeholder="e.g. A-102" disabled={form.hostelRequired === 'No' || !form.hostelRequired} {...field('roomNumber')} />
+                  </div>
+
+                  {/* Bus Route */}
+                  <div className={`fld ${formErrors.busRoute ? 'fld-error' : ''}`}>
+                    <label>Bus Route <span className="req">*</span></label>
+                    <input type="text" placeholder="e.g. Route 4 (or N/A)" {...field('busRoute')} />
+                    {formErrors.busRoute && <span className="err-msg">{formErrors.busRoute}</span>}
+                  </div>
+
+                  {/* Pickup Point */}
+                  <div className="fld">
+                    <label>Pickup Point</label>
+                    <input type="text" placeholder="e.g. City Center" {...field('pickupPoint')} />
+                  </div>
+
+                  {/* Transport Fee Status */}
+                  <div className={`fld ${formErrors.transportFeeStatus ? 'fld-error' : ''}`}>
+                    <label>Transport Fee Status <span className="req">*</span></label>
+                    <select {...field('transportFeeStatus')}>
+                      <option value="">— Select —</option>
+                      {FEE_STATUS.map(f => <option key={f}>{f}</option>)}
+                    </select>
+                    {formErrors.transportFeeStatus && <span className="err-msg">{formErrors.transportFeeStatus}</span>}
                   </div>
 
                 </div>
