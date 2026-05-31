@@ -7,9 +7,29 @@ const router = express.Router();
 // Compute net salary before inserting/updating
 const processPayload = (data) => {
   const basic = Number(data.basicPay) || 0;
-  const allowances = Number(data.allowances) || 0;
+  const hra = Number(data.hra) || 0;
+  const medical = Number(data.medicalAllowance) || 0;
+  const special = Number(data.specialAllowance) || 0;
+  
+  const working = Number(data.workingDays) || 30;
+  const present = Number(data.presentDays) || 30;
   const deductions = Number(data.deductions) || 0;
-  return { ...data, basicPay: basic, allowances, deductions, netSalary: (basic + allowances) - deductions };
+  
+  const attendanceDeduction = working > 0 ? (basic * ((working - present) / working)) : 0;
+  const totalEarnings = basic + hra + medical + special;
+  const totalDeductions = deductions + attendanceDeduction;
+  
+  return { 
+    ...data, 
+    basicPay: basic, 
+    hra, 
+    medicalAllowance: medical, 
+    specialAllowance: special,
+    workingDays: working, 
+    presentDays: present, 
+    deductions, 
+    netSalary: Math.round(totalEarnings - totalDeductions) 
+  };
 };
 
 // GET all salaries — Admin, Principal, Accounts

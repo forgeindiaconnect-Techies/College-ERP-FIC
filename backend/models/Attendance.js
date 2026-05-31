@@ -7,7 +7,8 @@ const attendanceSchema = new mongoose.Schema({
   department: { type: String },
   semester: { type: String },
   date: { type: Date, required: true },
-  status: { type: String, enum: ['Present', 'Absent', 'Leave'], required: true },
+  period: { type: String },
+  status: { type: String, enum: ['Present', 'Absent', 'On Leave', 'Medical Leave'], required: true },
   subject: { type: String },
   markedBy: { type: String }
 }, { timestamps: true });

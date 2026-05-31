@@ -43,7 +43,7 @@ export default function PrincipalDashboard() {
   // DB API integrations
   useEffect(() => {
     Promise.all([
-      getAnalytics().then(res => res.data).catch(() => analyticsData),
+      getAnalytics().then(res => res.data).catch(() => ({})),
       getApprovals().then(res => res.data).catch(() => []),
       getStudents().then(res => res.data).catch(() => []),
       getStaff().then(res => res.data).catch(() => []),
@@ -79,10 +79,10 @@ export default function PrincipalDashboard() {
         placementRate: 0
       });
 
-      if (analyticsData.fees) {
-        const total = (analyticsData.fees.totalCollected || 0) + (analyticsData.fees.totalPending || 0);
+      if (analyticsRes.fees) {
+        const total = (analyticsRes.fees.totalCollected || 0) + (analyticsRes.fees.totalPending || 0);
         if (total > 0) {
-          const colPct = Math.round((analyticsData.fees.totalCollected / total) * 100);
+          const colPct = Math.round((analyticsRes.fees.totalCollected / total) * 100);
           const penPct = 100 - colPct;
           setFeeCollection([
             { name: 'Collected', value: colPct, color: '#10b981' },
@@ -102,8 +102,8 @@ export default function PrincipalDashboard() {
         setAiInsights(mapped);
       }
 
-      if (Array.isArray(analyticsData.departments) && analyticsData.departments.length > 0) {
-        const mappedDepts = analyticsData.departments.map(d => ({
+      if (Array.isArray(analyticsRes.departments) && analyticsRes.departments.length > 0) {
+        const mappedDepts = analyticsRes.departments.map(d => ({
           name: d.name === 'Computer Science' ? 'CSE' :
                 d.name === 'Electronics & Comm.' ? 'ECE' :
                 d.name === 'Electrical & Electronics' ? 'EEE' :

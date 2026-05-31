@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, FileText, CheckCircle2, AlertCircle, User, X, Printer, UserPlus } from 'lucide-react';
-import { getStudents, createFee, createStudent } from '../../api/index';
+import { getStudents, createFee, createStudent, getAllFees } from '../../api/index';
 
 const printReceipt = (student, receiptNo, feeType, semester, amount, paymentMode) => {
   const win = window.open('', '_blank', 'width=700,height=650');
@@ -68,8 +68,32 @@ const FeesCollection = () => {
   const load = async () => {
     try {
       setLoadingStudents(true);
-      const res = await getStudents();
-      if (res?.data) setAllStudents(res.data);
+      const [studRes, feeRes] = await Promise.all([
+        getStudents().catch(() => ({ data: [] })),
+        getAllFees().catch(() => ({ data: [] }))
+      ]);
+      const backendStudents = studRes.data || [];
+      const fees = feeRes.data || [];
+
+      // Combine with localStorage mock students to ensure full visibility
+      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const combinedStudents = [...backendStudents];
+      erpStudents.forEach(ls => {
+        if (!combinedStudents.find(cs => cs.id === ls.id || cs._id === ls.id)) {
+          combinedStudents.push(ls);
+        }
+      });
+
+      const updatedStudents = combinedStudents.map(s => {
+        const studentFees = fees.filter(f => f.studentId === (s.id || s._id));
+        let status = s.feeStatus || 'Pending';
+        if (studentFees.length > 0) {
+          const isPaid = studentFees.some(f => f.status === 'Paid');
+          status = isPaid ? 'Paid' : 'Pending';
+        }
+        return { ...s, feeStatus: status };
+      });
+      setAllStudents(updatedStudents);
     } catch (err) {
       console.error('Failed to load students:', err);
     } finally {
@@ -90,9 +114,9 @@ const FeesCollection = () => {
     if (!val.trim()) { setSuggestions([]); return; }
     const q = val.trim().toLowerCase();
     const matches = allStudents.filter(s =>
-      s.id.toLowerCase().includes(q) ||
-      s.name.toLowerCase().includes(q) ||
-      (s.dept || '').toLowerCase().includes(q)
+      (s.id || s._id || '').toLowerCase().includes(q) ||
+      (s.name || '').toLowerCase().includes(q) ||
+      (s.dept || s.department || '').toLowerCase().includes(q)
     ).slice(0, 6);
     setSuggestions(matches);
   };
@@ -205,6 +229,8 @@ const FeesCollection = () => {
         setSuccessMsg(`✅ Payment recorded! Receipt No: ${receiptNo}`);
         // Auto-print
         printReceipt(selectedStudent, receiptNo, feeType, semester, amount, paymentMode);
+        // Refresh the student list so their feeStatus updates immediately
+        await load();
         setTimeout(() => {
           setSuccessMsg('');
           setLastReceipt(null);

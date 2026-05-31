@@ -115,19 +115,17 @@ const Dashboard = () => {
   }, [navigate]);
 
   // Aggregate Metrics Calculations
-  const totalStudentsCount = students.length > 0 ? students.length : 10;
-  const totalStaffCount = staff.length > 0 ? staff.length : 9;
-  const totalDeptsCount = depts.length > 0 ? depts.length : 6;
-  const totalHodsCount = hods.length > 0 ? hods.length : 6;
-  const totalParentsCount = students.length > 0 ? students.length : 10;
-  const totalSubjectsCount = 24;
+  const totalStudentsCount = students.length;
+  const totalStaffCount = staff.length;
+  const totalDeptsCount = depts.length;
+  const totalHodsCount = hods.length;
+  const totalParentsCount = students.length;
+  const totalSubjectsCount = 0; // Fetch if API available, default to 0
   const leaveRequestsCount = leavesCount;
-  const activeExamsCount = 4;
+  const activeExamsCount = 0;
 
   // Calculate dynamic fees collected
-  const totalFeesCollected = fees.length > 0 
-    ? fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0)
-    : 185000;
+  const totalFeesCollected = fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0);
   
   const feesDisplay = totalFeesCollected >= 100000 
     ? `₹${(totalFeesCollected / 100000).toFixed(1)}L`
@@ -136,20 +134,20 @@ const Dashboard = () => {
   // Calculate dynamic average attendance
   const averageAttendance = students.length > 0
     ? (students.reduce((sum, s) => sum + (s.attendance || 0), 0) / students.length).toFixed(1)
-    : '94.6';
+    : '0';
 
   // Calculate dynamic department scores for chart
   const deptScores = depts.length > 0 ? depts.map(d => {
     const deptStudents = students.filter(s => s.dept === d.name);
     const avgScore = deptStudents.length > 0 
       ? (deptStudents.reduce((sum, s) => sum + (s.cgpa || 0), 0) / deptStudents.length) * 10
-      : 82;
+      : 0;
     const deptStaff = staff.filter(s => s.dept === d.name);
     const totalLoad = deptStaff.reduce((sum, s) => sum + (s.workload || 0), 0);
     return {
       name: d.code || d.name.slice(0, 4).toUpperCase(),
       score: parseFloat(avgScore.toFixed(1)),
-      staff: totalLoad || 12
+      staff: totalLoad || 0
     };
   }) : [];
 

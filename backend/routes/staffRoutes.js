@@ -20,6 +20,16 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), re
   }
 });
 
+// Get staff for payroll (Basic Info)
+router.get('/payroll-list', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+  try {
+    const staff = await Staff.find({});
+    res.json(staff);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // Create new staff
 router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_staff'), async (req, res) => {
   const staffData = req.body;

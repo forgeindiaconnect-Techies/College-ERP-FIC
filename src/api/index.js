@@ -99,6 +99,7 @@ export const deleteStudent = (id) => api.delete(`/students/${id}`);
 
 // Staff Endpoints
 export const getStaff = () => api.get('/staff');
+export const getStaffForPayroll = () => api.get('/staff/payroll-list');
 export const createStaff = (staffData) => api.post('/staff', staffData);
 export const updateStaff = (id, staffData) => api.put(`/staff/${id}`, staffData);
 export const approveStaff = (id) => api.put(`/staff/${id}/approve`);
@@ -141,6 +142,12 @@ export const getSalariesByStaff = (staffId) => api.get(`/salaries/staff/${staffI
 export const createSalary = (data) => api.post('/salaries', data);
 export const updateSalary = (id, data) => api.put(`/salaries/${id}`, data);
 export const deleteSalary = (id) => api.delete(`/salaries/${id}`);
+
+// Expenses
+export const getExpenses = () => api.get('/expenses');
+export const createExpense = (data) => api.post('/expenses', data);
+export const updateExpense = (id, data) => api.put(`/expenses/${id}`, data);
+export const deleteExpense = (id) => api.delete(`/expenses/${id}`);
 
 // Reports Endpoints
 export const getAttendanceReport = () => api.get('/reports/attendance');

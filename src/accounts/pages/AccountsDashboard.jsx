@@ -10,7 +10,7 @@ import {
   ArrowUpRight, ArrowDownRight, Activity, Users,
   PieChart as PieChartIcon, RefreshCw
 } from 'lucide-react';
-import { getAllFees, getSalaries } from '../../api/index';
+import { getAllFees, getSalaries, getExpenses } from '../../api/index';
 import './AccountsDashboard.css';
 
 const AccountsDashboard = () => {
@@ -19,15 +19,23 @@ const AccountsDashboard = () => {
   const [accountsSession, setAccountsSession] = useState(null);
   const [fees, setFees] = useState([]);
   const [salaries, setSalaries] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [students, setStudents] = useState([]);
 
   const fetchAll = async () => {
     try {
-      const [feesRes, salaryRes] = await Promise.all([
+      const [feesRes, salaryRes, expRes, studRes] = await Promise.all([
         getAllFees().catch(() => ({ data: [] })),
         getSalaries().catch(() => ({ data: [] })),
+        getExpenses().catch(() => ({ data: [] })),
+        fetch('/api/students', {
+          headers: { Authorization: `Bearer ${accountsSession?.token || sessionStorage.getItem('accounts_token')}` }
+        }).then(res => res.json()).catch(() => [])
       ]);
       setFees(feesRes.data || []);
       setSalaries(salaryRes.data || []);
+      setExpenses(expRes.data || []);
+      setStudents(Array.isArray(studRes) ? studRes : (studRes.data || []));
     } catch (err) {
       console.error('Dashboard data fetch failed:', err);
     }
@@ -57,9 +65,23 @@ const AccountsDashboard = () => {
     const today = new Date();
     return d.toDateString() === today.toDateString();
   }).reduce((s, f) => s + (f.paidAmount || 0), 0);
-  const totalExpenses = salaries.reduce((s, r) => s + (r.netSalary || 0), 0);
+  const salaryTotal = salaries.reduce((s, r) => s + (r.netSalary || 0), 0);
+  const otherExpensesTotal = expenses.filter(e => e.status === 'Paid').reduce((s, e) => s + (e.amount || 0), 0);
+  const totalExpenses = salaryTotal + otherExpensesTotal;
   const salaryPaid    = salaries.filter(r => r.status === 'Disbursed').reduce((s, r) => s + (r.netSalary || 0), 0);
-  const defaulters    = fees.filter(f => f.status === 'Pending').length;
+  
+  // Real defaulters: students who do not have a 'Paid' fee record
+  let realDefaulters = 0;
+  if (students.length > 0) {
+    students.forEach(s => {
+      const sFees = fees.filter(f => f.studentId === s.id || f.studentId === s._id);
+      const isPaid = sFees.some(f => f.status === 'Paid');
+      if (!isPaid) realDefaulters++;
+    });
+  } else {
+    realDefaulters = fees.filter(f => f.status === 'Pending').length;
+  }
+  const defaulters = realDefaulters;
 
   // ── Chart Data ─────────────────────────────────────────────────────────
   // Monthly collection by createdAt month
@@ -112,16 +134,16 @@ const AccountsDashboard = () => {
     );
   }
 
-  // Expense distribution (salary)
-  const expenseDeptMap = {};
-  salaries.forEach(s => {
-    const d = (s.department || 'Other').split(' ')[0];
-    expenseDeptMap[d] = (expenseDeptMap[d] || 0) + (s.netSalary || 0);
+  // Expense distribution (salary + other expenses)
+  const expenseDeptMap = { 'Salaries': salaryTotal };
+  expenses.filter(e => e.status === 'Paid').forEach(e => {
+    const cat = e.category || 'Other';
+    expenseDeptMap[cat] = (expenseDeptMap[cat] || 0) + (e.amount || 0);
   });
   const EXP_COLORS = ['#ef4444','#f97316','#eab308','#8b5cf6','#06b6d4'];
   const expenseData = Object.entries(expenseDeptMap).map(([name, value], i) => ({
     name, value, color: EXP_COLORS[i % EXP_COLORS.length]
-  }));
+  })).filter(x => x.value > 0);
   if (expenseData.length === 0) {
     expenseData.push(
       { name: 'Salaries', value: 1200000, color: '#ef4444' },

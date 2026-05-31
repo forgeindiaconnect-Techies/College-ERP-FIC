@@ -36,6 +36,7 @@ import examRoutes from './routes/examRoutes.js';
 import salaryRoutes from './routes/salaryRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
+import expenseRoutes from './routes/expenseRoutes.js';
 
 // Import Models for auto-seeding
 import Approval from './models/Approval.js';
@@ -610,6 +611,7 @@ app.use('/api/results', marksRoutes);
 app.use('/api/salaries', salaryRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/assignments', assignmentRoutes);
+app.use('/api/expenses', expenseRoutes);
 
 app.get('/', (req, res) => {
   res.send('College ERP API is running...');

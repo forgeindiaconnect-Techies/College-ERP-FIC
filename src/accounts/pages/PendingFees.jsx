@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { AlertTriangle, Filter, Mail, CheckCircle2 } from 'lucide-react';
-import { getAllFees, updateFee } from '../../api/index';
+import { getAllFees, updateFee, getStudents, createFee } from '../../api/index';
 
 const PendingFees = () => {
   const [loading, setLoading] = useState(true);
@@ -10,10 +10,52 @@ const PendingFees = () => {
 
   const loadPendingFees = async () => {
     try {
-      const res = await getAllFees();
-      if (res?.data) {
-        setRawFees(res.data);
-      }
+      const [feeRes, studRes] = await Promise.all([
+        getAllFees().catch(() => ({ data: [] })),
+        getStudents().catch(() => ({ data: [] }))
+      ]);
+      
+      const fees = feeRes.data || [];
+      const backendStudents = studRes.data || [];
+      
+      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const students = [...backendStudents];
+      erpStudents.forEach(ls => {
+        if (!students.find(cs => cs.id === ls.id || cs._id === ls.id)) {
+          students.push(ls);
+        }
+      });
+      
+      // Merge logic: find students who are pending
+      const mergedPending = [];
+      
+      students.forEach(s => {
+        const studentFees = fees.filter(f => f.studentId === s.id || f.studentId === s._id);
+        const isPaid = studentFees.some(f => f.status === 'Paid');
+        
+        if (!isPaid) {
+          // Find if there's a partial/pending explicit invoice
+          const existingPending = studentFees.find(f => f.status !== 'Paid');
+          if (existingPending) {
+            mergedPending.push({ ...existingPending, studentName: s.name, department: s.dept || s.department, semester: s.sem || s.semester });
+          } else {
+            // No fee record exists, but student is unpaid by default
+            mergedPending.push({
+              _isVirtual: true, // Tag as virtual invoice
+              studentId: s.id || s._id,
+              studentName: s.name,
+              department: s.dept || s.department,
+              semester: s.sem || s.semester,
+              totalFees: 45000,
+              pendingAmount: 45000,
+              status: 'Pending',
+              createdAt: s.createdAt || new Date().toISOString()
+            });
+          }
+        }
+      });
+
+      setRawFees(mergedPending);
     } catch (err) {
       console.error('Failed to load pending fees:', err);
     } finally {
@@ -27,18 +69,41 @@ const PendingFees = () => {
 
   const handleCollect = async (fee) => {
     try {
-      const payload = {
-        ...fee,
-        paidAmount: fee.totalFees,
-        pendingAmount: 0,
-        status: 'Paid',
-        paymentDate: new Date()
-      };
-      const res = await updateFee(fee._id, payload);
-      if (res?.status === 200) {
-        setSuccessMsg(`Successfully cleared dues of ₹${(fee.pendingAmount ?? fee.totalFees).toLocaleString()} for ${fee.studentName || fee.studentId}!`);
-        await loadPendingFees();
-        setTimeout(() => setSuccessMsg(''), 2000);
+      if (fee._isVirtual) {
+        // If it's a virtual invoice, create a new Paid fee record
+        const payload = {
+          studentId: fee.studentId,
+          studentName: fee.studentName,
+          department: fee.department,
+          semester: fee.semester,
+          feeType: 'Tuition Fee',
+          totalFees: fee.totalFees,
+          paidAmount: fee.totalFees,
+          paymentMode: 'Cash',
+          status: 'Paid',
+          paymentDate: new Date()
+        };
+        const res = await createFee(payload);
+        if (res?.status === 201) {
+          setSuccessMsg(`Successfully cleared dues of ₹${fee.totalFees.toLocaleString()} for ${fee.studentName}!`);
+          await loadPendingFees();
+          setTimeout(() => setSuccessMsg(''), 2000);
+        }
+      } else {
+        // Update existing invoice
+        const payload = {
+          ...fee,
+          paidAmount: fee.totalFees,
+          pendingAmount: 0,
+          status: 'Paid',
+          paymentDate: new Date()
+        };
+        const res = await updateFee(fee._id, payload);
+        if (res?.status === 200) {
+          setSuccessMsg(`Successfully cleared dues of ₹${(fee.pendingAmount ?? fee.totalFees).toLocaleString()} for ${fee.studentName || fee.studentId}!`);
+          await loadPendingFees();
+          setTimeout(() => setSuccessMsg(''), 2000);
+        }
       }
     } catch (err) {
       console.error('Failed to clear pending fee:', err);

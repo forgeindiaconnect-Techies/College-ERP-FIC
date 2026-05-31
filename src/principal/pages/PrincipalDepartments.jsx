@@ -53,8 +53,8 @@ export default function PrincipalDepartments() {
           newData[code] = {
             code: code,
             name: d.name,
-            hodName: d.headOfDepartment || 'TBD',
-            studentsCount: 0,
+            hodName: d.headOfDepartment || d.hod || 'TBD',
+            studentsCount: d.students || 0,
             attendanceRate: 0,
             passRate: 0,
             staffCount: 0,

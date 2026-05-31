@@ -4,6 +4,7 @@ import {
   DollarSign, Briefcase, Award, AlertTriangle, ShieldAlert,
   Search, Filter, Download, Printer, Send, Eye, CheckCircle, RefreshCw
 } from 'lucide-react';
+import { getExpenses } from '../../api/index';
 import '../../pages/Dashboard.css';
 
 // --- DATA SETS ---
@@ -27,6 +28,14 @@ const recruitersList = [
 ];
 
 export default function PrincipalReports() {
+  const [dbExpenses, setDbExpenses] = React.useState([]);
+  
+  React.useEffect(() => {
+    getExpenses().then(res => {
+      if (res.data) setDbExpenses(res.data);
+    }).catch(err => console.error(err));
+  }, []);
+
   // Temporary filter states (for dropdown selection)
   const [tempReportType, setTempReportType] = useState('College Overview'); 
   const [tempDept, setTempDept] = useState('All');
@@ -250,6 +259,7 @@ export default function PrincipalReports() {
               <option value="Staff Performance">Staff Performance Report</option>
               <option value="Student Performance">Student Performance Report</option>
               <option value="Fees Summary">Fees Summary Report</option>
+              <option value="Expenses Summary">Expenses Summary Report</option>
               <option value="Placement">Placement Report</option>
             </select>
           </div>
@@ -592,6 +602,69 @@ export default function PrincipalReports() {
                           <td><span style={{ backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b', padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 600 }}>Active Collection</span></td>
                         </tr>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
+
+            {/* Expenses Summary Report */}
+            {reportType === 'Expenses Summary' && (
+              <div className="animate-fade-in">
+                <p style={{ fontSize: '0.88rem', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                  Live breakdown of institutional operational costs logged by the Accounts department.
+                </p>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                  <div style={{ background: 'var(--bg-primary)', padding: '1.2rem', borderRadius: '12px', borderLeft: '3px solid var(--success)' }}>
+                    <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '0.2rem' }}>Total Paid Expenses</h4>
+                    <p style={{ fontSize: '1.4rem', color: 'var(--success)', fontWeight: 800 }}>
+                      ₹{dbExpenses.filter(e => e.status === 'Paid').reduce((acc, curr) => acc + (curr.amount || 0), 0).toLocaleString()}
+                    </p>
+                  </div>
+                  <div style={{ background: 'var(--bg-primary)', padding: '1.2rem', borderRadius: '12px', borderLeft: '3px solid var(--warning)' }}>
+                    <h4 style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 700, marginBottom: '0.2rem' }}>Pending / Approvals Due</h4>
+                    <p style={{ fontSize: '1.4rem', color: 'var(--warning)', fontWeight: 800 }}>
+                      ₹{dbExpenses.filter(e => e.status !== 'Paid').reduce((acc, curr) => acc + (curr.amount || 0), 0).toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="table-container">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>Expense Title</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {dbExpenses.length === 0 ? (
+                        <tr><td colSpan="5" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No expenses recorded in the database yet.</td></tr>
+                      ) : (
+                        dbExpenses.map((exp, idx) => (
+                          <tr key={idx}>
+                            <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{exp.title}</td>
+                            <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{exp.category}</td>
+                            <td style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+                              {exp.date ? new Date(exp.date).toLocaleDateString() : 'N/A'}
+                            </td>
+                            <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>₹{(exp.amount || 0).toLocaleString()}</td>
+                            <td>
+                              <span style={{ 
+                                backgroundColor: exp.status === 'Paid' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', 
+                                color: exp.status === 'Paid' ? '#10b981' : '#f59e0b', 
+                                padding: '3px 8px', borderRadius: '6px', fontSize: '0.72rem', fontWeight: 600 
+                              }}>
+                                {exp.status || 'Pending'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

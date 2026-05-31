@@ -51,28 +51,45 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
   try {
     console.log(`[POST /attendance] Received payload:`, JSON.stringify(req.body));
     if (Array.isArray(req.body)) {
-      // Bulk upsert to prevent duplicates for same student, date, and subject
-      const bulkOps = req.body.map(record => {
-        // Strip time to ensure consistent exact matching
+      if (req.body.length === 0) return res.status(400).json({ message: 'Empty payload' });
+
+      // Group records by subject and period to check for duplicates
+      const sessionsToCheck = [];
+      req.body.forEach(record => {
         const exactDate = new Date(record.date);
         exactDate.setUTCHours(0, 0, 0, 0);
         record.date = exactDate; // ensure the record saves with this normalized date
         
-        return {
-          updateOne: {
-            filter: {
-              studentId: record.studentId,
-              subject: record.subject,
-              date: exactDate
-            },
-            update: { $set: record },
-            upsert: true
-          }
-        };
+        const key = `${record.subject}_${record.period || 'All'}_${exactDate.getTime()}`;
+        if (!sessionsToCheck.find(s => s.key === key)) {
+          sessionsToCheck.push({
+            key,
+            subject: record.subject,
+            period: record.period,
+            date: exactDate,
+            department: record.department,
+            semester: record.semester
+          });
+        }
       });
-      
-      const result = await Attendance.bulkWrite(bulkOps);
-      console.log(`=> Upserted ${result.upsertedCount} new, modified ${result.modifiedCount} records`);
+
+      // Check if any of these sessions already exist
+      for (const session of sessionsToCheck) {
+        const existingCount = await Attendance.countDocuments({
+          subject: session.subject,
+          period: session.period,
+          date: session.date,
+          department: session.department,
+          semester: session.semester
+        });
+        if (existingCount > 0) {
+          return res.status(409).json({ message: `Attendance already submitted for ${session.subject} on this date and period.` });
+        }
+      }
+
+      // If no duplicates, insert all
+      const result = await Attendance.insertMany(req.body);
+      console.log(`=> Inserted ${result.length} records`);
       
       // Update student percentages (get unique student IDs)
       const studentIds = [...new Set(req.body.map(r => r.studentId))];
@@ -83,6 +100,21 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
       return res.status(201).json({ message: 'Attendance records saved successfully' });
     } else {
       // Single insert
+      const exactDate = new Date(req.body.date);
+      exactDate.setUTCHours(0, 0, 0, 0);
+      req.body.date = exactDate;
+
+      const existingCount = await Attendance.countDocuments({
+        studentId: req.body.studentId,
+        subject: req.body.subject,
+        period: req.body.period,
+        date: exactDate
+      });
+
+      if (existingCount > 0) {
+        return res.status(409).json({ message: `Attendance already submitted for this subject and date.` });
+      }
+
       const attendance = new Attendance(req.body);
       const newRecord = await attendance.save();
       await updateStudentAttendancePercentage(newRecord.studentId);

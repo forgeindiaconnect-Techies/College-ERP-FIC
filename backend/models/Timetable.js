@@ -1,5 +1,15 @@
 import mongoose from 'mongoose';
 
+const slotSchema = new mongoose.Schema({
+  id: { type: String, required: true },
+  dept: { type: String, required: true },
+  day: { type: String, required: true },
+  period: { type: Number, required: true },
+  subject: { type: String, required: true },
+  faculty: { type: String, required: true },
+  classroom: { type: String, required: true }
+}, { _id: false });
+
 const timetableSchema = new mongoose.Schema({
   department: {
     type: String,
@@ -11,17 +21,11 @@ const timetableSchema = new mongoose.Schema({
   },
   times: {
     type: [String],
-    default: ['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00']
+    default: ['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00', '03:00 - 04:00']
   },
   schedule: {
-    type: [[String]], // 2D array: schedule[dayIndex][timeIndex]
-    default: () => [
-      ['', '', '', 'Lunch', ''],
-      ['', '', '', 'Lunch', ''],
-      ['', '', '', 'Lunch', ''],
-      ['', '', '', 'Lunch', ''],
-      ['', '', '', 'Lunch', '']
-    ]
+    type: [slotSchema], // Array of slot objects
+    default: []
   }
 }, { timestamps: true });
 

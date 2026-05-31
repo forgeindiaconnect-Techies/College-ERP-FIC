@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Calendar, MapPin, User, BookOpen, Clock, X, CheckCircle } from 'lucide-react';
-import { getStaff } from '../../api/index';
+import { getStaff, getTimetable, publishTimetable } from '../../api/index';
 import './HodTimetable.css';
 
 // Try to grab logged in HOD session
@@ -57,15 +57,20 @@ const HodTimetable = () => {
   const [saved, setSaved] = useState(false);
 
   useEffect(() => {
-    // Load timetable
-    const savedTimetable = localStorage.getItem('erp_timetable');
-    let initialTimetable = MOCK_TIMETABLE_FALLBACK;
-    if (savedTimetable) {
-      initialTimetable = JSON.parse(savedTimetable);
-    } else {
-      localStorage.setItem('erp_timetable', JSON.stringify(MOCK_TIMETABLE_FALLBACK));
-    }
-    setSchedule(initialTimetable);
+    const loadTimetable = async () => {
+      try {
+        const res = await getTimetable(HOD_DEPT, 'Sem 6'); // Default to Sem 6 for demo, in real life you'd have a semester dropdown
+        if (res.data && res.data.schedule && res.data.schedule.length > 0) {
+          setSchedule(res.data.schedule);
+        } else {
+          setSchedule([]);
+        }
+      } catch (err) {
+        console.error('Failed to load timetable', err);
+        setSchedule([]);
+      }
+    };
+    loadTimetable();
 
     // Load subjects for the select dropdown
     const savedSubjects = localStorage.getItem('erp_subjects');
@@ -97,11 +102,20 @@ const HodTimetable = () => {
     };
     
     fetchFaculty();
-  }, []);
+  }, [HOD_DEPT]);
 
-  const saveTimetable = (newSchedule) => {
+  const saveTimetable = async (newSchedule) => {
     setSchedule(newSchedule);
-    localStorage.setItem('erp_timetable', JSON.stringify(newSchedule));
+    try {
+      await publishTimetable({
+        department: HOD_DEPT,
+        semester: 'Sem 6',
+        schedule: newSchedule
+      });
+    } catch (err) {
+      console.error('Failed to publish timetable', err);
+      alert('Failed to save timetable to database');
+    }
   };
 
   /* Filter schedule to HOD's department */

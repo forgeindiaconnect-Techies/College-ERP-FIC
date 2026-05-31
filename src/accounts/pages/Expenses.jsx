@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Search, DollarSign, Calendar, Tag, FileText, CheckCircle, Clock } from 'lucide-react';
 
+import { getExpenses, createExpense, updateExpense } from '../../api/index';
+
 const DEFAULT_EXPENSES = [
   { id: 'EXP-001', title: 'Monthly Electricity Bill', category: 'Utilities', amount: 45000, date: '2026-05-01', status: 'Paid' },
   { id: 'EXP-002', title: 'Lab Computers Maintenance', category: 'Maintenance', amount: 120000, date: '2026-05-10', status: 'Paid' },
@@ -15,6 +17,7 @@ const Expenses = () => {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('All Categories');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   
   const [form, setForm] = useState({
     title: '',
@@ -24,41 +27,86 @@ const Expenses = () => {
     status: 'Pending'
   });
 
-  useEffect(() => {
-    const saved = localStorage.getItem('erp_expenses');
-    if (saved) {
-      setExpenses(JSON.parse(saved));
-    } else {
-      setExpenses(DEFAULT_EXPENSES);
-      localStorage.setItem('erp_expenses', JSON.stringify(DEFAULT_EXPENSES));
+  const loadExpenses = async () => {
+    try {
+      setLoading(true);
+      const res = await getExpenses();
+      if (res.data && res.data.length > 0) {
+        setExpenses(res.data);
+      } else {
+        // Fallback to mock data if DB is empty
+        const saved = localStorage.getItem('erp_expenses');
+        if (saved) {
+          setExpenses(JSON.parse(saved));
+        } else {
+          setExpenses(DEFAULT_EXPENSES);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load expenses:', err);
+      // Fallback
+      const saved = localStorage.getItem('erp_expenses');
+      setExpenses(saved ? JSON.parse(saved) : DEFAULT_EXPENSES);
+    } finally {
+      setLoading(false);
     }
-  }, []);
-
-  const saveExpenses = (newList) => {
-    setExpenses(newList);
-    localStorage.setItem('erp_expenses', JSON.stringify(newList));
   };
 
-  const handleSubmit = (e) => {
+  useEffect(() => {
+    loadExpenses();
+  }, []);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newExpense = {
-      id: `EXP-${String(expenses.length + 1).padStart(3, '0')}`,
       ...form,
       amount: Number(form.amount)
     };
-    saveExpenses([newExpense, ...expenses]);
+    
+    try {
+      const res = await createExpense(newExpense);
+      if (res.status === 201) {
+        setExpenses([res.data, ...expenses]);
+      }
+    } catch (err) {
+      console.error('Failed to create expense:', err);
+      // Fallback for mock
+      const mockExp = { id: `EXP-${String(expenses.length + 1).padStart(3, '0')}`, ...newExpense };
+      const updated = [mockExp, ...expenses];
+      setExpenses(updated);
+      localStorage.setItem('erp_expenses', JSON.stringify(updated));
+    }
+    
     setIsModalOpen(false);
     setForm({ title: '', category: 'Utilities', amount: '', date: new Date().toISOString().split('T')[0], status: 'Pending' });
   };
 
-  const toggleStatus = (id) => {
-    const updated = expenses.map(exp => {
-      if (exp.id === id) {
-        return { ...exp, status: exp.status === 'Paid' ? 'Pending' : 'Paid' };
+  const toggleStatus = async (id) => {
+    const target = expenses.find(e => e.id === id);
+    if (!target) return;
+    const newStatus = target.status === 'Paid' ? 'Pending' : 'Paid';
+    
+    try {
+      // First try to update in DB
+      if (target._id) {
+        await updateExpense(id, { status: newStatus });
       }
-      return exp;
-    });
-    saveExpenses(updated);
+      
+      const updated = expenses.map(exp => {
+        if (exp.id === id) {
+          return { ...exp, status: newStatus };
+        }
+        return exp;
+      });
+      setExpenses(updated);
+      
+      // Update local storage just in case it was a mock item
+      if (!target._id) {
+        localStorage.setItem('erp_expenses', JSON.stringify(updated));
+      }
+    } catch (err) {
+      console.error('Failed to update status:', err);
+    }
   };
 
   const filteredExpenses = expenses.filter(exp => {

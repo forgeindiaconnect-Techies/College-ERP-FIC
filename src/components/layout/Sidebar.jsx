@@ -51,6 +51,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Exams', path: '/admin/exams', icon: <FileSpreadsheet size={18} /> },
     { name: 'Results', path: '/admin/marks', icon: <BookOpenCheck size={18} /> },
     { name: 'Fees', path: '/admin/fees', icon: <Wallet size={18} /> },
+    { name: 'Payroll', path: '/admin/payroll', icon: <FileSpreadsheet size={18} /> },
     { name: 'Library', path: '/admin/library', icon: <Library size={18} /> },
     { name: 'Transport', path: '/admin/transport', icon: <Bus size={18} /> },
     { name: 'Hostel', path: '/admin/hostel', icon: <Building size={18} /> },
@@ -58,9 +59,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Leave Requests', path: '/admin/leaves', icon: <Inbox size={18} /> },
     { name: 'Reports', path: '/admin/reports', icon: <FileBarChart size={18} /> },
     { name: 'Analytics', path: '/admin/analytics', icon: <PieChart size={18} /> },
-    { name: 'AI Assistant', path: '/admin/ai', icon: <Bot size={18} className="text-purple-500" /> },
     { name: 'Announcements', path: '/admin/announcements', icon: <Megaphone size={18} /> },
-    { name: 'Permissions', path: '/admin/permissions', icon: <ShieldCheck size={18} /> },
     { name: 'Activity Logs', path: '/admin/activity-logs', icon: <Activity size={18} /> },
     { name: 'Settings & Security', path: '/admin/settings', icon: <ShieldCheck size={18} className="text-red-500" /> },
   ];

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, MapPin, ArrowLeft } from 'lucide-react';
+import { getTimetable } from '../../api/index';
 import './StudentTimetable.css';
 
 // Fallbacks
@@ -41,12 +42,24 @@ const StudentTimetable = () => {
       return;
     }
 
-    // 2. Load timetable database
-    const savedTimetable = localStorage.getItem('erp_timetable');
-    if (savedTimetable) {
-      setTimetable(JSON.parse(savedTimetable));
-    }
-    setLoading(false);
+    // 2. Load timetable from DB
+    const loadTimetable = async () => {
+      try {
+        const res = await getTimetable(activeStud.dept, activeStud.sem);
+        if (res.data && res.data.schedule) {
+          setTimetable(res.data.schedule);
+        } else {
+          setTimetable([]);
+        }
+      } catch (err) {
+        console.error('Failed to load timetable from backend', err);
+        setTimetable([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadTimetable();
   }, [navigate]);
 
   const studentDept = studentSession.dept;

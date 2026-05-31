@@ -18,14 +18,8 @@ router.get('/', protect, async (req, res) => {
       return res.json({
         department: dept,
         semester: sem,
-        times: ['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00'],
-        schedule: [
-          ['', '', '', 'Lunch', ''],
-          ['', '', '', 'Lunch', ''],
-          ['', '', '', 'Lunch', ''],
-          ['', '', '', 'Lunch', ''],
-          ['', '', '', 'Lunch', '']
-        ]
+        times: ['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00', '03:00 - 04:00'],
+        schedule: []
       });
     }
     res.json(timetable);

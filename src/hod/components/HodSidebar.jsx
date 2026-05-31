@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck,
   BookOpenCheck, Calendar, BookOpen, FileText, ClipboardList, Inbox,
-  LogOut, ChevronRight, Megaphone, Settings
+  LogOut, ChevronRight, Megaphone, Settings, IndianRupee
 } from 'lucide-react';
 import './HodSidebar.css';
 
@@ -56,6 +56,7 @@ const HodSidebar = () => {
     { name: 'Exams', path: '/hod/exams', icon: <FileText size={20} /> },
     { name: 'Results', path: '/hod/marks', icon: <BookOpenCheck size={20} /> },
     { name: 'Reports', path: '/hod/reports', icon: <ClipboardList size={20} /> },
+    { name: 'Payroll', path: '/hod/payroll', icon: <IndianRupee size={20} /> },
     { name: 'Announcements', path: '/hod/announcements', icon: <Megaphone size={20} /> },
     { name: 'Settings', path: '/hod/settings', icon: <Settings size={20} /> },
   ];

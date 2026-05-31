@@ -56,9 +56,9 @@ export const authorize = (...roles) => {
 };
 
 export const departmentScope = (req, res, next) => {
-  // Admin and Principal have unrestricted global access, never filter query
+  // Admin, Principal, and Accounts have unrestricted global access, never filter query
   const role = req.user?.role?.toLowerCase() || '';
-  if (req.user && role !== 'admin' && role !== 'principal' && role !== 'sub admin') {
+  if (req.user && role !== 'admin' && role !== 'principal' && role !== 'sub admin' && role !== 'accounts') {
     // If it's a mock token, bypass strict backend department scoping 
     // since the frontend handles scoping and the mock department is hardcoded
     if (req.user._id !== 'mock-id' && req.user.department) {

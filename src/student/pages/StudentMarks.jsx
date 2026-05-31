@@ -186,6 +186,8 @@ const StudentMarks = () => {
                 <th>Course Name</th>
                 <th>Internals (50)</th>
                 <th>Externals (100)</th>
+                <th>Total (150)</th>
+                <th>Percentage</th>
                 <th>GPA</th>
                 <th>Grade</th>
                 <th>Result</th>
@@ -194,17 +196,22 @@ const StudentMarks = () => {
             <tbody>
               {coursesList.length === 0 ? (
                 <tr>
-                  <td colSpan="7" className="text-center text-muted" style={{ padding: '3rem' }}>
+                  <td colSpan="9" className="text-center text-muted" style={{ padding: '3rem' }}>
                     No semester marks have been published yet.
                   </td>
                 </tr>
               ) : (
-                coursesList.map((course, idx) => (
+                coursesList.map((course, idx) => {
+                  const total = (course.internal || 0) + (course.external || 0);
+                  const percentage = Math.round((total / 150) * 100);
+                  return (
                   <tr key={idx}>
                     <td><span className="register-no-badge">{course.code}</span></td>
                     <td><span className="font-semibold">{course.name}</span></td>
                     <td>{course.internal}</td>
                     <td>{course.external}</td>
+                    <td className="font-semibold text-[var(--text-main)]">{total}</td>
+                    <td>{percentage}%</td>
                     <td className="font-semibold" style={{ color: getCgpaColor(course.gpa) }}>{course.gpa}</td>
                     <td>
                       <span
@@ -224,7 +231,7 @@ const StudentMarks = () => {
                       </span>
                     </td>
                   </tr>
-                ))
+                )})
               )}
             </tbody>
           </table>
