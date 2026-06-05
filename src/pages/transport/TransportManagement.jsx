@@ -1,12 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
-  Bus, MapPin, Users, Navigation, AlertTriangle, 
-  CheckCircle, Plus, Search, Map, Download, 
-  CreditCard, UserCheck, Settings, ArrowRight, ShieldCheck, FileText
+  Bus, Users, Navigation, Plus, Search, Download, 
+  CreditCard, UserCheck, ShieldCheck, FileText
 } from 'lucide-react';
 import { getTransportRoutes, getTransportDrivers, getTransportStudents } from '../../api/index';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
 import './TransportManagement.css';
@@ -25,15 +24,9 @@ const TransportManagement = () => {
   const [routes, setRoutes] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [students, setStudents] = useState([]);
-  const [loading, setLoading] = useState(true);
-
-  React.useEffect(() => {
-    fetchTransportData();
-  }, []);
 
   const fetchTransportData = async () => {
     try {
-      setLoading(true);
       const [routesRes, driversRes, studentsRes] = await Promise.all([
         getTransportRoutes(),
         getTransportDrivers(),
@@ -44,10 +37,14 @@ const TransportManagement = () => {
       setStudents(studentsRes.data);
     } catch (error) {
       console.error('Failed to load transport data', error);
-    } finally {
-      setLoading(false);
     }
   };
+
+  React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    fetchTransportData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const TABS = [
     { name: 'Dashboard', icon: <BarChart size={18} /> },
