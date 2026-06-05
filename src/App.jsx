@@ -56,6 +56,7 @@ import LibraryManagement from './pages/library/LibraryManagement';
 import TransportManagement from './pages/transport/TransportManagement';
 import HostelManagement from './pages/hostel/HostelManagement';
 import PlacementManagement from './pages/placement/PlacementManagement';
+import AdminAssignments from './pages/assignments/AdminAssignments';
 import AIAssistant from './pages/ai/AIAssistant';
 import SettingsSecurity from './pages/settings/SettingsSecurity';
 import LandingPage from './pages/landing/LandingPage';
@@ -100,6 +101,8 @@ import HodAnnouncements from './hod/pages/HodAnnouncements';
 import HodSettings from './hod/pages/HodSettings';
 import HodAssignments from './hod/pages/HodAssignments';
 import HodPayroll from './hod/pages/HodPayroll';
+import HodPlacements from './hod/pages/HodPlacements';
+import HodLibrary from './hod/pages/HodLibrary';
 
 // Staff Layout & Pages
 import StaffLayout from './staff/components/StaffLayout';
@@ -114,6 +117,8 @@ import StaffLeaves from './staff/pages/StaffLeaves';
 import StaffAnnouncements from './staff/pages/StaffAnnouncements';
 import StaffExams from './staff/pages/StaffExams';
 import StaffPayroll from './staff/pages/StaffPayroll';
+import StaffPlacements from './staff/pages/StaffPlacements';
+import StaffLibrary from './staff/pages/StaffLibrary';
 
 // Student Layout & Pages
 import StudentLayout from './student/components/StudentLayout';
@@ -128,6 +133,9 @@ import StudentLeaves from './student/pages/StudentLeaves';
 import StudentSettings from './student/pages/StudentSettings';
 import StudentAnnouncements from './student/pages/StudentAnnouncements';
 import StudentExams from './student/pages/StudentExams';
+import StudentHostel from './student/pages/StudentHostel';
+import StudentPlacements from './student/pages/StudentPlacements';
+import StudentLibrary from './student/pages/StudentLibrary';
 
 // Parent Layout & Pages
 import ParentLayout from './parent/components/ParentLayout';
@@ -277,6 +285,7 @@ function App() {
               <Route path="transport"     element={<TransportManagement />} />
               <Route path="hostel"        element={<HostelManagement />} />
               <Route path="placement"     element={<PlacementManagement />} />
+              <Route path="assignments"   element={<AdminAssignments />} />
               <Route path="ai"            element={<AIAssistant />} />
               <Route path="announcements" element={<AnnouncementsManagement />} />
               <Route path="permissions"   element={<RolePermissions />} />
@@ -325,6 +334,8 @@ function App() {
               <Route path="leaves"        element={<HodLeaves />} />
               <Route path="announcements" element={<HodAnnouncements />} />
               <Route path="payroll"       element={<HodPayroll />} />
+              <Route path="placement"     element={<HodPlacements />} />
+              <Route path="library"       element={<HodLibrary />} />
               <Route path="settings"      element={<HodSettings />} />
             </Route>
 
@@ -341,6 +352,8 @@ function App() {
               <Route path="announcements" element={<StaffAnnouncements />} />
               <Route path="exams"      element={<StaffExams />} />
               <Route path="payroll"    element={<StaffPayroll />} />
+              <Route path="placement"  element={<StaffPlacements />} />
+              <Route path="library"    element={<StaffLibrary />} />
             </Route>
 
             {/* ── STUDENT ROUTES ── */}
@@ -356,6 +369,9 @@ function App() {
               <Route path="settings"    element={<StudentSettings />} />
               <Route path="announcements" element={<StudentAnnouncements />} />
               <Route path="exams"       element={<StudentExams />} />
+              <Route path="hostel"      element={<StudentHostel />} />
+              <Route path="placement"   element={<StudentPlacements />} />
+              <Route path="library"     element={<StudentLibrary />} />
             </Route>
 
             {/* ── PARENT ROUTES ── */}

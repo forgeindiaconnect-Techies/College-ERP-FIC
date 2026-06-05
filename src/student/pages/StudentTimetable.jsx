@@ -9,7 +9,7 @@ const DEFAULT_STUDENT = {
   id: 'CS2022001',
   name: 'John Doe',
   dept: 'Computer Science',
-  sem: 'Sem 6',
+  sem: 'Semester 6',
   email: 'john@college.edu'
 };
 
@@ -29,6 +29,7 @@ const StudentTimetable = () => {
   const [loading, setLoading] = useState(true);
   const [studentSession, setStudentSession] = useState(DEFAULT_STUDENT);
   const [timetable, setTimetable] = useState([]);
+  const [selectedSem, setSelectedSem] = useState('');
 
   useEffect(() => {
     // 1. Session check
@@ -44,10 +45,53 @@ const StudentTimetable = () => {
 
     // 2. Load timetable from DB
     const loadTimetable = async () => {
+      setLoading(true);
       try {
-        const res = await getTimetable(activeStud.dept, activeStud.sem);
+        // If dropdown hasn't been used yet, fallback to student's enrolled semester
+        let currentSem = selectedSem || activeStud.sem || 'Sem 3'; // Provide strong fallback
+        
+        // Normalize 'Sem 3' to 'Semester 3' to match Timetable DB format
+        let querySem = currentSem;
+        if (querySem && querySem.startsWith('Sem ')) {
+          querySem = querySem.replace('Sem ', 'Semester ');
+        }
+        
+        if (selectedSem !== querySem) {
+          setSelectedSem(querySem); // initialize dropdown properly
+        }
+
+        console.log('[StudentTimetable Debug] Fetching for:', { department: activeStud.dept, semester: querySem });
+        const res = await getTimetable(activeStud.dept || 'Cyber Security', querySem);
+
+        console.log('[StudentTimetable Debug] API Response:', res.data);
+
         if (res.data && res.data.schedule) {
-          setTimetable(res.data.schedule);
+          const scheduleData = res.data.schedule;
+          const formatted = [];
+          
+          if (scheduleData.length > 0 && Array.isArray(scheduleData[0])) {
+            // It's a 2D array (saved by Admin)
+            const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+            scheduleData.forEach((daySchedule, dIdx) => {
+              daySchedule.forEach((subject, tIdx) => {
+                if (subject) {
+                  formatted.push({
+                    dept: activeStud.dept,
+                    day: days[dIdx],
+                    period: tIdx + 1,
+                    subject: subject,
+                    faculty: 'Assigned Faculty',
+                    classroom: 'Main Block'
+                  });
+                }
+              });
+            });
+          } else {
+            // It's a flat object array (saved by HOD)
+            scheduleData.forEach(slot => formatted.push(slot));
+          }
+          
+          setTimetable(formatted);
         } else {
           setTimetable([]);
         }
@@ -60,12 +104,13 @@ const StudentTimetable = () => {
     };
     
     loadTimetable();
-  }, [navigate]);
+  }, [navigate, selectedSem]);
 
   const studentDept = studentSession.dept;
 
-  // Filter timetable slots matching student's department
-  const classSchedule = timetable.filter(s => s.dept === studentDept);
+  // The timetable from the backend is already filtered by the API for the requested department.
+  // We can use it directly.
+  const classSchedule = timetable;
 
   // Helper to find slot for a specific day and period
   const getSlot = (day, period) => {
@@ -73,16 +118,14 @@ const StudentTimetable = () => {
   };
 
   return (
-    <div className="student-timetable-page animate-fade-in">
-      <div className="page-header-student">
-        <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/student/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
-          <div>
-            <h1>Class Timetable</h1>
-            <p className="text-muted">View your weekly lecture schedule, timings, and assigned lecture halls.</p>
-          </div>
+    <div className="timetable-page-s animate-fade-in">
+      <div className="page-header-s">
+        <button className="back-btn-s" onClick={() => navigate('/student')}>
+          <ArrowLeft size={18} /> Back
+        </button>
+        <div>
+          <h1>Class Timetable</h1>
+          <p className="text-muted">View your weekly lecture schedule, timings, and assigned lecture halls.</p>
         </div>
       </div>
 
@@ -93,7 +136,22 @@ const StudentTimetable = () => {
             <span className="legend-item-s"><span className="legend-dot-s active"></span> Scheduled Lecture</span>
             <span className="legend-item-s"><span className="legend-dot-s empty"></span> Free Slot</span>
           </div>
-          <span className="class-group-label">{studentSession.dept} · {studentSession.sem}</span>
+          <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+            <select 
+              value={selectedSem} 
+              onChange={e => setSelectedSem(e.target.value)}
+              className="bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] rounded px-3 py-1 outline-none text-sm"
+              style={{ padding: '0.4rem 0.8rem', borderRadius: '6px' }}
+            >
+              <option value="Semester 1">Semester 1</option>
+              <option value="Semester 2">Semester 2</option>
+              <option value="Semester 3">Semester 3</option>
+              <option value="Semester 4">Semester 4</option>
+              <option value="Semester 5">Semester 5</option>
+              <option value="Semester 6">Semester 6</option>
+            </select>
+            <span className="class-group-label" style={{ margin: 0 }}>{studentDept}</span>
+          </div>
         </div>
 
         <div className="timetable-grid-scroll-s">

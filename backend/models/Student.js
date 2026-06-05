@@ -19,8 +19,17 @@ const studentSchema = new mongoose.Schema({
   admissionDate: { type: String },
   hostelRequired: { type: String },
   roomNumber: { type: String },
+  hostelFeeAmount: { type: Number },
+  hostelFeeStatus: { type: String },
+  hostelName: { type: String },
+  blockWing: { type: String },
+  bedNumber: { type: String },
+  wardenName: { type: String },
+  wardenContact: { type: String },
+  transportRequired: { type: String },
   busRoute: { type: String },
   pickupPoint: { type: String },
+  transportFeeAmount: { type: Number },
   transportFeeStatus: { type: String }
 }, { timestamps: true });
 

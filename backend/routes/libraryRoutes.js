@@ -1,147 +1,272 @@
 import express from 'express';
 import Book from '../models/Book.js';
-import IssueRecord from '../models/IssueRecord.js';
+import LibraryTransaction from '../models/LibraryTransaction.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
-// @desc    Get all books
-// @route   GET /api/library/books
-// @access  Private
+// Get all books with optional department filtering
 router.get('/books', protect, async (req, res) => {
   try {
-    const books = await Book.find({});
+    const { department } = req.query;
+    const query = department ? { department } : {};
+    const books = await Book.find(query);
     res.json(books);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error fetching books' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-// @desc    Add a new book
-// @route   POST /api/library/books
-// @access  Private (Admin/SubAdmin)
-router.post('/books', protect, authorize('Admin', 'Sub Admin'), async (req, res) => {
+// Create a new book (Admin/HOD/Librarian)
+router.post('/books', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Principal'), async (req, res) => {
   try {
-    const { isbn, title, author, category, copies, shelfLocation } = req.body;
+    const { bookId, title, author, category, department, isbn, totalCopies, rackNumber } = req.body;
     
-    const count = await Book.countDocuments();
-    const bookId = `B${String(count + 1).padStart(3, '0')}`;
+    // Check if bookId already exists
+    const existingBook = await Book.findOne({ bookId });
+    if (existingBook) {
+      return res.status(400).json({ message: 'Book ID already exists' });
+    }
 
     const newBook = new Book({
-      bookId,
-      isbn,
-      title,
-      author,
-      category,
-      copies,
-      available: copies,
-      shelfLocation
+      bookId, title, author, category, department, isbn, 
+      totalCopies, availableCopies: totalCopies, rackNumber
     });
-
-    const createdBook = await newBook.save();
-    res.status(201).json(createdBook);
-  } catch (error) {
-    res.status(400).json({ message: error.message || 'Invalid book data' });
+    const savedBook = await newBook.save();
+    res.status(201).json(savedBook);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-// @desc    Get all issue records
-// @route   GET /api/library/issues
-// @access  Private
-router.get('/issues', protect, async (req, res) => {
+// Request a book
+router.post('/request', protect, async (req, res) => {
   try {
-    const issues = await IssueRecord.find({});
+    const { bookId } = req.body; // ObjectId of the Book
+    const userId = req.user.referenceId || req.user.id || req.user._id;
+    const userType = req.user.role === 'Staff' ? 'Staff' : 'Student';
+
+    const book = await Book.findById(bookId);
+    if (!book) {
+      return res.status(404).json({ message: 'Book not found' });
+    }
+
+    if (book.availableCopies <= 0) {
+      return res.status(400).json({ message: 'No copies available currently' });
+    }
+
+    // Check if user already requested or issued this book
+    const existingTransaction = await LibraryTransaction.findOne({
+      bookId,
+      userId,
+      status: { $in: ['Pending', 'Issued', 'Overdue'] }
+    });
+
+    if (existingTransaction) {
+      return res.status(400).json({ message: 'You already have an active request or issue for this book' });
+    }
+
+    const transaction = new LibraryTransaction({
+      bookId,
+      userId,
+      userType,
+      status: 'Pending'
+    });
+
+    const savedTransaction = await transaction.save();
+    
+    // Decrement available copies
+    book.availableCopies -= 1;
+    if (book.availableCopies === 0) {
+      book.status = 'Out of Stock';
+    }
+    await book.save();
+
+    res.status(201).json(savedTransaction);
+  } catch (err) {
+    console.error('Error in /request:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get user's active/past transactions
+router.get('/my-transactions', protect, async (req, res) => {
+  try {
+    const userId = req.user.referenceId || req.user.id || req.user._id;
+    
+    const transactions = await LibraryTransaction.find({ userId })
+      .populate('bookId')
+      .sort({ createdAt: -1 });
+
+    const today = new Date();
+    const updatedTransactions = transactions.map(issue => {
+      if (issue.status === 'Issued' && issue.dueDate && today > issue.dueDate) {
+        issue.status = 'Overdue';
+        const diffTime = Math.abs(today - issue.dueDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+        issue.fineAmount = diffDays * 10; // ₹10 per day fine
+      }
+      return issue;
+    });
+      
+    res.json(updatedTransactions);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Issue a book (Admin/HOD/Staff)
+router.put('/transactions/:id/issue', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), async (req, res) => {
+  try {
+    const transaction = await LibraryTransaction.findById(req.params.id);
+    if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
+    if (transaction.status !== 'Pending') return res.status(400).json({ message: 'Only pending requests can be issued' });
+
+    const issueDate = new Date();
+    // Default: Staff gets 30 days, Student gets 14 days
+    const daysToAdd = transaction.userType === 'Staff' ? 30 : 14;
+    const dueDate = new Date();
+    dueDate.setDate(issueDate.getDate() + daysToAdd);
+
+    transaction.status = 'Issued';
+    transaction.issueDate = issueDate;
+    transaction.dueDate = dueDate;
+
+    const savedTransaction = await transaction.save();
+    res.json(savedTransaction);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Return a book (Admin/HOD/Staff)
+router.put('/transactions/:id/return', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), async (req, res) => {
+  try {
+    const transaction = await LibraryTransaction.findById(req.params.id).populate('bookId');
+    if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
+    if (transaction.status !== 'Issued' && transaction.status !== 'Overdue') {
+      return res.status(400).json({ message: 'Book is not currently issued' });
+    }
+
+    const returnDate = new Date();
+    let fineAmount = 0;
+    
+    // Calculate fine if overdue (e.g., 10 rupees per day)
+    if (returnDate > transaction.dueDate) {
+      const diffTime = Math.abs(returnDate - transaction.dueDate);
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+      fineAmount = diffDays * 10;
+    }
+
+    transaction.status = 'Returned';
+    transaction.returnDate = returnDate;
+    transaction.fineAmount = fineAmount;
+
+    await transaction.save();
+
+    // Increment available copies
+    const book = await Book.findById(transaction.bookId._id);
+    if (book) {
+      book.availableCopies += 1;
+      book.status = 'Available';
+      await book.save();
+    }
+
+    res.json(transaction);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Reject a book request (Admin/HOD/Staff)
+router.put('/transactions/:id/reject', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), async (req, res) => {
+  try {
+    const transaction = await LibraryTransaction.findById(req.params.id);
+    if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
+    if (transaction.status !== 'Pending') return res.status(400).json({ message: 'Only pending requests can be rejected' });
+
+    transaction.status = 'Rejected';
+    await transaction.save();
+
+    // Increment available copies
+    const book = await Book.findById(transaction.bookId);
+    if (book) {
+      book.availableCopies += 1;
+      book.status = 'Available';
+      await book.save();
+    }
+
+    res.json(transaction);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get all transactions for Admin/HOD
+router.get('/transactions', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), async (req, res) => {
+  try {
+    const { department } = req.query;
+    
+    // We can populate bookId and optionally filter by department
+    let query = {};
+    const transactions = await LibraryTransaction.find(query)
+      .populate('bookId')
+      .sort({ createdAt: -1 });
+
+    // Filter by department if passed or if user is HOD/Staff
+    let filterDept = department;
+    if (req.user.role === 'HOD' || req.user.role === 'Staff') {
+      filterDept = req.user.department;
+    }
+    const filtered = filterDept ? transactions.filter(t => t.bookId?.department === filterDept) : transactions;
     
     // Auto-calculate fine before sending if Overdue
     const today = new Date();
-    const updatedIssues = issues.map(issue => {
+    const updatedTransactions = filtered.map(issue => {
       if (issue.status === 'Issued' && today > issue.dueDate) {
         issue.status = 'Overdue';
         const diffTime = Math.abs(today - issue.dueDate);
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        issue.fine = diffDays * 10; // ₹10 per day fine
+        issue.fineAmount = diffDays * 10; // ₹10 per day fine
       }
       return issue;
     });
 
-    res.json(updatedIssues);
-  } catch (error) {
-    res.status(500).json({ message: 'Server Error fetching issues' });
+    res.json(updatedTransactions);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
-// @desc    Issue a book
-// @route   POST /api/library/issues
-// @access  Private (Admin/SubAdmin)
-router.post('/issues', protect, authorize('Admin', 'Sub Admin'), async (req, res) => {
+// Manual Issue by Admin
+router.post('/transactions/manual-issue', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Librarian'), async (req, res) => {
   try {
-    const { bookId, studentName, regNo, dueDate } = req.body;
+    const { bookId, userId, userType, dueDate } = req.body;
     
-    const book = await Book.findOne({ bookId });
-    if (!book || book.available <= 0) {
-      return res.status(400).json({ message: 'Book is not available' });
-    }
+    const book = await Book.findById(bookId);
+    if (!book) return res.status(404).json({ message: 'Book not found' });
+    if (book.availableCopies <= 0) return res.status(400).json({ message: 'No copies available' });
 
-    const count = await IssueRecord.countDocuments();
-    const issueId = `IS-${100 + count + 1}`;
-
-    const newIssue = new IssueRecord({
-      issueId,
-      bookId: book._id,
-      bookTitle: book.title,
-      studentName,
-      regNo,
+    const transaction = new LibraryTransaction({
+      bookId,
+      userId, // e.g. student regNo or staff ID
+      userType, // 'Student' or 'Staff'
+      status: 'Issued',
       issueDate: new Date(),
-      dueDate: new Date(dueDate),
-      status: 'Issued'
+      dueDate: new Date(dueDate)
     });
 
-    const createdIssue = await newIssue.save();
-    
-    // Update book availability
-    book.available -= 1;
+    await transaction.save();
+
+    book.availableCopies -= 1;
+    if (book.availableCopies === 0) {
+      book.status = 'Out of Stock';
+    }
     await book.save();
 
-    res.status(201).json(createdIssue);
-  } catch (error) {
-    res.status(400).json({ message: error.message || 'Invalid issue data' });
-  }
-});
-
-// @desc    Return a book
-// @route   PUT /api/library/issues/:id/return
-// @access  Private (Admin/SubAdmin)
-router.put('/issues/:id/return', protect, authorize('Admin', 'Sub Admin'), async (req, res) => {
-  try {
-    const issue = await IssueRecord.findOne({ issueId: req.params.id });
-    if (!issue) {
-      return res.status(404).json({ message: 'Issue record not found' });
-    }
-
-    issue.status = 'Returned';
-    issue.returnDate = new Date();
-    issue.conditionOnReturn = req.body.condition || 'Good';
-    
-    // Calculate final fine
-    const today = new Date();
-    if (today > issue.dueDate) {
-      const diffTime = Math.abs(today - issue.dueDate);
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-      issue.fine = diffDays * 10;
-    }
-
-    const updatedIssue = await issue.save();
-
-    // Increment book availability
-    const book = await Book.findById(issue.bookId);
-    if (book) {
-      book.available += 1;
-      await book.save();
-    }
-
-    res.json(updatedIssue);
-  } catch (error) {
-    res.status(400).json({ message: error.message || 'Error returning book' });
+    res.status(201).json(transaction);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Award, TrendingUp, Calendar, Eye, MessageSquare, FileText, X, CheckCircle, AlertCircle, Search, Star } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis } from 'recharts';
-import { getStaff, getDepartments } from '../../api/index';
+import { getStaff, getDepartments, createNotification } from '../../api/index';
 import '../../pages/Dashboard.css';
 
 const hods = [];
@@ -71,6 +71,27 @@ export default function PrincipalHodManagement() {
   }, []);
 
   const showToast = (msg) => { setToast(msg); setTimeout(() => setToast(''), 3500); };
+
+  const handleScheduleMeeting = async (e) => {
+    e.preventDefault();
+    try {
+      await createNotification({
+        email: selected.email,
+        targetName: selected.name,
+        targetRoles: [], // Send only to this specific HOD
+        title: 'Meeting Scheduled by Principal',
+        message: `A meeting has been scheduled for you on ${meeting.date} at ${meeting.time}. Agenda: ${meeting.agenda}`,
+        type: 'Warning'
+      });
+      showToast(`Meeting scheduled with ${selected.name}`);
+      setMeeting({ date: '', time: '', agenda: '' });
+      setModal(null);
+    } catch (error) {
+      console.error('Error scheduling meeting:', error);
+      showToast(`Failed to schedule meeting with ${selected.name}`);
+    }
+  };
+
   const filtered = hodList.filter(h => h.name.toLowerCase().includes(search.toLowerCase()) || h.dept.toLowerCase().includes(search.toLowerCase()));
 
   const radarData = selected ? radarKeys.map(k => ({
@@ -258,7 +279,7 @@ export default function PrincipalHodManagement() {
               <h3 style={{ fontWeight: 800, color: 'var(--text-main)' }}>📅 Schedule Meeting — {selected.name}</h3>
               <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
-            <form onSubmit={e => { e.preventDefault(); showToast(`Meeting scheduled with ${selected.name}`); setModal(null); }} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <form onSubmit={handleScheduleMeeting} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: 4 }}>Date</label>

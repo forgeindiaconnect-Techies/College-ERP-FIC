@@ -11,6 +11,7 @@ import {
   PieChart as PieChartIcon, RefreshCw
 } from 'lucide-react';
 import { getAllFees, getSalaries, getExpenses } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './AccountsDashboard.css';
 
 const AccountsDashboard = () => {
@@ -40,6 +41,8 @@ const AccountsDashboard = () => {
       console.error('Dashboard data fetch failed:', err);
     }
   };
+
+  useRealtimeSync(fetchAll, ['fees', 'students', 'salaries', 'expenses']);
 
   useEffect(() => {
     const session = sessionStorage.getItem('accounts_session');

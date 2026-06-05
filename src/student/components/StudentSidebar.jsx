@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarCheck, BookOpenCheck,
   ClipboardList, CreditCard, Calendar, FileText,
-  Settings, LogOut, ChevronRight, Megaphone, GraduationCap
+  Settings, LogOut, ChevronRight, Megaphone, GraduationCap, Home, Briefcase, Library
 } from 'lucide-react';
 import './StudentSidebar.css';
 
@@ -28,8 +28,11 @@ const StudentSidebar = () => {
     { name: 'Semester Marks', path: '/student/marks', icon: <BookOpenCheck size={19} /> },
     { name: 'Assignments', path: '/student/assignments', icon: <ClipboardList size={19} /> },
     { name: 'Exams', path: '/student/exams', icon: <GraduationCap size={19} /> },
+    { name: 'Placements', path: '/student/placement', icon: <Briefcase size={19} /> },
     { name: 'Fee Status', path: '/student/fees', icon: <CreditCard size={19} /> },
+    { name: 'Hostel Allocation', path: '/student/hostel', icon: <Home size={19} /> },
     { name: 'Timetable', path: '/student/timetable', icon: <Calendar size={19} /> },
+    { name: 'Library', path: '/student/library', icon: <Library size={19} /> },
     { name: 'Leave Requests', path: '/student/leaves', icon: <FileText size={19} /> },
     { name: 'Profile Settings', path: '/student/settings', icon: <Settings size={19} /> },
   ];

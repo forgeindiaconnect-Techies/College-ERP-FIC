@@ -46,16 +46,23 @@ const StudentMarks = () => {
 
     const loadMarksData = async () => {
       try {
+        let finalId = activeStud.referenceId || activeStud.id || activeStud._id;
+        if (finalId && finalId.length === 24 && /^[0-9a-fA-F]{24}$/.test(finalId)) {
+          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const match = erpStudents.find(s => s._id === finalId || s.id === finalId);
+          if (match && match.id) finalId = match.id;
+        }
+
         const [studRes, marksRes] = await Promise.all([
-          getStudentById(activeStud.id || activeStud.referenceId || activeStud._id).catch(() => null),
-          getMarksByStudent(activeStud.id || activeStud.referenceId || activeStud._id).catch(() => null)
+          getStudentById(finalId).catch(() => null),
+          getMarksByStudent(finalId).catch(() => null)
         ]);
 
         if (studRes?.data) {
           setStudentDetails(studRes.data);
         } else {
           setStudentDetails({
-            id: activeStud.id,
+            id: activeStud.referenceId || activeStud.id,
             name: activeStud.name,
             dept: activeStud.dept,
             sem: activeStud.sem,
@@ -65,41 +72,36 @@ const StudentMarks = () => {
         }
 
         if (marksRes?.data && marksRes.data.length > 0) {
-          const records = marksRes.data;
-          const totalArrears = records.filter(r => r.arrearStatus === 'Arrear').length;
-          const totalGPA = records.reduce((acc, r) => acc + (r.gpa || 0), 0);
-          const currentGpa = records.length > 0 ? Number((totalGPA / records.length).toFixed(2)) : 0;
+          const allRecords = marksRes.data;
+          
+          // Determine available semesters
+          const availableSems = [...new Set(allRecords.map(r => r.semester))].sort();
+          
+          // Determine which semester to show
+          let targetSemToView = activeStud.sem || studentDetails?.sem || 'Sem 3';
+          if (!availableSems.includes(targetSemToView)) {
+             targetSemToView = availableSems[availableSems.length - 1]; // latest available
+          }
 
+          // Save full record list for easy toggling later without fetching
           setMarksRecord({
-            id: activeStud.id,
+            id: activeStud.referenceId || activeStud.id,
             name: activeStud.name,
             dept: activeStud.dept,
-            sem: activeStud.sem,
-            internal: records[0]?.internalMarks || 0,
-            external: records[0]?.semesterMarks || 0,
-            arrears: totalArrears,
-            gpa: currentGpa,
-            courses: records.map((r, idx) => ({
-              code: r._id ? `CS30${idx + 1}` : 'CS301',
-              name: r.subject,
-              internal: r.internalMarks,
-              external: r.semesterMarks,
-              gpa: r.gpa || 0,
-              status: r.arrearStatus || 'Pass'
-            }))
+            activeSemView: targetSemToView,
+            availableSemesters: availableSems,
+            allRawRecords: allRecords,
+            // the rest will be computed during render dynamically
           });
         } else {
-          // No marks available - do not use dummy fallbacks
+          // No marks available
           setMarksRecord({
-            id: activeStud.id,
+            id: activeStud.referenceId || activeStud.id,
             name: activeStud.name,
             dept: activeStud.dept,
-            sem: activeStud.sem,
-            internal: 0,
-            external: 0,
-            arrears: 0,
-            gpa: 0,
-            courses: []
+            activeSemView: activeStud.sem || 'Sem 1',
+            availableSemesters: [],
+            allRawRecords: []
           });
         }
       } catch (err) {
@@ -124,9 +126,21 @@ const StudentMarks = () => {
   const getGrade = (cgpa) => cgpa >= 9.0 ? 'O' : cgpa >= 8.0 ? 'A+' : cgpa >= 7.0 ? 'A' : 'B';
   const getCgpaColor = (c) => c >= 8.5 ? 'var(--success)' : c >= 7.0 ? 'var(--warning)' : 'var(--danger)';
 
-  // Calculate dynamic GPA values
-  const currentGpa = marksRecord.gpa;
-  const coursesList = marksRecord.courses;
+  // Compute dynamic stats based on selected semester
+  const selectedSemRecords = marksRecord.allRawRecords.filter(r => r.semester === marksRecord.activeSemView);
+  
+  const totalArrears = selectedSemRecords.filter(r => r.arrearStatus === 'Arrear').length;
+  const totalGPA = selectedSemRecords.reduce((acc, r) => acc + (r.gpa || 0), 0);
+  const currentGpa = selectedSemRecords.length > 0 ? Number((totalGPA / selectedSemRecords.length).toFixed(2)) : 0;
+
+  const coursesList = selectedSemRecords.map((r, idx) => ({
+    code: r._id ? `CS30${idx + 1}` : 'CS301',
+    name: r.subject,
+    internal: r.internalMarks,
+    external: r.semesterMarks,
+    gpa: r.gpa || 0,
+    status: r.arrearStatus || 'Pass'
+  }));
 
   return (
     <div className="student-marks-page animate-fade-in">
@@ -164,8 +178,8 @@ const StudentMarks = () => {
           <AlertTriangle size={24} className="icon-s red" />
           <div>
             <p className="summary-label">ACTIVE ARREARS</p>
-            <h2 className={marksRecord.arrears > 0 ? 'text-danger' : 'text-success'}>
-              {marksRecord.arrears}
+            <h2 className={totalArrears > 0 ? 'text-danger' : 'text-success'}>
+              {totalArrears}
             </h2>
           </div>
         </div>
@@ -173,9 +187,21 @@ const StudentMarks = () => {
 
       {/* Grade Table */}
       <div className="glass-card table-section-card-s">
-        <div className="table-header-row-s">
+        <div className="table-header-row-s" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
           <h3>Registered Courses Score Sheet</h3>
-          <span className="current-sem-badge">{studentSession.sem}</span>
+          {marksRecord.availableSemesters.length > 0 ? (
+            <select 
+              value={marksRecord.activeSemView} 
+              onChange={(e) => setMarksRecord({...marksRecord, activeSemView: e.target.value})}
+              style={{ padding: '0.4rem 1rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-main)', outline: 'none' }}
+            >
+              {marksRecord.availableSemesters.map(sem => (
+                <option key={sem} value={sem}>{sem}</option>
+              ))}
+            </select>
+          ) : (
+            <span className="current-sem-badge">{marksRecord.activeSemView}</span>
+          )}
         </div>
 
         <div className="table-container-s">

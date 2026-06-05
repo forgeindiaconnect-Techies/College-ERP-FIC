@@ -95,6 +95,7 @@ const HodStaff = () => {
       name: s.name,
       designation: s.designation,
       workload: s.workload,
+      attendance: s.attendance !== undefined ? s.attendance : 100,
       subjects: [...s.subjects]
     });
     setEditTarget(s.id);
@@ -122,10 +123,10 @@ const HodStaff = () => {
     
     if (editTarget) {
       const updatedStaff = staff.map(s =>
-        s.id === editTarget ? { ...s, workload: +form.workload, subjects: form.subjects } : s
+        s.id === editTarget ? { ...s, workload: +form.workload, attendance: +form.attendance, subjects: form.subjects } : s
       );
       try {
-        await updateStaff(editTarget, { workload: +form.workload, subjects: form.subjects });
+        await updateStaff(editTarget, { workload: +form.workload, attendance: +form.attendance, subjects: form.subjects });
       } catch (err) {
         console.warn('Backend update failed, saving locally.');
       }
@@ -312,6 +313,12 @@ const HodStaff = () => {
                   <label><Clock size={13} /> Weekly Workload (hours) *</label>
                   <input type="number" min="0" max="30" required value={form.workload} onChange={e => setForm({ ...form, workload: e.target.value })} />
                 </div>
+                {editTarget && (
+                  <div className="form-group">
+                    <label>Attendance %</label>
+                    <input type="number" min="0" max="100" required value={form.attendance || ''} onChange={e => setForm({ ...form, attendance: e.target.value })} />
+                  </div>
+                )}
               </div>
 
               <div className="form-group" style={{ marginTop: '1.25rem' }}>

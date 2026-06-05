@@ -46,7 +46,13 @@ const ParentMarks = () => {
 
     const loadMarksData = async () => {
       try {
-        const studentId = activeSession.parentOf || activeSession.referenceId || activeSession.childId;
+        let studentId = activeSession.parentOf || activeSession.referenceId || activeSession.childId;
+        if (studentId && studentId.length === 24 && /^[0-9a-fA-F]{24}$/.test(studentId)) {
+          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const match = erpStudents.find(s => s._id === studentId || s.id === studentId);
+          if (match && match.id) studentId = match.id;
+        }
+
         const [studRes, marksRes] = await Promise.all([
           getStudentById(studentId).catch(() => null),
           getMarksByStudent(studentId).catch(() => null)

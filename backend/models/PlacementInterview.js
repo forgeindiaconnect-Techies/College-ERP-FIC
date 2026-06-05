@@ -8,6 +8,8 @@ const placementInterviewSchema = new mongoose.Schema({
   date: { type: Date, required: true },
   time: { type: String, required: true },
   mode: { type: String, enum: ['Online', 'Offline'], default: 'Online' },
+  venue: { type: String }, // Venue / Meeting Link
+  panel: { type: String }, // Panel Details
   candidates: { type: Number, required: true }
 }, { timestamps: true });
 

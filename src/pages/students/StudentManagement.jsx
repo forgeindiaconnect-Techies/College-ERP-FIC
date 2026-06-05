@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   Plus, Search, Edit2, Trash2, Filter, X,
   User, BookOpen, Hash, Percent, DollarSign,
-  Phone, Mail, ChevronUp, ChevronDown, CheckCircle
+  Phone, Mail, ChevronUp, ChevronDown, CheckCircle, Building
 } from 'lucide-react';
 import { getStudents, createStudent, updateStudent, deleteStudent } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
@@ -36,7 +36,10 @@ const EMPTY_FORM = {
   cgpa:'', attendance:'', status:'Active', feeStatus:'Pending',
   idNumber: '', dob: '', academicYear: '', section: '', batch: '',
   admissionDate: '', hostelRequired: '', roomNumber: '',
-  busRoute: '', pickupPoint: '', transportFeeStatus: ''
+  hostelName: '', blockWing: '', bedNumber: '', wardenName: '',
+  wardenContact: '', hostelFeeAmount: '', hostelFeeStatus: '',
+  transportRequired: '', busRoute: '', pickupPoint: '',
+  transportFeeAmount: '', transportFeeStatus: ''
 };
 
 const getInitials   = (name) => name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
@@ -75,6 +78,7 @@ const StudentManagement = () => {
   const [deptFilter, setDeptFilter] = useState('All');
   const [semFilter,  setSemFilter]  = useState('All');
   const [feeFilter,  setFeeFilter]  = useState('All');
+  const [hostelFilter, setHostelFilter] = useState('All');
   const [sortKey,  setSortKey]   = useState('name');
   const [sortAsc,  setSortAsc]   = useState(true);
 
@@ -118,12 +122,7 @@ const StudentManagement = () => {
       const res = await getStudents();
       let allStudents = res.data || [];
       
-      const local = localStorage.getItem('erp_students');
-      if (local) {
-        const parsed = JSON.parse(local);
-        const dbIds = new Set(allStudents.map(s => s.id || s._id));
-        parsed.forEach(s => { if (!dbIds.has(s.id)) allStudents.push(s); });
-      }
+      // Removed localStorage mock data to prevent stale/random data from polluting the dashboard
       setStudents(allStudents);
     } catch (err) {
       console.error('Failed to fetch students:', err);
@@ -142,7 +141,12 @@ const StudentManagement = () => {
         (s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q) || s.email.toLowerCase().includes(q)) &&
         (deptFilter === 'All' || s.dept === deptFilter) &&
         (semFilter  === 'All' || s.sem  === semFilter)  &&
-        (feeFilter  === 'All' || s.feeStatus === feeFilter)
+        (feeFilter  === 'All' || s.feeStatus === feeFilter) &&
+        (hostelFilter === 'All' || 
+         (hostelFilter === 'Hostel Requested' && s.hostelRequired?.toLowerCase() === 'yes' && !s.roomNumber) ||
+         (hostelFilter === 'Hostel Allocated' && s.hostelRequired?.toLowerCase() === 'yes' && s.roomNumber) ||
+         (hostelFilter === 'Non-Hostellers' && s.hostelRequired?.toLowerCase() !== 'yes')
+        )
       );
     })
     .sort((a, b) => {
@@ -169,8 +173,11 @@ const StudentManagement = () => {
     if (form.attendance && (isNaN(form.attendance) || +form.attendance < 0 || +form.attendance > 100))
                                  e.attendance = 'Enter valid % (0–100)';
     if (!form.hostelRequired)    e.hostelRequired = 'Required';
-    if (!form.busRoute || !form.busRoute.trim())   e.busRoute = 'Required';
-    if (!form.transportFeeStatus) e.transportFeeStatus = 'Required';
+    if (!form.transportRequired) e.transportRequired = 'Required';
+    if (form.transportRequired === 'yes') {
+      if (!form.busRoute || !form.busRoute.trim())   e.busRoute = 'Required';
+      if (!form.transportFeeStatus) e.transportFeeStatus = 'Required';
+    }
     return e;
   };
 
@@ -282,6 +289,15 @@ const StudentManagement = () => {
                 {FEE_STATUS.map(f => <option key={f}>{f}</option>)}
               </select>
             </div>
+            <div className="filter-select-wrapper">
+              <Building size={13} className="text-muted" />
+              <select className="filter-select" value={hostelFilter} onChange={e => setHostelFilter(e.target.value)}>
+                <option value="All">All Students</option>
+                <option value="Hostel Requested">Hostel Requested</option>
+                <option value="Hostel Allocated">Hostel Allocated</option>
+                <option value="Non-Hostellers">Non-Hostellers</option>
+              </select>
+            </div>
           </div>
         </div>
 
@@ -293,8 +309,8 @@ const StudentManagement = () => {
                 <th style={{width:40}}>#</th>
                 {[
                   ['name','Student Name'], ['id','Register No'], ['dept','Department'],
-                  ['sem','Semester'], ['attendance','Attendance %'], ['cgpa','CGPA'],
-                  ['feeStatus','Fee Status'], ['status','Status'],
+                  ['hostelRequired','Hostel Req'], ['roomNumber','Hostel Status'],
+                  ['sem','Semester'], ['feeStatus','Fee Status'], ['status','Status'],
                 ].map(([k, label]) => (
                   <th key={k} className="sortable-th" onClick={() => handleSort(k)}>
                     {label} {makeSortIcon(k, sortKey, sortAsc)}
@@ -326,19 +342,17 @@ const StudentManagement = () => {
                         </td>
                         <td><span className="reg-no">{s.id}</span></td>
                         <td className="cell-muted">{s.dept}</td>
+                        <td>
+                          <span className={`badge-outline ${s.hostelRequired?.toLowerCase() === 'yes' ? 'bg-primary-light text-primary' : 'bg-gray-100 text-muted'}`}>
+                            {s.hostelRequired?.toLowerCase() === 'yes' ? 'Yes' : 'No'}
+                          </span>
+                        </td>
+                        <td>
+                          <span className={`status-badge ${s.hostelRequired?.toLowerCase() === 'yes' ? (s.roomNumber ? 'status-active' : 'status-pending text-warning bg-warning-light') : 'bg-gray-100 text-muted'}`} style={s.hostelRequired?.toLowerCase() === 'yes' && !s.roomNumber ? {background: 'rgba(245,158,11,0.1)', color: '#f59e0b'} : {}}>
+                            {s.hostelRequired?.toLowerCase() === 'yes' ? (s.roomNumber ? 'Allocated' : 'Pending') : 'N/A'}
+                          </span>
+                        </td>
                         <td><span className="badge-outline">{s.sem}</span></td>
-                        <td>
-                          <div className="att-cell">
-                            <span style={{color: getAttColor(s.attendance), fontWeight:700, minWidth:38}}>{s.attendance}%</span>
-                            <div className="bar-bg"><div className="bar-fill" style={{width:`${s.attendance}%`, background: getAttColor(s.attendance)}}></div></div>
-                          </div>
-                        </td>
-                        <td>
-                          <div className="att-cell">
-                            <span style={{color: getCgpaColor(s.cgpa), fontWeight:700, minWidth:30}}>{s.cgpa}</span>
-                            <div className="bar-bg"><div className="bar-fill" style={{width:`${(s.cgpa/10)*100}%`, background: getCgpaColor(s.cgpa)}}></div></div>
-                          </div>
-                        </td>
                         <td><span className={`fee-badge ${getFeeClass(s.feeStatus)}`}>{s.feeStatus}</span></td>
                         <td><span className={`status-badge ${s.status === 'Active' ? 'status-active' : 'status-inactive'}`}>{s.status}</span></td>
                         <td>
@@ -357,8 +371,8 @@ const StudentManagement = () => {
         {!loading && (
           <div className="table-footer">
             Showing <strong>{filtered.length}</strong> of <strong>{students.length}</strong> students
-            {(deptFilter !== 'All' || semFilter !== 'All' || feeFilter !== 'All' || search) && (
-              <button className="clear-filters-link" onClick={() => { setSearch(''); setDeptFilter('All'); setSemFilter('All'); setFeeFilter('All'); }}>
+            {(deptFilter !== 'All' || semFilter !== 'All' || feeFilter !== 'All' || hostelFilter !== 'All' || search) && (
+              <button className="clear-filters-link" onClick={() => { setSearch(''); setDeptFilter('All'); setSemFilter('All'); setFeeFilter('All'); setHostelFilter('All'); }}>
                 Clear all filters ×
               </button>
             )}
@@ -520,47 +534,97 @@ const StudentManagement = () => {
                     </div>
                   </div>
 
-                  <div className="sm-form-section-title">Transport & Hostel</div>
+                  <div className="sm-form-section-title" style={{ gridColumn: '1 / -1', marginTop: '1rem' }}>Transport & Hostel</div>
 
                   {/* Hostel Required */}
                   <div className={`fld ${formErrors.hostelRequired ? 'fld-error' : ''}`}>
                     <label>Hostel Required? <span className="req">*</span></label>
                     <select {...field('hostelRequired')}>
                       <option value="">— Select —</option>
-                      <option value="No">No</option>
-                      <option value="Yes">Yes</option>
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
                     </select>
                     {formErrors.hostelRequired && <span className="err-msg">{formErrors.hostelRequired}</span>}
                   </div>
 
-                  {/* Room Number */}
-                  <div className="fld">
-                    <label>Room Number</label>
-                    <input type="text" placeholder="e.g. A-102" disabled={form.hostelRequired === 'No' || !form.hostelRequired} {...field('roomNumber')} />
-                  </div>
+                  {form.hostelRequired === 'yes' && (
+                    <>
+                      <div className="fld">
+                        <label>Hostel Name</label>
+                        <input type="text" placeholder="e.g. Boys Hostel A" {...field('hostelName')} />
+                      </div>
+                      <div className="fld">
+                        <label>Block / Wing</label>
+                        <input type="text" placeholder="e.g. North Wing" {...field('blockWing')} />
+                      </div>
+                      <div className="fld">
+                        <label>Room Number</label>
+                        <input type="text" placeholder="e.g. A-102" {...field('roomNumber')} />
+                      </div>
+                      <div className="fld">
+                        <label>Bed Number</label>
+                        <input type="text" placeholder="e.g. 2" {...field('bedNumber')} />
+                      </div>
+                      <div className="fld">
+                        <label>Warden Name</label>
+                        <input type="text" placeholder="e.g. Mr. Kumar" {...field('wardenName')} />
+                      </div>
+                      <div className="fld">
+                        <label>Warden Contact</label>
+                        <input type="text" placeholder="Warden Phone" {...field('wardenContact')} />
+                      </div>
+                      <div className="fld">
+                        <label>Hostel Fee Amount (₹) <span className="req">*</span></label>
+                        <input type="number" placeholder="e.g. 25000" {...field('hostelFeeAmount')} />
+                      </div>
+                      <div className="fld">
+                        <label>Hostel Fee Status <span className="req">*</span></label>
+                        <select {...field('hostelFeeStatus')}>
+                          <option value="">— Select —</option>
+                          <option value="pending">Pending</option>
+                          <option value="paid">Paid</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
 
-                  {/* Bus Route */}
-                  <div className={`fld ${formErrors.busRoute ? 'fld-error' : ''}`}>
-                    <label>Bus Route <span className="req">*</span></label>
-                    <input type="text" placeholder="e.g. Route 4 (or N/A)" {...field('busRoute')} />
-                    {formErrors.busRoute && <span className="err-msg">{formErrors.busRoute}</span>}
-                  </div>
-
-                  {/* Pickup Point */}
-                  <div className="fld">
-                    <label>Pickup Point</label>
-                    <input type="text" placeholder="e.g. City Center" {...field('pickupPoint')} />
-                  </div>
-
-                  {/* Transport Fee Status */}
-                  <div className={`fld ${formErrors.transportFeeStatus ? 'fld-error' : ''}`}>
-                    <label>Transport Fee Status <span className="req">*</span></label>
-                    <select {...field('transportFeeStatus')}>
+                  <div className={`fld ${formErrors.transportRequired ? 'fld-error' : ''}`}>
+                    <label>Transport Required? <span className="req">*</span></label>
+                    <select {...field('transportRequired')}>
                       <option value="">— Select —</option>
-                      {FEE_STATUS.map(f => <option key={f}>{f}</option>)}
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
                     </select>
-                    {formErrors.transportFeeStatus && <span className="err-msg">{formErrors.transportFeeStatus}</span>}
+                    {formErrors.transportRequired && <span className="err-msg">{formErrors.transportRequired}</span>}
                   </div>
+
+                  {form.transportRequired === 'yes' && (
+                    <>
+                      <div className={`fld ${formErrors.busRoute ? 'fld-error' : ''}`}>
+                        <label>Bus Route <span className="req">*</span></label>
+                        <input type="text" placeholder="e.g. Route 4" {...field('busRoute')} />
+                        {formErrors.busRoute && <span className="err-msg">{formErrors.busRoute}</span>}
+                      </div>
+                      <div className="fld">
+                        <label>Pickup Point</label>
+                        <input type="text" placeholder="e.g. City Center" {...field('pickupPoint')} />
+                      </div>
+                      <div className={`fld ${formErrors.transportFeeAmount ? 'fld-error' : ''}`}>
+                        <label>Transport Fee Amount (₹) <span className="req">*</span></label>
+                        <input type="number" placeholder="e.g. 15000" {...field('transportFeeAmount')} />
+                        {formErrors.transportFeeAmount && <span className="err-msg">{formErrors.transportFeeAmount}</span>}
+                      </div>
+                      <div className={`fld ${formErrors.transportFeeStatus ? 'fld-error' : ''}`}>
+                        <label>Transport Fee Status <span className="req">*</span></label>
+                        <select {...field('transportFeeStatus')}>
+                          <option value="">— Select —</option>
+                          <option value="pending">Pending</option>
+                          <option value="paid">Paid</option>
+                        </select>
+                        {formErrors.transportFeeStatus && <span className="err-msg">{formErrors.transportFeeStatus}</span>}
+                      </div>
+                    </>
+                  )}
 
                 </div>
               </div>

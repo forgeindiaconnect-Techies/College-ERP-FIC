@@ -52,10 +52,70 @@ router.get('/students', protect, async (req, res) => {
 // @access  Private
 router.get('/complaints', protect, async (req, res) => {
   try {
-    const complaints = await HostelComplaint.find({});
+    const { studentId } = req.query;
+    const filter = studentId ? { studentId } : {};
+    const complaints = await HostelComplaint.find(filter).sort({ createdAt: -1 });
     res.json(complaints);
   } catch (error) {
     res.status(500).json({ message: 'Server Error fetching complaints' });
+  }
+});
+
+// @desc    Create a new hostel complaint
+// @route   POST /api/hostel/complaints
+// @access  Private
+router.post('/complaints', protect, async (req, res) => {
+  try {
+    const { studentId, studentName, room, category, title, description, priority } = req.body;
+    
+    // Generate a unique ID like HC001
+    const count = await HostelComplaint.countDocuments();
+    const complaintId = `HC${String(count + 1).padStart(3, '0')}`;
+
+    const newComplaint = new HostelComplaint({
+      complaintId,
+      studentId,
+      studentName: studentName || 'Unknown Student',
+      room: room || 'Not Assigned',
+      category,
+      title: title || category,
+      description,
+      priority: priority || 'Medium',
+      status: 'Pending Review'
+    });
+
+    const savedComplaint = await newComplaint.save();
+    res.status(201).json(savedComplaint);
+  } catch (error) {
+    console.error('Error creating complaint:', error);
+    res.status(500).json({ message: 'Server Error creating complaint' });
+  }
+});
+
+// @desc    Update a hostel complaint status
+// @route   PUT /api/hostel/complaints/:id
+// @access  Private
+router.put('/complaints/:id', protect, async (req, res) => {
+  try {
+    const { status, resolutionRemarks } = req.body;
+    
+    const complaint = await HostelComplaint.findById(req.params.id);
+    if (!complaint) {
+      return res.status(404).json({ message: 'Complaint not found' });
+    }
+
+    if (status) complaint.status = status;
+    if (resolutionRemarks !== undefined) complaint.resolutionRemarks = resolutionRemarks;
+    
+    if (status === 'Resolved' || status === 'Rejected') {
+      complaint.closedDate = Date.now();
+    }
+
+    const updatedComplaint = await complaint.save();
+    res.json(updatedComplaint);
+  } catch (error) {
+    console.error('Error updating complaint:', error);
+    res.status(500).json({ message: 'Server Error updating complaint' });
   }
 });
 

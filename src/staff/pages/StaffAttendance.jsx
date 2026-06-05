@@ -89,10 +89,22 @@ const StaffAttendance = () => {
 
       let dynSubjects = [...new Set(mySchedule.map(s => s.subject))];
       if (dynSubjects.length === 0) {
-        // Fallback if Timetable is empty in DB for this semester
-        dynSubjects = activeStaff.subjects && activeStaff.subjects.length > 0 
-          ? activeStaff.subjects 
-          : ['General Course', 'Test Subject'];
+        // Fallback to Master Subject System for this semester and department
+        const savedSubjects = localStorage.getItem('erp_subjects');
+        if (savedSubjects) {
+          const allSubs = JSON.parse(savedSubjects);
+          const deptSubs = allSubs.filter(sub => sub.dept === activeStaff.dept && sub.sem === sem);
+          if (deptSubs.length > 0) {
+            dynSubjects = [...new Set(deptSubs.map(s => s.name))];
+          }
+        }
+        
+        // If still empty, use staff assigned subjects as last resort
+        if (dynSubjects.length === 0 && activeStaff.subjects && activeStaff.subjects.length > 0) {
+          dynSubjects = activeStaff.subjects;
+        } else if (dynSubjects.length === 0) {
+          dynSubjects = ['No Master Subjects Defined'];
+        }
       }
       setSubjectsList(dynSubjects);
       if (!dynSubjects.includes(selectedSubject)) {
@@ -152,7 +164,8 @@ const StaffAttendance = () => {
         ...s,
         presentDays,
         absentDays: totalDays - presentDays,
-        percent
+        percent,
+        totalDays
       };
     });
   };
@@ -365,26 +378,26 @@ const StaffAttendance = () => {
 
       {/* Analytics Banner */}
       {!loading && filteredRecords.length > 0 && (
-        <div className="grid grid-cols-5 gap-4 mb-6">
-          <div className="glass-card p-4 text-center">
+        <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
+          <div className="glass-card p-4 text-center" style={{ flex: '1', minWidth: '120px' }}>
             <p className="text-sm text-[var(--text-muted)] font-medium mb-1">Total Students</p>
             <h3 className="text-xl font-bold text-[var(--text-main)] m-0">{myClassStudents.length}</h3>
           </div>
-          <div className="glass-card p-4 text-center border-b-4 border-green-500">
+          <div className="glass-card p-4 text-center" style={{ flex: '1', minWidth: '120px', borderBottom: '4px solid #10b981' }}>
             <p className="text-sm text-[var(--text-muted)] font-medium mb-1">Present</p>
-            <h3 className="text-xl font-bold text-green-600 dark:text-green-400 m-0">{presentCount}</h3>
+            <h3 className="text-xl font-bold" style={{ color: '#10b981', margin: 0 }}>{presentCount}</h3>
           </div>
-          <div className="glass-card p-4 text-center border-b-4 border-red-500">
+          <div className="glass-card p-4 text-center" style={{ flex: '1', minWidth: '120px', borderBottom: '4px solid #ef4444' }}>
             <p className="text-sm text-[var(--text-muted)] font-medium mb-1">Absent</p>
-            <h3 className="text-xl font-bold text-red-600 dark:text-red-400 m-0">{absentCount}</h3>
+            <h3 className="text-xl font-bold" style={{ color: '#ef4444', margin: 0 }}>{absentCount}</h3>
           </div>
-          <div className="glass-card p-4 text-center border-b-4 border-orange-500">
+          <div className="glass-card p-4 text-center" style={{ flex: '1', minWidth: '120px', borderBottom: '4px solid #f97316' }}>
             <p className="text-sm text-[var(--text-muted)] font-medium mb-1">On Leave</p>
-            <h3 className="text-xl font-bold text-orange-600 dark:text-orange-400 m-0">{leaveCount + medicalCount}</h3>
+            <h3 className="text-xl font-bold" style={{ color: '#f97316', margin: 0 }}>{leaveCount + medicalCount}</h3>
           </div>
-          <div className="glass-card p-4 text-center border-b-4 border-blue-500">
+          <div className="glass-card p-4 text-center" style={{ flex: '1', minWidth: '120px', borderBottom: '4px solid #3b82f6' }}>
             <p className="text-sm text-[var(--text-muted)] font-medium mb-1">Live Rate</p>
-            <h3 className="text-xl font-bold text-blue-600 dark:text-blue-400 m-0">{attRate}%</h3>
+            <h3 className="text-xl font-bold" style={{ color: '#3b82f6', margin: 0 }}>{attRate}%</h3>
           </div>
         </div>
       )}
@@ -461,12 +474,18 @@ const StaffAttendance = () => {
                       </td>
                       <td className="p-4"><span className="font-mono text-sm bg-[var(--bg-secondary)] px-2 py-1 rounded text-[var(--text-main)]">{r.id || r._id}</span></td>
                       <td className="p-4">
-                        <div className="flex items-center gap-2">
-                          <span style={{ color: getColor(r.percent), fontWeight: 700 }}>{r.percent}%</span>
-                          <div className="w-24 h-2 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-                            <div className="h-full rounded-full" style={{ width: `${r.percent}%`, backgroundColor: getColor(r.percent) }}></div>
+                        {r.totalDays > 0 ? (
+                          <div className="flex items-center gap-2">
+                            <span style={{ color: getColor(r.percent), fontWeight: 700 }}>{r.percent}%</span>
+                            <div className="w-24 h-2 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
+                              <div className="h-full rounded-full" style={{ width: `${r.percent}%`, backgroundColor: getColor(r.percent) }}></div>
+                            </div>
                           </div>
-                        </div>
+                        ) : (
+                          <span className="text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-500 rounded-md dark:bg-gray-800 dark:text-gray-400">
+                            No Records Yet
+                          </span>
+                        )}
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-center gap-2">
@@ -516,18 +535,18 @@ const StaffAttendance = () => {
           </table>
         </div>
 
-        <div className="p-4 bg-[var(--bg-secondary)] border-t border-[var(--border-color)] flex justify-between items-center rounded-b-xl">
-          <p className="text-sm text-[var(--text-muted)] flex items-center gap-2 m-0">
+        <div className="p-4 bg-[var(--bg-secondary)] border-t border-[var(--border-color)] flex flex-col justify-center items-center rounded-b-xl gap-4">
+          <p className="text-sm text-[var(--text-muted)] flex items-center justify-center gap-2 m-0">
             <ShieldAlert size={16} /> 
             {isSessionAlreadyMarked() ? 'This session has already been logged and locked.' : 'Double check statuses before saving.'}
           </p>
           <button
             type="button"
-            className="flex items-center gap-2 px-6 py-2.5 bg-[#ec4899] text-white font-bold rounded-lg shadow-lg hover:bg-[#db2777] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center w-full max-w-md gap-2 px-6 py-3.5 bg-[#ec4899] text-white text-lg font-bold rounded-xl shadow-xl hover:bg-[#db2777] transition-all transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
             onClick={handleSaveAttendance}
-            disabled={filteredRecords.length === 0 || subjectsList[0] === 'No Subjects Assigned' || isSessionAlreadyMarked()}
+            disabled={filteredRecords.length === 0}
           >
-            <Save size={18} /> Submit Attendance
+            <Save size={20} /> Submit Attendance Now
           </button>
         </div>
       </div>

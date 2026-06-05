@@ -27,7 +27,12 @@ const HodAnnouncements = () => {
   useEffect(() => {
     const saved = localStorage.getItem('erp_announcements');
     const all = saved ? JSON.parse(saved) : DEFAULT_ANNOUNCEMENTS;
-    const deptNotices = all.filter(a => a.dept===DEPT || a.dept===undefined);
+    const deptNotices = all.filter(a => {
+      const isMyDept = a.dept === DEPT || a.dept === undefined;
+      const target = a.target || a.targetAudience || 'All';
+      const isForMe = target === 'All' || target === 'All Roles' || target === 'All Departments' || target.includes('HOD');
+      return isMyDept && isForMe;
+    });
     setNotices(deptNotices.length ? deptNotices : DEFAULT_ANNOUNCEMENTS);
   }, [DEPT]);
 

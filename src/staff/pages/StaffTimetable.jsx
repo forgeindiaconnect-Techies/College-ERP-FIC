@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, MapPin, ArrowLeft, RefreshCw } from 'lucide-react';
+import { Calendar, Clock, MapPin, ArrowLeft, RefreshCw, User } from 'lucide-react';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StaffTimetable.css';
 
 // Fallback session
 const DEFAULT_SESSION = {
   name: 'Dr. Ananya Rao',
-  dept: 'Computer Science',
+  dept: 'Cyber Security',
   deptCode: 'CS',
   role: 'Staff',
   subjects: ['Data Structures', 'DBMS']
@@ -28,36 +29,82 @@ const StaffTimetable = () => {
   const [loading, setLoading] = useState(true);
   const [staffSession, setStaffSession] = useState(DEFAULT_SESSION);
   const [timetable, setTimetable] = useState([]);
+  const [selectedSem, setSelectedSem] = useState('Semester 6');
+
+  const loadTimetable = React.useCallback(async () => {
+    setLoading(true);
+    try {
+      const { getTimetable } = await import('../../api/index.js');
+      const res = await getTimetable(staffSession.dept, selectedSem);
+      if (res.data && res.data.schedule) {
+        const scheduleData = res.data.schedule;
+        const formatted = [];
+        
+        if (scheduleData.length > 0 && Array.isArray(scheduleData[0])) {
+          // It's a 2D array (saved by Admin)
+          const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+          scheduleData.forEach((daySchedule, dIdx) => {
+            daySchedule.forEach((subject, tIdx) => {
+              if (subject) {
+                formatted.push({
+                  dept: staffSession.dept,
+                  day: days[dIdx],
+                  period: tIdx + 1,
+                  subject: subject,
+                  faculty: 'Assigned Faculty',
+                  classroom: 'Main Block'
+                });
+              }
+            });
+          });
+        } else {
+          // It's a flat object array (saved by HOD)
+          scheduleData.forEach(slot => formatted.push(slot));
+        }
+        
+        setTimetable(formatted);
+      } else {
+        setTimetable([]);
+      }
+    } catch (err) {
+      console.error('Failed to fetch staff timetable', err);
+      setTimetable([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [staffSession.dept, selectedSem]);
 
   useEffect(() => {
     // 1. Session check
     const session = sessionStorage.getItem('staff_session');
-    let activeStaff = DEFAULT_SESSION;
     if (session) {
-      activeStaff = JSON.parse(session);
+      const activeStaff = JSON.parse(session);
       setStaffSession(activeStaff);
     } else {
       navigate('/staff/login');
-      return;
     }
-
-    // 2. Load timetable database
-    const savedTimetable = localStorage.getItem('erp_timetable');
-    if (savedTimetable) {
-      setTimetable(JSON.parse(savedTimetable));
-    }
-    setLoading(false);
   }, [navigate]);
+
+  useEffect(() => {
+    if (staffSession.dept) {
+      loadTimetable();
+    }
+  }, [staffSession.dept, loadTimetable]);
+
+  useRealtimeSync(loadTimetable, ['timetable']);
 
   const staffName = staffSession.name;
   const staffDept = staffSession.dept;
 
-  // Filter timetable slots assigned to this staff member's department
-  const mySchedule = timetable.filter(s => s.dept === staffDept);
+  // Filter timetable slots matching staff's department (case-insensitive)
+  const classSchedule = timetable.filter(s => {
+    if (!s.dept || !staffDept) return false;
+    return s.dept.trim().toLowerCase() === staffDept.trim().toLowerCase();
+  });
 
   // Helper to find slot for a specific day and period
   const getSlot = (day, period) => {
-    return mySchedule.find(s => s.day.toLowerCase() === day.toLowerCase() && Number(s.period) === Number(period));
+    return classSchedule.find(s => s.day.toLowerCase() === day.toLowerCase() && Number(s.period) === Number(period));
   };
 
   return (
@@ -71,6 +118,20 @@ const StaffTimetable = () => {
             <h1>Department Timetable</h1>
             <p className="text-muted">View the complete weekly schedule for your department.</p>
           </div>
+        </div>
+        <div className="header-right">
+          <select 
+            value={selectedSem} 
+            onChange={(e) => setSelectedSem(e.target.value)}
+            className="bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] rounded px-4 py-2 outline-none focus:border-[#8b5cf6]"
+          >
+            <option>Semester 1</option>
+            <option>Semester 2</option>
+            <option>Semester 3</option>
+            <option>Semester 4</option>
+            <option>Semester 5</option>
+            <option>Semester 6</option>
+          </select>
         </div>
       </div>
 
@@ -122,9 +183,11 @@ const StaffTimetable = () => {
                       if (slot) {
                         return (
                           <td key={p}>
-                            <div className="timetable-slot active animate-scale-in">
+                            <div className={`timetable-slot active animate-scale-in ${slot.faculty === staffName ? 'my-slot' : ''}`} style={slot.faculty === staffName ? { borderLeft: '4px solid #10b981', background: 'rgba(16,185,129,0.05)' } : {}}>
                               <p className="slot-subject">{slot.subject}</p>
-                              <p className="slot-class">{slot.dept} - Sem {slot.id ? '6' : '3'}</p>
+                              <p className="slot-class" style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', fontWeight: 600, color: slot.faculty === staffName ? '#10b981' : 'var(--text-muted)' }}>
+                                <User size={11} /> {slot.faculty || 'Unknown Faculty'}
+                              </p>
                               <p className="slot-classroom"><MapPin size={11} /> {slot.classroom || 'Room 302'}</p>
                             </div>
                           </td>

@@ -9,11 +9,13 @@ const DEFAULT_SUBJECTS = [
   { id: 'SUB003', code: 'CS401', name: 'Operating Systems', dept: 'Computer Science', sem: 'Sem 4', teacher: 'Prof. Karthik S.', credits: 4, workload: 4 },
   { id: 'SUB004', code: 'CS501', name: 'Machine Learning', dept: 'Computer Science', sem: 'Sem 5', teacher: 'Prof. Karthik S.', credits: 3, workload: 3 },
   { id: 'SUB005', code: 'EE201', name: 'Circuits & Networks', dept: 'Electrical Engg.', sem: 'Sem 2', teacher: 'Prof. Rajan Iyer', credits: 4, workload: 4 },
-  { id: 'SUB006', code: 'ME301', name: 'Thermodynamics', dept: 'Mechanical Engg.', sem: 'Sem 3', teacher: 'Dr. Priya Nair', credits: 4, workload: 4 }
+  { id: 'SUB006', code: 'ME301', name: 'Thermodynamics', dept: 'Mechanical Engg.', sem: 'Sem 3', teacher: 'Dr. Priya Nair', credits: 4, workload: 4 },
+  { id: 'SUB007', code: 'AI101', name: 'Introduction to AI', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 4, workload: 4 },
+  { id: 'SUB008', code: 'AI102', name: 'Python Programming', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 3, workload: 4 }
 ];
 
 const DEPARTMENTS = [
-  'Computer Science', 'Electronics & Comm.', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.'
+  'Computer Science', 'Electronics & Comm.', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.', 'Artificial Intelligence & Data Science'
 ];
 const SEMESTERS = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'];
 
@@ -41,7 +43,13 @@ const SubjectsManagement = () => {
       
       const saved = localStorage.getItem('erp_subjects');
       if (saved) {
-        setSubjects(JSON.parse(saved));
+        let parsed = JSON.parse(saved);
+        // Force inject the AI subjects if they are missing so Karthik can test it without resetting localstorage
+        if (!parsed.find(s => s.code === 'AI101')) {
+          parsed = [...parsed, ...DEFAULT_SUBJECTS.slice(6)];
+          localStorage.setItem('erp_subjects', JSON.stringify(parsed));
+        }
+        setSubjects(parsed);
       } else {
         localStorage.setItem('erp_subjects', JSON.stringify(DEFAULT_SUBJECTS));
         setSubjects(DEFAULT_SUBJECTS);

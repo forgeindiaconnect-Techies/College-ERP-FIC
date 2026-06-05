@@ -58,10 +58,12 @@ router.post('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (re
     if (Array.isArray(req.body)) {
       const docs = req.body.map(processPayload);
       const created = await Salary.insertMany(docs);
+      req.app.get('io').emit('dataUpdated', { module: 'salaries', action: 'created' });
       return res.status(201).json(created);
     }
     const salary = new Salary(processPayload(req.body));
     const saved = await salary.save();
+    req.app.get('io').emit('dataUpdated', { module: 'salaries', action: 'created' });
     res.status(201).json(saved);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -76,6 +78,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (
       payload.paymentDate = new Date();
     }
     const updated = await Salary.findByIdAndUpdate(req.params.id, payload, { new: true });
+    req.app.get('io').emit('dataUpdated', { module: 'salaries', action: 'updated' });
     res.json(updated);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -86,6 +89,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (
 router.delete('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
   try {
     await Salary.findByIdAndDelete(req.params.id);
+    req.app.get('io').emit('dataUpdated', { module: 'salaries', action: 'deleted' });
     res.json({ message: 'Salary record deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

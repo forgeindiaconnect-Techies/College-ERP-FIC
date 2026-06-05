@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, DollarSign, CheckCircle2, AlertTriangle, ArrowLeft, RefreshCw, X } from 'lucide-react';
-import { getFeesByStudent } from '../../api/index';
+import { getFeesByStudent, updateFee, createFee } from '../../api/index';
 import './StudentFees.css';
 
 // Fallbacks
@@ -22,6 +22,7 @@ const StudentFees = () => {
   const [feeStatus, setFeeStatus] = useState('Pending');
   const [feeRecord, setFeeRecord] = useState(null);
   const [invoiceAmount, setInvoiceAmount] = useState(45000);
+  const [scholarship, setScholarship] = useState(null);
 
   // Payment popup state
   const [payOpen, setPayOpen] = useState(false);
@@ -57,19 +58,86 @@ const StudentFees = () => {
       } finally {
         setLoading(false);
       }
+
+      // Check for Scholarships
+      try {
+        const scholarships = JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
+        const safeLower = str => (str || '').toString().trim().toLowerCase();
+        
+        const myScholarship = scholarships.find(s => {
+          const idMatch = safeLower(s.studentId) === safeLower(activeStud.id) || safeLower(s.studentId) === safeLower(activeStud.referenceId);
+          const nameMatch = safeLower(s.studentName) === safeLower(activeStud.name);
+          return idMatch || nameMatch;
+        });
+
+        if (myScholarship && myScholarship.status === 'Active') {
+          setScholarship(myScholarship);
+        }
+      } catch (e) {
+        console.error('Failed to parse scholarships', e);
+      }
     };
 
     loadFees();
   }, [navigate]);
 
-  const handlePaySubmit = (e) => {
+  const handlePaySubmit = async (e) => {
     e.preventDefault();
 
     setFeeStatus('Paid');
+    // We intentionally do not set invoiceAmount to 0 yet, as the UI needs to show the receipt amount
     setSuccess(true);
+    
+    const txnDate = new Date().toISOString().split('T')[0];
+    const txnRef = `TXN_STUD_${Math.random().toString(36).substring(2,8).toUpperCase()}`;
+    const payAmt = feeRecord?.totalFees || invoiceAmount || 45000;
+    
+    const paymentObj = {
+      id: txnRef,
+      date: txnDate,
+      amount: payAmt,
+      mode: paymentMethod || 'Online'
+    };
+
+    if (feeRecord && (feeRecord._id || feeRecord.id)) {
+      try {
+        const idToUpdate = feeRecord._id || feeRecord.id;
+        const currentPayments = feeRecord.payments || [];
+        await updateFee(idToUpdate, { 
+          totalFees: feeRecord.totalFees || payAmt,
+          status: 'Paid', 
+          paidAmount: payAmt, 
+          pendingAmount: 0,
+          payments: [...currentPayments, paymentObj]
+        });
+      } catch (err) {
+        console.error('Failed to update fee on backend:', err);
+      }
+    } else {
+      // If no fee record existed, create one to register the payment
+      try {
+        await createFee({
+          studentId: studentSession.id || studentSession.referenceId || studentSession._id,
+          studentName: studentSession.name,
+          department: studentSession.dept,
+          semester: studentSession.sem,
+          totalFees: payAmt,
+          paidAmount: payAmt,
+          pendingAmount: 0,
+          status: 'Paid',
+          dueDate: new Date().toISOString(),
+          payments: [paymentObj]
+        });
+      } catch (err) {
+        console.error('Failed to create fee record on backend:', err);
+      }
+    }
+
     setTimeout(() => {
       setPayOpen(false);
       setSuccess(false);
+      // Wait for animation to finish before clearing amount
+      setInvoiceAmount(0);
     }, 800);
   };
 
@@ -104,6 +172,20 @@ const StudentFees = () => {
             </h1>
             <p className="text-muted text-xs">Total Amount Due: ₹{invoiceAmount.toLocaleString()}</p>
           </div>
+
+          {scholarship && (
+            <div style={{ padding: '12px 16px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '10px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ background: '#8b5cf6', color: 'white', padding: '8px', borderRadius: '50%' }}>
+                <CheckCircle2 size={18} />
+              </div>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-main)' }}>Scholarship Applied</h4>
+                <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                  You have an active <strong>{scholarship.type}</strong> scholarship ({scholarship.amount} Waiver).
+                </p>
+              </div>
+            </div>
+          )}
 
           {feeStatus !== 'Paid' ? (
             <button className="btn-pay-dues shadow-glow-s" onClick={() => setPayOpen(true)}>

@@ -16,10 +16,13 @@ const Scholarships = () => {
   const [typeFilter, setTypeFilter] = useState('All Types');
   const [isModalOpen, setIsModalOpen] = useState(false);
   
-  // Search student logic
+  // Student search state
   const [studentSearch, setStudentSearch] = useState('');
+  const [allStudents, setAllStudents] = useState([]);       // cached from DB
+  const [loadingStudents, setLoadingStudents] = useState(false);
   const [foundStudent, setFoundStudent] = useState(null);
   const [searchError, setSearchError] = useState('');
+  const [suggestions, setSuggestions] = useState([]);        // live dropdown
 
   const [form, setForm] = useState({
     type: 'Merit Scholarship',
@@ -37,29 +40,80 @@ const Scholarships = () => {
     }
   }, []);
 
+  // Preload all students from DB when modal opens
+  useEffect(() => {
+    if (!isModalOpen) return;
+    if (allStudents.length > 0) return; // already loaded
+    setLoadingStudents(true);
+    const token = sessionStorage.getItem('accounts_token') ||
+                  sessionStorage.getItem('principal_token') ||
+                  sessionStorage.getItem('admin_token') ||
+                  sessionStorage.getItem('token');
+    fetch('/api/students', {
+      headers: { Authorization: `Bearer ${token}` }
+    })
+      .then(r => r.json())
+      .then(data => {
+        const list = Array.isArray(data) ? data : (data.data || []);
+        setAllStudents(list);
+      })
+      .catch(() => {
+        // fallback: try via axios (which has the interceptor)
+        getStudents()
+          .then(res => setAllStudents(res?.data || []))
+          .catch(() => setAllStudents([]));
+      })
+      .finally(() => setLoadingStudents(false));
+  }, [isModalOpen]);
+
   const saveList = (newList) => {
     setScholars(newList);
     localStorage.setItem('erp_scholarships', JSON.stringify(newList));
   };
 
-  const lookupStudent = async (e) => {
+  // Live search as user types
+  const handleStudentSearchChange = (value) => {
+    setStudentSearch(value);
+    setFoundStudent(null);
+    setSearchError('');
+    if (!value.trim()) { setSuggestions([]); return; }
+    const q = value.trim().toLowerCase();
+    const matched = allStudents.filter(s =>
+      (s.name  && s.name.toLowerCase().includes(q)) ||
+      (s.id    && s.id.toLowerCase().includes(q)) ||
+      (s.email && s.email.toLowerCase().includes(q)) ||
+      (s.registerNo && s.registerNo.toLowerCase().includes(q)) ||
+      (s.idNumber   && s.idNumber.toLowerCase().includes(q))
+    ).slice(0, 6); // show max 6 suggestions
+    setSuggestions(matched);
+  };
+
+  const selectSuggestion = (s) => {
+    setFoundStudent(s);
+    setStudentSearch(s.name);
+    setSuggestions([]);
+    setSearchError('');
+  };
+
+  const lookupStudent = (e) => {
     e?.preventDefault();
     if (!studentSearch.trim()) return;
-    try {
-      const res = await getStudents();
-      const match = res?.data?.find(s => 
-        s.id.toLowerCase() === studentSearch.trim().toLowerCase() || 
-        s.name.toLowerCase().includes(studentSearch.trim().toLowerCase())
-      );
-      if (match) {
-        setFoundStudent(match);
-        setSearchError('');
-      } else {
-        setFoundStudent(null);
-        setSearchError('Student not found.');
-      }
-    } catch (err) {
-      setSearchError('Error contacting database.');
+    const q = studentSearch.trim().toLowerCase();
+    const match = allStudents.find(s =>
+      (s.id    && s.id.toLowerCase() === q) ||
+      (s.name  && s.name.toLowerCase().includes(q)) ||
+      (s.email && s.email.toLowerCase() === q) ||
+      (s.registerNo && s.registerNo.toLowerCase().includes(q)) ||
+      (s.idNumber   && s.idNumber.toLowerCase().includes(q))
+    );
+    if (match) {
+      setFoundStudent(match);
+      setSuggestions([]);
+      setSearchError('');
+    } else {
+      setFoundStudent(null);
+      setSuggestions([]);
+      setSearchError(allStudents.length === 0 ? 'Could not load students from database. Check connection.' : 'No student found with that name / ID / email.');
     }
   };
 
@@ -82,6 +136,8 @@ const Scholarships = () => {
     setIsModalOpen(false);
     setFoundStudent(null);
     setStudentSearch('');
+    setSuggestions([]);
+    setSearchError('');
     setForm({ type: 'Merit Scholarship', amount: '50%', status: 'Active' });
   };
 
@@ -216,22 +272,53 @@ const Scholarships = () => {
             <div className="p-5 space-y-5">
               {/* Student Lookup Section */}
               <div className="p-4 border border-[var(--border-color)] bg-[var(--bg-primary)] rounded-lg">
-                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">Student Verification</label>
-                <form onSubmit={lookupStudent} className="flex gap-2 mb-2">
-                  <input 
-                    type="text" 
-                    placeholder="Student ID / Name" 
-                    value={studentSearch} 
-                    onChange={e => setStudentSearch(e.target.value)}
-                    className="flex-1 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg px-3 py-1.5 outline-none focus:border-[#8b5cf6]"
-                  />
-                  <button type="submit" className="px-3 py-1.5 bg-[#8b5cf6] text-white rounded-lg text-sm font-medium hover:bg-purple-600 transition-colors">Find</button>
+                <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
+                  Student Verification
+                  {loadingStudents && <span style={{ color: '#8b5cf6', fontSize: '0.75rem', marginLeft: 8 }}>⏳ Loading students...</span>}
+                  {!loadingStudents && allStudents.length > 0 && <span style={{ color: '#10b981', fontSize: '0.75rem', marginLeft: 8 }}>✓ {allStudents.length} students loaded</span>}
+                </label>
+                <form onSubmit={lookupStudent} className="flex gap-2 mb-2" style={{ position: 'relative' }}>
+                  <div style={{ flex: 1, position: 'relative' }}>
+                    <input
+                      type="text"
+                      placeholder={loadingStudents ? "Loading students..." : "Type name, ID, email or register no..."}
+                      value={studentSearch}
+                      onChange={e => handleStudentSearchChange(e.target.value)}
+                      disabled={loadingStudents}
+                      style={{ width: '100%', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: 8, padding: '7px 12px', outline: 'none', fontSize: '0.9rem', boxSizing: 'border-box' }}
+                    />
+                    {/* Live suggestion dropdown */}
+                    {suggestions.length > 0 && (
+                      <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, zIndex: 100, background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: 8, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', marginTop: 4, overflow: 'hidden' }}>
+                        {suggestions.map((s, i) => (
+                          <div
+                            key={s.id || i}
+                            onClick={() => selectSuggestion(s)}
+                            style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: i < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none', transition: 'background 0.15s' }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(139,92,246,0.12)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                          >
+                            <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.88rem' }}>{s.name}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: 2 }}>
+                              ID: {s.id} &nbsp;|&nbsp; {s.dept || s.department || 'N/A'} &nbsp;|&nbsp; {s.sem || 'N/A'} &nbsp;|&nbsp; {s.email || ''}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                  <button type="submit" style={{ padding: '7px 14px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>Find</button>
                 </form>
-                {searchError && <p className="text-xs text-red-500 mt-1">{searchError}</p>}
+                {searchError && <p style={{ fontSize: '0.78rem', color: '#ef4444', marginTop: 4 }}>{searchError}</p>}
                 {foundStudent && (
-                  <div className="mt-3 p-2 bg-[#8b5cf6]/10 border border-[#8b5cf6]/30 rounded text-sm text-[var(--text-main)]">
-                    <CheckCircle2 size={14} className="text-[#8b5cf6] inline mr-1"/> 
-                    Verified: <strong>{foundStudent.name}</strong> ({foundStudent.id})
+                  <div style={{ marginTop: 10, padding: '10px 12px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
+                      <CheckCircle2 size={14} style={{ color: '#8b5cf6', flexShrink: 0 }} />
+                      <strong>Verified: {foundStudent.name}</strong>
+                    </div>
+                    <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', paddingLeft: 20 }}>
+                      ID: {foundStudent.id} &nbsp;·&nbsp; {foundStudent.dept || foundStudent.department || 'N/A'} &nbsp;·&nbsp; {foundStudent.sem || 'N/A'} &nbsp;·&nbsp; {foundStudent.email || ''}
+                    </div>
                   </div>
                 )}
               </div>
@@ -240,26 +327,26 @@ const Scholarships = () => {
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">Grant Type</label>
-                  <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg px-4 py-2 outline-none focus:border-[#8b5cf6]">
-                    {TYPES.map(t => <option key={t}>{t}</option>)}
+                  <select value={form.type} onChange={e => setForm({...form, type: e.target.value})} style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: 8, padding: '8px 12px', outline: 'none', fontSize: '0.9rem' }}>
+                    {TYPES.map(t => <option key={t} style={{ background: '#1e1e2e', color: '#e2e8f0' }}>{t}</option>)}
                   </select>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">Fee Waiver</label>
-                    <select value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg px-4 py-2 outline-none focus:border-[#8b5cf6]">
-                      <option>100%</option>
-                      <option>75%</option>
-                      <option>50%</option>
-                      <option>25%</option>
-                      <option>Fixed Amount</option>
+                    <select value={form.amount} onChange={e => setForm({...form, amount: e.target.value})} style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: 8, padding: '8px 12px', outline: 'none', fontSize: '0.9rem' }}>
+                      <option style={{ background: '#1e1e2e', color: '#e2e8f0' }}>100%</option>
+                      <option style={{ background: '#1e1e2e', color: '#e2e8f0' }}>75%</option>
+                      <option style={{ background: '#1e1e2e', color: '#e2e8f0' }}>50%</option>
+                      <option style={{ background: '#1e1e2e', color: '#e2e8f0' }}>25%</option>
+                      <option style={{ background: '#1e1e2e', color: '#e2e8f0' }}>Fixed Amount</option>
                     </select>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-[var(--text-muted)] mb-1">Initial Status</label>
-                    <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} className="w-full bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] rounded-lg px-4 py-2 outline-none focus:border-[#8b5cf6]">
-                      <option>Active</option>
-                      <option>Pending Approval</option>
+                    <select value={form.status} onChange={e => setForm({...form, status: e.target.value})} style={{ width: '100%', background: 'var(--bg-primary)', border: '1px solid var(--border-color)', color: 'var(--text-main)', borderRadius: 8, padding: '8px 12px', outline: 'none', fontSize: '0.9rem' }}>
+                      <option style={{ background: '#1e1e2e', color: '#e2e8f0' }}>Active</option>
+                      <option style={{ background: '#1e1e2e', color: '#e2e8f0' }}>Pending Approval</option>
                     </select>
                   </div>
                 </div>

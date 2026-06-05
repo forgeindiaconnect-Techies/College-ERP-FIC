@@ -137,7 +137,7 @@ const HodStudents = () => {
           year: s.year || deriveYearFromSem(semVal),
           section: s.section || 'A',
           attendance: s.attendance ? (String(s.attendance).includes('%') ? s.attendance : `${s.attendance}%`) : '90%',
-          cgpa: s.cgpa || 8.2,
+          cgpa: s.cgpa != null ? s.cgpa : 0,
           feeStatus: s.feeStatus || 'Paid',
           status: s.status || 'Active',
           deptCode: DEPT_CODE_MAP[s.dept || s.department] || s.deptCode || 'CSE',

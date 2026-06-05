@@ -1,61 +1,176 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Briefcase, TrendingUp, DollarSign, Award, Users, Search, CheckCircle, AlertCircle, Calendar } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
+import { getStudents, getPlacementJobs, getPlacementApplications, getPlacementSelections } from '../../api/index';
 import '../../pages/Dashboard.css';
-
-const placementStats = [
-  { year: '2022', placed: 420, offers: 550, avgPkg: 5.4, maxPkg: 28 },
-  { year: '2023', placed: 480, offers: 620, avgPkg: 5.8, maxPkg: 32 },
-  { year: '2024', placed: 510, offers: 700, avgPkg: 6.2, maxPkg: 36 },
-  { year: '2025', placed: 580, offers: 850, avgPkg: 6.5, maxPkg: 42 },
-  { year: '2026', placed: 650, offers: 980, avgPkg: 6.8, maxPkg: 45 },
-];
-
-const recruiterData = [
-  { company: 'Google', placed: 8, avgPkg: 32, maxPkg: 45, logoBg: '#ea4335' },
-  { company: 'Microsoft', placed: 12, avgPkg: 28, maxPkg: 40, logoBg: '#00a4ef' },
-  { company: 'Amazon', placed: 15, avgPkg: 24, maxPkg: 35, logoBg: '#ff9900' },
-  { company: 'TCS', placed: 140, avgPkg: 4.5, maxPkg: 9, logoBg: '#1f2937' },
-  { company: 'Infosys', placed: 120, avgPkg: 4.2, maxPkg: 8, logoBg: '#007cc3' },
-  { company: 'Cognizant', placed: 95, avgPkg: 4.0, maxPkg: 8.5, logoBg: '#0033a0' },
-];
-
-const deptPlacementData = [
-  { dept: 'CSE', total: 180, placed: 171, rate: 95, avgPkg: 8.2 },
-  { dept: 'ECE', total: 120, placed: 102, rate: 85, avgPkg: 6.5 },
-  { dept: 'EEE', total: 100, placed: 80, rate: 80, avgPkg: 5.8 },
-  { dept: 'MECH', total: 110, placed: 77, rate: 70, avgPkg: 5.2 },
-  { dept: 'BCA', total: 80, placed: 72, rate: 90, avgPkg: 5.5 },
-  { dept: 'MBA', total: 60, placed: 60, rate: 100, avgPkg: 7.8 },
-];
-
-const placedStudents = [
-  { id: 'CS2022001', name: 'John Doe', dept: 'CSE', company: 'Microsoft', pkg: 24, role: 'Software Engineer', status: 'Verified' },
-  { id: 'CS2021004', name: 'Emily Davis', dept: 'CSE', company: 'Google', pkg: 35, role: 'Associate PM', status: 'Verified' },
-  { id: 'EE2022001', name: 'Alice Smith', dept: 'EEE', company: 'Amazon', pkg: 18, role: 'Systems Engineer', status: 'Pending Verification' },
-  { id: 'EE2022002', name: 'Sarah Wilson', dept: 'EEE', company: 'TCS Digital', pkg: 7.5, role: 'Systems Engineer', status: 'Verified' },
-  { id: 'EC2022001', name: 'Vikram Seth', dept: 'ECE', company: 'Cognizant', pkg: 4.5, role: 'Programmer Analyst', status: 'Verified' },
-  { id: 'BC2022001', name: 'Karan Malhotra', dept: 'BCA', company: 'Infosys', pkg: 4.2, role: 'System Associate', status: 'Verified' },
-  { id: 'MB2022001', name: 'Ritu Sen', dept: 'MBA', company: 'Deloitte', pkg: 8.5, role: 'Consultant', status: 'Pending Verification' },
-];
-
-const upcomingDrives = [
-  { id: 'DR-01', company: 'Intel', date: '2026-06-05', eligibility: 'CGPA >= 8.0 (CSE/ECE)', type: 'On-Campus', status: 'Active' },
-  { id: 'DR-02', company: 'Salesforce', date: '2026-06-12', eligibility: 'CGPA >= 8.5 (All)', type: 'On-Campus', status: 'Active' },
-  { id: 'DR-03', company: 'Wipro', date: '2026-06-18', eligibility: 'CGPA >= 6.0 (All)', type: 'Pool-Campus', status: 'Pending' },
-];
 
 export default function PrincipalPlacements() {
   const [tab, setTab] = useState('overview');
   const [search, setSearch] = useState('');
   const [filterDept, setFilterDept] = useState('All');
+  
+  const [loading, setLoading] = useState(true);
+  const [students, setStudents] = useState([]);
+  const [jobs, setJobs] = useState([]);
+  const [applications, setApplications] = useState([]);
+  const [selections, setSelections] = useState([]);
 
-  const depts = ['All', 'CSE', 'ECE', 'EEE', 'MECH', 'BCA', 'MBA'];
+  useEffect(() => {
+    fetchData();
+  }, []);
 
-  const filteredStudents = placedStudents.filter(s =>
-    (filterDept === 'All' || s.dept === filterDept) &&
-    (s.name.toLowerCase().includes(search.toLowerCase()) || s.company.toLowerCase().includes(search.toLowerCase()))
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [studentsRes, jobsRes, appsRes, selRes] = await Promise.all([
+        getStudents(),
+        getPlacementJobs(),
+        getPlacementApplications(),
+        getPlacementSelections()
+      ]);
+      setStudents(studentsRes.data);
+      setJobs(jobsRes.data);
+      setApplications(appsRes.data);
+      setSelections(selRes.data);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const depts = ['All', ...new Set(students.map(s => s.dept).filter(Boolean))];
+
+  // Calculations
+  const totalStudents = students.length;
+  const appliedRegNos = [...new Set(applications.map(app => app.regNo))];
+  const appliedStudentsCount = appliedRegNos.length;
+  const selectedStudentsCount = selections.length;
+  const placementRate = totalStudents > 0 ? Math.round((selectedStudentsCount / totalStudents) * 100) : 0;
+
+  let highestPackage = 0;
+  let totalPackage = 0;
+  let packageCount = 0;
+  
+  selections.forEach(sel => {
+    const match = sel.ctc.match(/(\d+(\.\d+)?)/);
+    if (match) {
+      const val = parseFloat(match[1]);
+      if (val > highestPackage) highestPackage = val;
+      totalPackage += val;
+      packageCount++;
+    }
+  });
+  
+  const avgPackage = packageCount > 0 ? (totalPackage / packageCount).toFixed(2) : 0;
+
+  // Department-wise Report
+  const deptPlacementData = depts.filter(d => d !== 'All').map(dept => {
+    const deptStudents = students.filter(s => s.dept === dept);
+    const deptSelections = selections.filter(sel => deptStudents.some(s => s.id === sel.regNo || s.regNo === sel.regNo));
+    
+    let deptHighest = 0;
+    let deptTotalPkg = 0;
+    let deptPkgCount = 0;
+
+    deptSelections.forEach(sel => {
+      const match = sel.ctc.match(/(\d+(\.\d+)?)/);
+      if (match) {
+        const val = parseFloat(match[1]);
+        if (val > deptHighest) deptHighest = val;
+        deptTotalPkg += val;
+        deptPkgCount++;
+      }
+    });
+
+    return {
+      dept,
+      total: deptStudents.length,
+      placed: deptSelections.length,
+      rate: deptStudents.length > 0 ? Math.round((deptSelections.length / deptStudents.length) * 100) : 0,
+      avgPkg: deptPkgCount > 0 ? (deptTotalPkg / deptPkgCount).toFixed(2) : 0
+    };
+  });
+
+  // Dynamic Upcoming Drives
+  const upcomingDrives = jobs.map(j => ({
+    id: j._id || j.jobId,
+    company: j.company,
+    date: j.deadline ? new Date(j.deadline).toLocaleDateString() : 'TBD',
+    eligibility: `CGPA >= ${j.minCgpa || 0}`,
+    type: 'On-Campus',
+    status: 'Active'
+  }));
+
+  // Dynamic Recruiter Data
+  const recruiterStats = {};
+  selections.forEach(sel => {
+    const comp = sel.company || 'Unknown';
+    if (!recruiterStats[comp]) {
+      recruiterStats[comp] = { placed: 0, totalPkg: 0, maxPkg: 0, count: 0 };
+    }
+    recruiterStats[comp].placed += 1;
+    const match = sel.ctc ? sel.ctc.match(/(\d+(\.\d+)?)/) : null;
+    if (match) {
+      const val = parseFloat(match[1]);
+      recruiterStats[comp].totalPkg += val;
+      if (val > recruiterStats[comp].maxPkg) recruiterStats[comp].maxPkg = val;
+      recruiterStats[comp].count += 1;
+    }
+  });
+
+  const recruiterData = Object.keys(recruiterStats).map((comp, index) => {
+    const colors = ['#ea4335', '#00a4ef', '#ff9900', '#1f2937', '#007cc3', '#0033a0', '#3b82f6', '#10b981'];
+    return {
+      company: comp,
+      placed: recruiterStats[comp].placed,
+      avgPkg: recruiterStats[comp].count > 0 ? (recruiterStats[comp].totalPkg / recruiterStats[comp].count).toFixed(2) : 0,
+      maxPkg: recruiterStats[comp].maxPkg,
+      logoBg: colors[index % colors.length]
+    };
+  }).sort((a, b) => b.placed - a.placed);
+
+  // Dynamic Placement Stats (Yearly Trend)
+  // Grouping by year of selection date (or current year as fallback)
+  const statsByYear = {};
+  selections.forEach(sel => {
+    const year = sel.date ? new Date(sel.date).getFullYear().toString() : new Date().getFullYear().toString();
+    if (!statsByYear[year]) {
+      statsByYear[year] = { year, placed: 0, offers: 0, totalPkg: 0, maxPkg: 0, count: 0 };
+    }
+    statsByYear[year].placed += 1;
+    const match = sel.ctc ? sel.ctc.match(/(\d+(\.\d+)?)/) : null;
+    if (match) {
+      const val = parseFloat(match[1]);
+      statsByYear[year].totalPkg += val;
+      if (val > statsByYear[year].maxPkg) statsByYear[year].maxPkg = val;
+      statsByYear[year].count += 1;
+    }
+  });
+  
+  // Also count applications for "offers/applications" metric by year
+  applications.forEach(app => {
+    const year = app.createdAt ? new Date(app.createdAt).getFullYear().toString() : new Date().getFullYear().toString();
+    if (!statsByYear[year]) {
+      statsByYear[year] = { year, placed: 0, offers: 0, totalPkg: 0, maxPkg: 0, count: 0 };
+    }
+    statsByYear[year].offers += 1;
+  });
+
+  const placementStats = Object.values(statsByYear).map(s => ({
+    year: s.year,
+    placed: s.placed,
+    offers: s.offers,
+    avgPkg: s.count > 0 ? (s.totalPkg / s.count).toFixed(2) : 0,
+    maxPkg: s.maxPkg
+  })).sort((a, b) => a.year.localeCompare(b.year));
+
+  const filteredStudents = selections.filter(s =>
+    (filterDept === 'All' || students.find(st => st.id === s.regNo || st.regNo === s.regNo)?.dept === filterDept) &&
+    (s.student?.toLowerCase().includes(search.toLowerCase()) || s.company?.toLowerCase().includes(search.toLowerCase()))
   );
+
+  if (loading) return <div style={{ padding: '2rem' }}>Loading institutional placement data...</div>;
 
   return (
     <div className="main-content" style={{ padding: '2rem', background: 'var(--bg-primary)', minHeight: 'calc(100vh - 70px)' }}>
@@ -69,12 +184,12 @@ export default function PrincipalPlacements() {
       {/* Stats Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(165px,1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
         {[
-          { label: 'Overall Placed', value: '92%', icon: <CheckCircle size={18} />, color: '#10b981', sub: 'Placement Rate' },
-          { label: 'Highest Package', value: '45.0 LPA', icon: <DollarSign size={18} />, color: '#6366f1', sub: 'Offered by Google' },
-          { label: 'Average Package', value: '6.8 LPA', icon: <TrendingUp size={18} />, color: '#8b5cf6', sub: 'Term Avg Package' },
-          { label: 'Total Offers', value: '980 Offers', icon: <Award size={18} />, color: '#f59e0b', sub: 'Campus recruitment' },
-          { label: 'Students Placed', value: '650 Placed', icon: <Users size={18} />, color: '#0ea5e9', sub: 'Out of 706 registered' },
-          { label: 'Pending Audits', value: '2 Pending', icon: <AlertCircle size={18} />, color: '#ef4444', sub: 'Offer letters' },
+          { label: 'Overall Placed', value: `${placementRate}%`, icon: <CheckCircle size={18} />, color: '#10b981', sub: 'Placement Rate' },
+          { label: 'Highest Package', value: `${highestPackage} LPA`, icon: <DollarSign size={18} />, color: '#6366f1', sub: 'Institution Max' },
+          { label: 'Average Package', value: `${avgPackage} LPA`, icon: <TrendingUp size={18} />, color: '#8b5cf6', sub: 'Institution Avg' },
+          { label: 'Total Applications', value: applications.length, icon: <Award size={18} />, color: '#f59e0b', sub: 'Overall applied' },
+          { label: 'Students Placed', value: `${selectedStudentsCount} Placed`, icon: <Users size={18} />, color: '#0ea5e9', sub: `Out of ${totalStudents}` },
+          { label: 'Active Drives', value: jobs.length, icon: <Calendar size={18} />, color: '#ec4899', sub: 'Total drives' },
         ].map((s, i) => (
           <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>
             <div className="stat-icon-wrapper" style={{ background: s.color }}>{s.icon}</div>
@@ -180,7 +295,7 @@ export default function PrincipalPlacements() {
                       <span>Max: <strong>{r.maxPkg} LPA</strong></span>
                     </div>
                     <div style={{ height: 6, background: 'var(--border-color)', borderRadius: 3 }}>
-                      <div style={{ width: `${(r.maxPkg / 45) * 100}%`, height: '100%', background: r.logoBg, borderRadius: 3 }} />
+                      <div style={{ width: `${(r.maxPkg / (highestPackage || 1)) * 100}%`, height: '100%', background: r.logoBg, borderRadius: 3 }} />
                     </div>
                   </div>
                 </div>
@@ -213,21 +328,26 @@ export default function PrincipalPlacements() {
               <tbody>
                 {filteredStudents.length === 0 ? (
                   <tr><td colSpan={7} style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>No student records found matching the query.</td></tr>
-                ) : filteredStudents.map((s, i) => (
-                  <tr key={i}>
-                    <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.name}</td>
-                    <td style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3b82f6' }}>{s.dept}</td>
-                    <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.company}</td>
-                    <td style={{ fontWeight: 800, color: '#10b981', fontSize: '0.88rem' }}>{s.pkg} LPA</td>
-                    <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{s.role}</td>
-                    <td>
-                      <span style={{ background: s.status === 'Verified' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)', color: s.status === 'Verified' ? '#10b981' : '#f59e0b', padding: '3px 8px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700 }}>{s.status}</span>
-                    </td>
-                    <td>
-                      <button style={{ padding: '4px 8px', background: s.status === 'Verified' ? 'rgba(59,130,246,0.1)' : '#3b82f6', color: s.status === 'Verified' ? '#3b82f6' : 'white', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>{s.status === 'Verified' ? 'View Certificate' : 'Verify Offer'}</button>
-                    </td>
-                  </tr>
-                ))}
+                ) : filteredStudents.map((s, i) => {
+                  const matchedStudent = students.find(st => st.id === s.regNo || st.regNo === s.regNo);
+                  const dept = matchedStudent ? matchedStudent.dept : 'Unknown';
+                  
+                  return (
+                    <tr key={i}>
+                      <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.student} <br/><span style={{fontSize: '0.7rem', color: 'var(--text-muted)'}}>{s.regNo}</span></td>
+                      <td style={{ fontSize: '0.82rem', fontWeight: 600, color: '#3b82f6' }}>{dept}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.company}</td>
+                      <td style={{ fontWeight: 800, color: '#10b981', fontSize: '0.88rem' }}>{s.ctc}</td>
+                      <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{s.role}</td>
+                      <td>
+                        <span style={{ background: 'rgba(16,185,129,0.12)', color: '#10b981', padding: '3px 8px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700 }}>Verified</span>
+                      </td>
+                      <td>
+                        <button style={{ padding: '4px 8px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>View Certificate</button>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -72,7 +72,7 @@ router.get('/student/:studentId', protect, async (req, res) => {
 });
 
 // Record new fee transaction
-router.post('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Principal', 'Accounts', 'Student'), async (req, res) => {
   try {
     if (Array.isArray(req.body)) {
       const processed = req.body.map(processFeePayload);
@@ -97,7 +97,7 @@ router.post('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (re
 });
 
 // Update fee status (e.g. Pending -> Paid)
-router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts', 'Student'), async (req, res) => {
   try {
     const updatedFee = await Fee.findByIdAndUpdate(
       req.params.id, 

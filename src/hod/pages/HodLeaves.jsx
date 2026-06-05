@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, X, Search, Calendar, User, Clock, CheckCircle2, AlertCircle, FileText } from 'lucide-react';
+import { Check, X, Search, Calendar, User, Clock, CheckCircle2, AlertCircle, FileText, PlusCircle } from 'lucide-react';
 
 const getHodSession = () => {
   try { return JSON.parse(sessionStorage.getItem('hod_session')) || { dept: 'Computer Science', name: 'HOD' }; }
@@ -12,7 +12,7 @@ const DEFAULT_LEAVES = [
   { id:'LR003', name:'Alice Smith',    role:'Student', dept:'Computer Science', type:'Casual Leave',   startDate:'2026-05-15', endDate:'2026-05-16', reason:'Family function.',                            status:'Approved' },
 ];
 
-const TABS = ['Pending','Approved','Rejected'];
+const TABS = ['Pending', 'Approved', 'Rejected', 'My Leaves'];
 
 const ROLE_COLORS = { Student:'#3b82f6', Staff:'#8b5cf6' };
 
@@ -23,6 +23,8 @@ const HodLeaves = () => {
   const [leaves, setLeaves] = useState([]);
   const [tab, setTab] = useState('Pending');
   const [search, setSearch] = useState('');
+  const [showApplyModal, setShowApplyModal] = useState(false);
+  const [newLeave, setNewLeave] = useState({ type: 'Casual Leave', startDate: '', endDate: '', reason: '' });
 
   useEffect(() => {
     const saved = localStorage.getItem('erp_leave_requests');
@@ -48,21 +50,49 @@ const HodLeaves = () => {
     const name = l.name || l.staffName || '';
     const q = search.toLowerCase();
     const status = l.status || 'Pending';
-    return status === tab && (name.toLowerCase().includes(q) || (l.reason||'').toLowerCase().includes(q) || (l.type||'').toLowerCase().includes(q));
+    if (tab === 'My Leaves') {
+      return l.role === 'HOD' && l.name === hod.name && (name.toLowerCase().includes(q) || (l.reason||'').toLowerCase().includes(q) || (l.type||'').toLowerCase().includes(q));
+    }
+    return status === tab && l.role !== 'HOD' && (name.toLowerCase().includes(q) || (l.reason||'').toLowerCase().includes(q) || (l.type||'').toLowerCase().includes(q));
   });
+
+  const handleApplyLeave = (e) => {
+    e.preventDefault();
+    const newRequest = {
+      id: 'LR' + Math.floor(Math.random() * 10000),
+      name: hod.name,
+      role: 'HOD',
+      dept: DEPT,
+      ...newLeave,
+      status: 'Pending'
+    };
+    const saved = localStorage.getItem('erp_leave_requests');
+    const all = saved ? JSON.parse(saved) : DEFAULT_LEAVES;
+    const merged = [newRequest, ...all];
+    localStorage.setItem('erp_leave_requests', JSON.stringify(merged));
+    
+    // Update local state
+    setLeaves(merged.filter(l => (l.dept === DEPT) || (!l.dept && !l.role)));
+    setShowApplyModal(false);
+    setTab('My Leaves');
+    setNewLeave({ type: 'Casual Leave', startDate: '', endDate: '', reason: '' });
+  };
 
   return (
     <div className="animate-fade-in" style={{ padding:'1.5rem' }}>
-      <div className="page-header">
-        <div><h1>Leave Approvals — {DEPT}</h1><p className="text-muted">Review and approve leave requests from department students and staff.</p></div>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <div><h1>Leave Management — {DEPT}</h1><p className="text-muted">Review staff/student leaves and apply for your own leave.</p></div>
+        <button className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }} onClick={() => setShowApplyModal(true)}>
+          <PlusCircle size={16} /> Apply for Leave
+        </button>
       </div>
 
       <div className="sm-summary-row" style={{ marginTop:'1.5rem' }}>
-        {TABS.map(t => (
+        {['Pending','Approved','Rejected'].map(t => (
           <div key={t} className="sm-summary-card glass-card">
             <span className="sm-summary-label">{t}</span>
             <span className={`sm-summary-value ${t==='Approved'?'text-success':t==='Rejected'?'text-muted':'text-warning-c'}`}>
-              {leaves.filter(l=>(l.status||'Pending')===t).length} req.
+              {leaves.filter(l=>(l.status||'Pending')===t && l.role !== 'HOD').length} req.
             </span>
           </div>
         ))}
@@ -70,11 +100,16 @@ const HodLeaves = () => {
 
       {/* Tab strip */}
       <div style={{ display:'flex', gap:'1rem', margin:'1.5rem 0 0', borderBottom:'1px solid var(--border-color)', paddingBottom:'0.5rem' }}>
-        {TABS.map(t => (
-          <button key={t} onClick={()=>setTab(t)} style={{ background:'none', border:'none', fontWeight:600, fontSize:'0.9rem', padding:'0.5rem 1rem', cursor:'pointer', color: tab===t ? 'var(--primary)' : 'var(--text-muted)', borderBottom: tab===t ? '2px solid var(--primary)' : '2px solid transparent' }}>
-            {t} ({leaves.filter(l=>(l.status||'Pending')===t).length})
-          </button>
-        ))}
+        {TABS.map(t => {
+          const count = t === 'My Leaves' 
+            ? leaves.filter(l => l.role === 'HOD' && l.name === hod.name).length 
+            : leaves.filter(l => (l.status||'Pending')===t && l.role !== 'HOD').length;
+          return (
+            <button key={t} onClick={()=>setTab(t)} style={{ background:'none', border:'none', fontWeight:600, fontSize:'0.9rem', padding:'0.5rem 1rem', cursor:'pointer', color: tab===t ? 'var(--primary)' : 'var(--text-muted)', borderBottom: tab===t ? '2px solid var(--primary)' : '2px solid transparent' }}>
+              {t} ({count})
+            </button>
+          );
+        })}
       </div>
 
       <div className="glass-card table-wrapper" style={{ marginTop:'1rem' }}>
@@ -124,6 +159,49 @@ const HodLeaves = () => {
           </table>
         </div>
       </div>
+
+      {showApplyModal && (
+        <div className="modal-overlay" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="modal-content glass-card" style={{ width: '100%', maxWidth: '500px', padding: '2rem', borderRadius: '12px', background: 'var(--bg-main)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.25rem', fontWeight: 'bold' }}>Apply for Leave</h2>
+              <button onClick={() => setShowApplyModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={20} /></button>
+            </div>
+            <form onSubmit={handleApplyLeave}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Leave Type</label>
+                <select 
+                  value={newLeave.type} 
+                  onChange={e => setNewLeave({...newLeave, type: e.target.value})}
+                  style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)' }}
+                >
+                  <option>Casual Leave</option>
+                  <option>Medical Leave</option>
+                  <option>On Duty (OD)</option>
+                </select>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Start Date</label>
+                  <input type="date" required value={newLeave.startDate} onChange={e => setNewLeave({...newLeave, startDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>End Date</label>
+                  <input type="date" required value={newLeave.endDate} onChange={e => setNewLeave({...newLeave, endDate: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)' }} />
+                </div>
+              </div>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, marginBottom: '0.5rem', color: 'var(--text-muted)' }}>Reason</label>
+                <textarea required rows="3" value={newLeave.reason} onChange={e => setNewLeave({...newLeave, reason: e.target.value})} style={{ width: '100%', padding: '0.75rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)' }} placeholder="State your reason clearly for the Principal to review..."></textarea>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setShowApplyModal(false)} className="btn-secondary" style={{ padding: '0.75rem 1.5rem' }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ padding: '0.75rem 1.5rem' }}>Submit Request</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

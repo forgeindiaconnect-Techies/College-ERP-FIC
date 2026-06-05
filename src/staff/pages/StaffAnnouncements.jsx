@@ -22,11 +22,15 @@ const StaffAnnouncements = () => {
     const saved = localStorage.getItem('erp_announcements');
     let allAnns = saved ? JSON.parse(saved) : DEFAULT_ANNOUNCEMENTS;
     
-    // Filter for Staff: 'All Departments', 'Only Staff', and their specific department (if applicable)
-    // For now, we will show All Departments and Only Staff.
+    // Filter for Staff: 'All', 'All Roles', 'All Departments', and 'Staff'
     const staffAnns = allAnns
-      .map(a => ({ ...a, targetAudience: a.targetAudience || 'All Departments' }))
-      .filter(a => a.targetAudience === 'All Departments' || a.targetAudience.includes('Staff'));
+      .map(a => ({ ...a, targetAudience: a.targetAudience || 'All' }))
+      .filter(a => 
+        a.targetAudience === 'All' || 
+        a.targetAudience === 'All Roles' || 
+        a.targetAudience === 'All Departments' || 
+        a.targetAudience.includes('Staff')
+      );
     
     setAnnouncements(staffAnns);
     setLoading(false);

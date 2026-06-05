@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useRealtimeSync from '../hooks/useRealtimeSync';
 import { 
   Users, 
   GraduationCap, 
@@ -64,55 +65,51 @@ const Dashboard = () => {
   const [leavesCount, setLeavesCount] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // Session Verification
-    const session = sessionStorage.getItem('admin_session');
-    if (!session) {
-      navigate('/login');
-      return;
-    }
+  const fetchAllData = useCallback(async () => {
+    try {
+      setLoading(true);
+      const [studentsRes, staffRes, deptsRes, feesRes] = await Promise.all([
+        getStudents().catch(() => ({ data: [] })),
+        getStaff().catch(() => ({ data: [] })),
+        getDepartments().catch(() => ({ data: [] })),
+        getAllFees().catch(() => ({ data: [] }))
+      ]);
 
-    const fetchAllData = async () => {
-      try {
-        setLoading(true);
-        const [studentsRes, staffRes, deptsRes, feesRes] = await Promise.all([
-          getStudents().catch(() => ({ data: [] })),
-          getStaff().catch(() => ({ data: [] })),
-          getDepartments().catch(() => ({ data: [] })),
-          getAllFees().catch(() => ({ data: [] }))
-        ]);
+      const sData = studentsRes?.data || [];
+      const fData = staffRes?.data || [];
+      const dData = deptsRes?.data || [];
+      const feesData = feesRes?.data || [];
 
-        const sData = studentsRes?.data || [];
-        const fData = staffRes?.data || [];
-        const dData = deptsRes?.data || [];
-        const feesData = feesRes?.data || [];
+      setStudents(sData);
+      setStaff(fData);
+      setDepts(dData);
+      setFees(feesData);
 
-        setStudents(sData);
-        setStaff(fData);
-        setDepts(dData);
-        setFees(feesData);
+      const hodsList = fData.filter(s => s.designation === 'HOD' || s.role === 'HOD' || s.email?.includes('hod'));
+      setHods(hodsList.length > 0 ? hodsList : dData.filter(d => d.hod));
 
-        // Compute HOD count dynamically
-        const hodsList = fData.filter(s => s.designation === 'HOD' || s.role === 'HOD' || s.email?.includes('hod'));
-        setHods(hodsList.length > 0 ? hodsList : dData.filter(d => d.hod));
-
-        // Read leaves count
-        const savedLeaves = localStorage.getItem('erp_leave_requests');
-        if (savedLeaves) {
-          const lData = JSON.parse(savedLeaves);
-          setLeavesCount(lData.filter(l => l.status === 'Pending').length);
-        } else {
-          setLeavesCount(1);
-        }
-      } catch (err) {
-        console.error('Error fetching dashboard stats:', err);
-      } finally {
-        setLoading(false);
+      const savedLeaves = localStorage.getItem('erp_leave_requests');
+      if (savedLeaves) {
+        const lData = JSON.parse(savedLeaves);
+        setLeavesCount(lData.filter(l => l.status === 'Pending').length);
+      } else {
+        setLeavesCount(1);
       }
-    };
+    } catch (err) {
+      console.error('Error fetching dashboard stats:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
+  // Real-time sync: re-fetch when Accounts / any module emits dataUpdated
+  useRealtimeSync(fetchAllData, ['fees', 'salaries', 'students', 'staff', 'expenses']);
+
+  useEffect(() => {
+    const session = sessionStorage.getItem('admin_session');
+    if (!session) { navigate('/login'); return; }
     fetchAllData();
-  }, [navigate]);
+  }, [navigate, fetchAllData]);
 
   // Aggregate Metrics Calculations
   const totalStudentsCount = students.length;
@@ -159,7 +156,11 @@ const Dashboard = () => {
           <h1>Super Admin Console</h1>
           <p className="text-muted">Unrestricted global access. Manage all departments, users, and configurations globally.</p>
         </div>
-        <div className="header-actions">
+        <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, color: '#10b981' }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 0 2px rgba(16,185,129,0.3)', animation: 'pulse 2s infinite' }} />
+            Live Sync
+          </div>
           <button className="btn-primary" onClick={() => navigate('/admin/reports')}>
             <FileText size={18} />
             System Reports

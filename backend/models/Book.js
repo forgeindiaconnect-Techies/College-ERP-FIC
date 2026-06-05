@@ -2,13 +2,17 @@ import mongoose from 'mongoose';
 
 const bookSchema = new mongoose.Schema({
   bookId: { type: String, required: true, unique: true },
-  isbn: { type: String, required: true },
+  isbn: { type: String },
   title: { type: String, required: true },
   author: { type: String, required: true },
   category: { type: String, required: true },
-  copies: { type: Number, required: true, default: 1 },
-  available: { type: Number, required: true, default: 1 },
-  shelfLocation: { type: String, default: 'General Stack' }
+  department: { type: String, required: true },
+  totalCopies: { type: Number, required: true, default: 1 },
+  availableCopies: { type: Number, required: true, default: 1 },
+  rackNumber: { type: String },
+  status: { type: String, enum: ['Available', 'Out of Stock'], default: 'Available' }
 }, { timestamps: true });
 
-export default mongoose.model('Book', bookSchema);
+const Book = mongoose.model('Book', bookSchema);
+
+export default Book;

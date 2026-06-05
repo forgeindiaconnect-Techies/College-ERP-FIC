@@ -4,6 +4,7 @@ import Mark from '../models/Mark.js';
 import Attendance from '../models/Attendance.js';
 import Fee from '../models/Fee.js';
 import Department from '../models/Department.js';
+import ActivityLog from '../models/ActivityLog.js';
 import { protect, authorize, requirePermission } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -154,6 +155,23 @@ router.get('/departments', async (req, res) => {
     }));
 
     res.json(reportData);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Activity Logs Report — scoped for HOD (department only), Sub Admin (no System Settings), Admin (all)
+router.get('/activity-logs', async (req, res) => {
+  try {
+    let query = {};
+    if (req.user.role === 'HOD') {
+      query = { $or: [{ dept: req.user.department }, { role: 'HOD', userName: req.user.name }] };
+    } else if (req.user.role === 'Sub Admin') {
+      query = { role: { $ne: 'Super Admin' }, moduleName: { $ne: 'System Settings' } };
+    }
+    
+    const logs = await ActivityLog.find(query).sort({ createdAt: -1 }).limit(100);
+    res.json(logs);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

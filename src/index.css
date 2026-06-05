@@ -146,6 +146,38 @@ input, select {
   box-shadow: var(--shadow-glow);
 }
 
+.btn-ghost {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border-color);
+  color: var(--text-muted);
+  transition: var(--transition);
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn-ghost:hover {
+  background: var(--bg-primary);
+  color: var(--text-main);
+}
+
+.btn-secondary {
+  background: rgba(79, 70, 229, 0.1);
+  color: var(--primary);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.btn-secondary:hover {
+  background: rgba(79, 70, 229, 0.2);
+}
+
 .table-container {
   width: 100%;
   overflow-x: auto;

@@ -17,113 +17,6 @@ const CHART_DATA = [
   { month: 'Nov', riders: 425 }, { month: 'Dec', riders: 440 },
 ];
 
-const INITIAL_BUSES = [
-  { id: 'TN-01-AB-1234', route: 'City Center Express', status: 'On Time', color: '#4f46e5', pos: { top: 30, left: 25 }, dir: { dt: 0.08, dl: 0.12 }, eta: '8 min', passengers: 35 },
-  { id: 'TN-02-XY-9876', route: 'North Suburb Route',  status: 'Delayed',  color: '#f59e0b', pos: { top: 55, left: 60 }, dir: { dt: -0.05, dl: 0.10 }, eta: '14 min', passengers: 40 },
-  { id: 'TN-05-MN-5566', route: 'South Colony Direct', status: 'On Time', color: '#10b981', pos: { top: 70, left: 15 }, dir: { dt: -0.10, dl: 0.08 }, eta: '3 min', passengers: 12 },
-];
-
-const LiveBusTracking = ({ routes }) => {
-  const [buses, setBuses] = useState(INITIAL_BUSES);
-  const [selectedBus, setSelectedBus] = useState(null);
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setBuses(prev => prev.map(b => {
-        let newTop = b.pos.top + b.dir.dt;
-        let newLeft = b.pos.left + b.dir.dl;
-        let newDt = b.dir.dt;
-        let newDl = b.dir.dl;
-        // Bounce off walls
-        if (newTop < 5 || newTop > 88) newDt = -newDt;
-        if (newLeft < 5 || newLeft > 88) newDl = -newDl;
-        return { ...b, pos: { top: newTop, left: newLeft }, dir: { dt: newDt, dl: newDl } };
-      }));
-      setTick(t => t + 1);
-    }, 1500);
-    return () => clearInterval(interval);
-  }, []);
-
-  const statusColor = (s) => s === 'On Time' ? '#10b981' : s === 'Delayed' ? '#f59e0b' : '#ef4444';
-
-  return (
-    <div className="animate-fade-in">
-      <div className="flex justify-between items-center mb-4">
-        <div>
-          <h2 className="text-xl font-bold flex items-center gap-2">
-            <span className="live-dot"></span> Live Fleet GPS Tracker
-          </h2>
-          <p className="text-sm text-muted">Real-time bus positions update every 1.5 seconds</p>
-        </div>
-        <div className="flex gap-3 text-xs">
-          <span className="flex items-center gap-1"><span style={{background:'#10b981'}} className="w-3 h-3 rounded-full inline-block"></span>On Time</span>
-          <span className="flex items-center gap-1"><span style={{background:'#f59e0b'}} className="w-3 h-3 rounded-full inline-block"></span>Delayed</span>
-          <span className="flex items-center gap-1"><span style={{background:'#ef4444'}} className="w-3 h-3 rounded-full inline-block"></span>Stopped</span>
-        </div>
-      </div>
-
-      <div className="gps-layout">
-        {/* Map */}
-        <div className="glass-card gps-map-card">
-          <div className="map-container relative">
-            {/* Grid lines */}
-            <div className="absolute inset-0" style={{backgroundImage:'linear-gradient(var(--border-color) 1px,transparent 1px),linear-gradient(90deg,var(--border-color) 1px,transparent 1px)', backgroundSize:'10% 10%', opacity: 0.4}}></div>
-            {/* Roads simulation */}
-            <div className="absolute" style={{top:'50%',left:0,right:0,height:'2px',background:'var(--border-color)',opacity:0.6}}></div>
-            <div className="absolute" style={{left:'50%',top:0,bottom:0,width:'2px',background:'var(--border-color)',opacity:0.6}}></div>
-            <div className="absolute" style={{top:'25%',left:0,right:0,height:'1px',background:'var(--border-color)',opacity:0.4}}></div>
-            <div className="absolute" style={{top:'75%',left:0,right:0,height:'1px',background:'var(--border-color)',opacity:0.4}}></div>
-            {/* College Pin */}
-            <div className="absolute" style={{top:'48%',left:'48%',zIndex:10}}>
-              <div className="college-pin">🏫</div>
-            </div>
-            {/* Animated Bus Markers */}
-            {buses.map(bus => (
-              <div
-                key={bus.id}
-                className="animated-bus-marker"
-                style={{ top: `${bus.pos.top}%`, left: `${bus.pos.left}%`, background: bus.color, boxShadow: selectedBus?.id === bus.id ? `0 0 0 4px ${bus.color}55` : 'none' }}
-                onClick={() => setSelectedBus(selectedBus?.id === bus.id ? null : bus)}
-                title={bus.id}
-              >
-                <Bus size={14} />
-                <span className="bus-pulse" style={{background: bus.color}}></span>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Side Panel */}
-        <div className="gps-side-panel">
-          {buses.map(bus => (
-            <div
-              key={bus.id}
-              className={`glass-card gps-bus-card ${selectedBus?.id === bus.id ? 'selected' : ''}`}
-              onClick={() => setSelectedBus(selectedBus?.id === bus.id ? null : bus)}
-              style={{ borderLeft: `4px solid ${bus.color}` }}
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <p className="font-bold text-sm">{bus.id}</p>
-                  <p className="text-xs text-muted">{bus.route}</p>
-                </div>
-                <span className="text-xs font-bold px-2 py-1 rounded" style={{background:`${statusColor(bus.status)}22`, color: statusColor(bus.status)}}>
-                  {bus.status}
-                </span>
-              </div>
-              <div className="flex gap-4 mt-2 text-xs text-muted">
-                <span>👥 {bus.passengers} riders</span>
-                <span>⏱ ETA: {bus.eta}</span>
-                <span>📍 {bus.pos.top.toFixed(1)}°N, {bus.pos.left.toFixed(1)}°E</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-};
 
 
 const TransportManagement = () => {
@@ -161,7 +54,6 @@ const TransportManagement = () => {
     { name: 'Routes & Vehicles', icon: <Navigation size={18} /> },
     { name: 'Drivers', icon: <UserCheck size={18} /> },
     { name: 'Student Allocation', icon: <Users size={18} /> },
-    { name: 'GPS Tracking', icon: <Map size={18} /> },
     { name: 'Reports', icon: <FileText size={18} /> }
   ];
 
@@ -361,9 +253,7 @@ const TransportManagement = () => {
         </div>
       )}
 
-      {activeTab === 'GPS Tracking' && (
-        <LiveBusTracking routes={routes} />
-      )}
+
 
       {activeTab === 'Reports' && (
         <div className="animate-fade-in glass-card p-12 flex flex-col items-center text-center">

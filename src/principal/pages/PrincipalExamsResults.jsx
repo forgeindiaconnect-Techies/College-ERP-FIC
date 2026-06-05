@@ -40,16 +40,13 @@ const gradeData = [
   { name: 'Failed', value: 3, color: '#ef4444' },
 ];
 
-const failedStudents = [
-  { name: 'Robert Johnson', dept: 'MECH', subject: 'Engineering Math', marks: 32, maxMarks: 100, sem: 'Sem 2', arrears: 1 },
-  { name: 'Neha Gupta', dept: 'ECE', subject: 'Analog Circuits', marks: 38, maxMarks: 100, sem: 'Sem 6', arrears: 1 },
-  { name: 'David Lee', dept: 'CSE', subject: 'Computer Networks', marks: 42, maxMarks: 100, sem: 'Sem 3', arrears: 1 },
-];
+
 
 export default function PrincipalExamsResults() {
   const [tab, setTab] = useState('schedule');
   const [exams, setExams] = useState([]);
-  const [arrearList, setArrearList] = useState(failedStudents);
+  const [arrearList, setArrearList] = useState([]);
+  const [loadingArrears, setLoadingArrears] = useState(true);
 
   useEffect(() => {
     // 1. Fetch dynamic exams
@@ -65,30 +62,54 @@ export default function PrincipalExamsResults() {
         setExams(upcomingExams);
       });
 
-    // 2. Fetch arrears results
+    // 2. Fetch arrears from real marks data
+    setLoadingArrears(true);
     getAllMarks()
       .then(res => res.data)
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
-          // Process failed arrears
-          const arrears = data
-            .filter(r => r.grade === 'F' || r.marks < 40)
-            .map(r => ({
-              name: r.studentName || 'Student',
-              dept: r.dept || r.department || 'CSE',
-              subject: r.subject || 'Core Engineering',
-              marks: r.marks || 35,
-              maxMarks: 100,
-              sem: r.semester || 'Sem 4',
-              arrears: 1
-            }));
-          if (arrears.length > 0) {
-            setArrearList(arrears);
-          }
+          // Filter records where student has arrear (grade=U or arrearStatus=Arrear or totalMarks below passing threshold)
+          const arrearRecords = data.filter(r =>
+            r.arrearStatus === 'Arrear' ||
+            r.grade === 'U' ||
+            r.grade === 'F' ||
+            (typeof r.totalMarks === 'number' && r.totalMarks < 75)
+          );
+
+          // Group by student so we can count how many arrears each student has
+          const studentMap = {};
+          arrearRecords.forEach(r => {
+            const key = r.studentId || r.studentName || r._id;
+            if (!studentMap[key]) {
+              studentMap[key] = {
+                name: r.studentName || 'Unknown Student',
+                dept: r.department || r.dept || 'N/A',
+                subject: r.subject || 'N/A',
+                marks: typeof r.totalMarks === 'number' ? r.totalMarks : (r.internalMarks || 0) + (r.semesterMarks || 0),
+                maxMarks: 150,
+                sem: r.semester || 'N/A',
+                arrears: 1,
+                studentId: r.studentId
+              };
+            } else {
+              // Accumulate arrear count; keep the first failing subject info
+              studentMap[key].arrears += 1;
+            }
+          });
+
+          const grouped = Object.values(studentMap);
+          setArrearList(grouped);
+        } else {
+          // No marks data at all — show empty
+          setArrearList([]);
         }
       })
       .catch(err => {
-        console.warn('API /api/results offline. Loading security exam ledger.', err);
+        console.warn('Could not fetch marks from backend:', err);
+        setArrearList([]);
+      })
+      .finally(() => {
+        setLoadingArrears(false);
       });
   }, []);
 
@@ -250,36 +271,49 @@ export default function PrincipalExamsResults() {
       {tab === 'failed' && (
         <div className="glass-card animate-fade-in" style={{ padding: '1.5rem', borderRadius: 16 }}>
           <h4 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem', marginBottom: '1rem' }}>⚠️ Students with Active Arrears</h4>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr><th>Student Name</th><th>Department</th><th>Subject</th><th>Semester</th><th>Marks Obtained</th><th>Arrears</th><th>Action</th></tr>
-              </thead>
-              <tbody>
-                {arrearList.map((s, i) => (
-                  <tr key={i}>
-                    <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.name}</td>
-                    <td><span style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: '2px 7px', borderRadius: 5, fontSize: '0.72rem', fontWeight: 700 }}>{s.dept}</span></td>
-                    <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{s.subject}</td>
-                    <td style={{ fontSize: '0.82rem' }}>{s.sem}</td>
-                    <td>
-                      <span style={{ fontWeight: 800, color: '#ef4444', fontSize: '0.9rem' }}>{s.marks}</span>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>/{s.maxMarks}</span>
-                    </td>
-                    <td>
-                      <span style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', padding: '2px 8px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 700 }}>{s.arrears} Arrear</span>
-                    </td>
-                    <td>
-                      <div style={{ display: 'flex', gap: 6 }}>
-                        <button style={{ padding: '4px 8px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>Notify</button>
-                        <button style={{ padding: '4px 8px', background: 'rgba(16,185,129,0.1)', color: '#10b981', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>Counsel</button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+
+          {loadingArrears ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              ⏳ Loading arrear data from database...
+            </div>
+          ) : arrearList.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)' }}>
+              <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>✅</div>
+              <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem', marginBottom: '0.3rem' }}>No Active Arrears Found</div>
+              <div style={{ fontSize: '0.82rem' }}>All students have passed their exams. Marks may not have been uploaded yet.</div>
+            </div>
+          ) : (
+            <div className="table-container">
+              <table>
+                <thead>
+                  <tr><th>Student Name</th><th>Department</th><th>Subject</th><th>Semester</th><th>Marks Obtained</th><th>Arrears</th><th>Action</th></tr>
+                </thead>
+                <tbody>
+                  {arrearList.map((s, i) => (
+                    <tr key={i}>
+                      <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.name}</td>
+                      <td><span style={{ background: 'rgba(239,68,68,0.1)', color: '#ef4444', padding: '2px 7px', borderRadius: 5, fontSize: '0.72rem', fontWeight: 700 }}>{s.dept}</span></td>
+                      <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{s.subject}</td>
+                      <td style={{ fontSize: '0.82rem' }}>{s.sem}</td>
+                      <td>
+                        <span style={{ fontWeight: 800, color: '#ef4444', fontSize: '0.9rem' }}>{s.marks}</span>
+                        <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>/{s.maxMarks}</span>
+                      </td>
+                      <td>
+                        <span style={{ background: 'rgba(239,68,68,0.12)', color: '#ef4444', padding: '2px 8px', borderRadius: 6, fontSize: '0.75rem', fontWeight: 700 }}>{s.arrears} {s.arrears > 1 ? 'Arrears' : 'Arrear'}</span>
+                      </td>
+                      <td>
+                        <div style={{ display: 'flex', gap: 6 }}>
+                          <button style={{ padding: '4px 8px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>Notify</button>
+                          <button style={{ padding: '4px 8px', background: 'rgba(16,185,129,0.1)', color: '#10b981', border: 'none', borderRadius: 5, fontSize: '0.7rem', fontWeight: 700, cursor: 'pointer' }}>Counsel</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
     </div>

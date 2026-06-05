@@ -7,7 +7,7 @@ import {
 } from 'recharts';
 import {
   ClipboardList, AlertCircle, BookOpen, Bell,
-  Percent, Calendar, ShieldAlert
+  Percent, Calendar, ShieldAlert, Building
 } from 'lucide-react';
 import { 
   getStudentById, getFeesByStudent, getMarksByStudent, getExams
@@ -33,10 +33,17 @@ const ParentDashboard = () => {
       setParentSession(parsedSession);
 
       try {
+        let studentId = parsedSession.childId || parsedSession.referenceId || parsedSession.parentOf;
+        if (studentId && studentId.length === 24 && /^[0-9a-fA-F]{24}$/.test(studentId)) {
+          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const match = erpStudents.find(s => s._id === studentId || s.id === studentId);
+          if (match && match.id) studentId = match.id;
+        }
+
         const [studentRes, feesRes, marksRes, examsRes] = await Promise.all([
-          getStudentById(parsedSession.childId).catch(() => null),
-          getFeesByStudent(parsedSession.childId).catch(() => null),
-          getMarksByStudent(parsedSession.childId).catch(() => null),
+          getStudentById(studentId).catch(() => null),
+          getFeesByStudent(studentId).catch(() => null),
+          getMarksByStudent(studentId).catch(() => null),
           getExams().catch(() => ({ data: [] }))
         ]);
 
@@ -115,6 +122,7 @@ const ParentDashboard = () => {
   ];
 
   const assignmentsCount = 3; // Mock data since it's not currently fetched from API
+  const isHosteler = childDetails.hostelRequired?.toLowerCase() === 'yes' || childDetails.hostelerStatus === 'Hosteler';
 
   return (
     <div className="parent-dashboard animate-fade-in">
@@ -190,6 +198,23 @@ const ParentDashboard = () => {
             <div className="metric-sub-p text-muted">All clear</div>
           </div>
         </div>
+
+        {isHosteler && (
+          <div className="glass-card p-metric-card">
+            <div className="metric-icon-p" style={{ background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>
+              <Building size={22} />
+            </div>
+            <div className="p-metric-details">
+              <span className="card-title-p">Hostel Accommodation</span>
+              <h2 className="metric-value-p text-sm mt-1">{childDetails.hostelName || 'Hostel Allocated'}</h2>
+              <div className="metric-sub-p text-muted" style={{ lineHeight: '1.4' }}>
+                Room: <strong>{childDetails.roomNumber || 'Pending'}</strong> <br/>
+                Warden: {childDetails.wardenName || 'N/A'} <br/>
+                Contact: {childDetails.wardenContact || 'N/A'}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Analytics Charts Grid */}

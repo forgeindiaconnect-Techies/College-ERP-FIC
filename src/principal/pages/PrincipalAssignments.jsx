@@ -46,13 +46,24 @@ const PrincipalAssignments = () => {
       return;
     }
 
-    // 2. Load assignments
-    const savedAssignments = localStorage.getItem('erp_assignments');
-    if (savedAssignments) {
-      setAssignments(JSON.parse(savedAssignments));
-    }
+    // 2. Load assignments from backend API
+    const loadData = async () => {
+      try {
+        const res = await getAssignments();
+        setAssignments(res.data || []);
+      } catch (err) {
+        console.error('Failed to load assignments', err);
+        // Fallback to local storage if API fails completely
+        const savedAssignments = localStorage.getItem('erp_assignments');
+        if (savedAssignments) {
+          setAssignments(JSON.parse(savedAssignments));
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
     
-    setLoading(false);
+    loadData();
   }, [navigate]);
 
   const departments = ['All Departments', ...new Set(assignments.map(a => a.department).filter(Boolean))];

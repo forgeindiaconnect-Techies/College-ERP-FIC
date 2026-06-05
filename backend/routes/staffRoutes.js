@@ -5,6 +5,7 @@ import User from '../models/User.js';
 import Approval from '../models/Approval.js';
 import Notification from '../models/Notification.js';
 import bcrypt from 'bcryptjs';
+import ActivityLog from '../models/ActivityLog.js';
 
 const router = express.Router();
 
@@ -93,6 +94,18 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), r
     }
 
     req.app.get('io').emit('dataUpdated', { module: 'staff', action: 'created' });
+
+    // Activity Log
+    ActivityLog.create({
+      userId: req.user._id,
+      userName: req.user.name,
+      role: req.user.role,
+      action: `Added new staff: ${newStaff.name} (${newStaff.id})`,
+      moduleName: 'Staff Management',
+      dept: req.user.department || 'System',
+      ip: req.ip || req.connection.remoteAddress
+    }).catch(e => console.error(e));
+
     res.status(201).json(newStaff);
   } catch (err) {
     res.status(400).json({ message: err.message });

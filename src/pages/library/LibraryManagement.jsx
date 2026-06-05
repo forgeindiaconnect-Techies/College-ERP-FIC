@@ -4,7 +4,7 @@ import {
   AlertCircle, X, Eye, FileText, Download, QrCode, 
   Library, Clock, ArrowRightLeft, Bell, TrendingUp
 } from 'lucide-react';
-import { getLibraryBooks, getLibraryIssues, returnLibraryBook, issueLibraryBook } from '../../api/index';
+import { getLibraryBooks, getAllLibraryTransactions, returnLibraryBook, issueLibraryBook, manualIssueLibraryBook, rejectLibraryRequest, getStudents } from '../../api/index';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line, Legend
@@ -42,6 +42,7 @@ const LibraryManagement = () => {
   const [issueFormData, setIssueFormData] = useState({ studentName: '', regNo: '', dueDate: '' });
   const [books, setBooks] = useState([]);
   const [issues, setIssues] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -51,12 +52,14 @@ const LibraryManagement = () => {
   const fetchLibraryData = async () => {
     try {
       setLoading(true);
-      const [booksRes, issuesRes] = await Promise.all([
+      const [booksRes, txRes, studentsRes] = await Promise.all([
         getLibraryBooks(),
-        getLibraryIssues()
+        getAllLibraryTransactions(),
+        getStudents()
       ]);
       setBooks(booksRes.data);
-      setIssues(issuesRes.data);
+      setIssues(txRes.data || []);
+      setStudents(studentsRes.data || []);
     } catch (error) {
       console.error('Failed to load library data', error);
     } finally {
@@ -76,25 +79,45 @@ const LibraryManagement = () => {
 
   const handleOpenIssueModal = (book) => {
     setSelectedBookToIssue(book);
-    setIssueFormData({ studentName: '', regNo: '', dueDate: '' });
+    setIssueFormData({ bookId: book ? book._id : '', studentName: '', regNo: '', dueDate: '' });
     setShowIssueModal(true);
   };
 
   const handleIssueSubmit = async (e) => {
     e.preventDefault();
     try {
-      await issueLibraryBook({
-        bookId: selectedBookToIssue.bookId,
-        studentName: issueFormData.studentName,
-        regNo: issueFormData.regNo,
+      await manualIssueLibraryBook({
+        bookId: issueFormData.bookId || selectedBookToIssue?._id,
+        userId: issueFormData.regNo,
+        userType: 'Student', // hardcode or add to form if needed
         dueDate: issueFormData.dueDate
       });
-      alert('Successfully issued book!');
+      alert('Successfully issued book directly!');
       setShowIssueModal(false);
       fetchLibraryData();
       setActiveTab('Issue & Return');
     } catch (err) {
       alert(err.response?.data?.message || 'Failed to issue book');
+    }
+  };
+
+  const handleIssueRequest = async (transactionId) => {
+    try {
+      await issueLibraryBook(transactionId);
+      alert('Successfully issued book!');
+      fetchLibraryData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to issue book');
+    }
+  };
+
+  const handleRejectRequest = async (transactionId) => {
+    try {
+      await rejectLibraryRequest(transactionId);
+      alert('Request rejected.');
+      fetchLibraryData();
+    } catch (err) {
+      alert(err.response?.data?.message || 'Failed to reject request');
     }
   };
 
@@ -109,6 +132,26 @@ const LibraryManagement = () => {
   const totalAvailable = books.reduce((acc, curr) => acc + curr.available, 0);
   const totalIssued = issues.filter(i => i.status !== 'Returned').length;
   const totalOverdue = issues.filter(i => i.status === 'Overdue').length;
+
+  // Real-time Analytics Calculations
+  const totalFineCollected = issues.filter(i => i.status === 'Returned' && i.fineAmount).reduce((acc, curr) => acc + curr.fineAmount, 0);
+  
+  const deptCounts = {};
+  issues.forEach(issue => {
+    if (issue.bookId?.department) {
+      deptCounts[issue.bookId.department] = (deptCounts[issue.bookId.department] || 0) + 1;
+    }
+  });
+  let mostActiveDept = 'N/A';
+  let maxCount = 0;
+  Object.keys(deptCounts).forEach(dept => {
+    if (deptCounts[dept] > maxCount) {
+      maxCount = deptCounts[dept];
+      mostActiveDept = dept;
+    }
+  });
+
+  const returnedTransactions = issues.filter(i => i.status === 'Returned').sort((a,b) => new Date(b.returnDate || b.updatedAt) - new Date(a.returnDate || a.updatedAt));
 
   if (loading) return <div className="p-8 text-center text-muted">Loading Library Database...</div>;
 
@@ -219,13 +262,13 @@ const LibraryManagement = () => {
                     <h3 className="book-title">{b.title}</h3>
                     <p className="book-author">{b.author}</p>
                     <div className="book-status">
-                      <span className={`status-badge ${b.available > 0 ? 'status-available' : 'status-issued'}`}>
-                        {b.available > 0 ? `${b.available} Available` : 'Out of Stock'}
+                      <span className={`status-badge ${b.availableCopies > 0 ? 'status-available' : 'status-issued'}`}>
+                        {b.availableCopies > 0 ? `${b.availableCopies} Available` : 'Out of Stock'}
                       </span>
                     </div>
                   </div>
                   <div className="book-actions">
-                    <button className="flex-1 btn-primary text-xs py-1 px-2" disabled={b.available === 0} onClick={()=>handleOpenIssueModal(b)}>Issue</button>
+                    <button className="flex-1 btn-primary text-xs py-1 px-2" disabled={b.availableCopies === 0} onClick={()=>handleOpenIssueModal(b)}>Issue</button>
                     <button className="flex-1 btn-secondary text-xs py-1 px-2">Edit</button>
                   </div>
                 </div>
@@ -276,17 +319,51 @@ const LibraryManagement = () => {
                 </div>
                 <form className="modal-body space-y-4" onSubmit={handleIssueSubmit}>
                   <div className="flex flex-col gap-1">
-                    <label className="text-sm font-bold text-muted">Book Name</label>
-                    <input type="text" className="p-2 rounded border bg-gray-100 dark:bg-gray-800 text-muted" value={selectedBookToIssue.title} readOnly />
+                    <label className="text-sm font-bold text-muted">Select Book</label>
+                    <select 
+                      required 
+                      className="p-2 rounded border bg-transparent" 
+                      value={issueFormData.bookId || (selectedBookToIssue ? selectedBookToIssue._id : '')} 
+                      onChange={e => setIssueFormData({ ...issueFormData, bookId: e.target.value })}
+                    >
+                      <option value="">-- Choose a Book --</option>
+                      {books.filter(b => b.availableCopies > 0).map(b => (
+                        <option key={b._id} value={b._id}>
+                          {b.title} (Available: {b.availableCopies})
+                        </option>
+                      ))}
+                    </select>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div className="flex flex-col gap-1">
-                      <label className="text-sm font-bold text-muted">Student Name</label>
-                      <input type="text" required className="p-2 rounded border bg-transparent" value={issueFormData.studentName} onChange={e=>setIssueFormData({...issueFormData, studentName: e.target.value})} placeholder="e.g. John Doe"/>
+                      <label className="text-sm font-bold text-muted">Select Student</label>
+                      <select 
+                        required 
+                        className="p-2 rounded border bg-transparent" 
+                        value={issueFormData.regNo} 
+                        onChange={e => {
+                          const selected = students.find(s => s.id === e.target.value || s.referenceId === e.target.value || s._id === e.target.value);
+                          setIssueFormData({
+                            ...issueFormData, 
+                            regNo: e.target.value,
+                            studentName: selected ? selected.name : ''
+                          });
+                        }}
+                      >
+                        <option value="">-- Choose a Student --</option>
+                        {students.map(s => {
+                          const idToUse = s.id || s.referenceId || s.studentId || s._id;
+                          return (
+                            <option key={s._id} value={idToUse}>
+                              {s.name} ({idToUse}) - {s.dept || s.department || 'No Dept'}
+                            </option>
+                          );
+                        })}
+                      </select>
                     </div>
                     <div className="flex flex-col gap-1">
                       <label className="text-sm font-bold text-muted">Register Number</label>
-                      <input type="text" required className="p-2 rounded border bg-transparent" value={issueFormData.regNo} onChange={e=>setIssueFormData({...issueFormData, regNo: e.target.value})} placeholder="e.g. CS2022001"/>
+                      <input type="text" className="p-2 rounded border bg-gray-100 dark:bg-gray-800 text-muted" value={issueFormData.regNo} readOnly placeholder="Auto-filled"/>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
@@ -334,23 +411,25 @@ const LibraryManagement = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {issues.map(issue => (
-                    <tr key={issue.issueId} className={issue.status === 'Overdue' ? 'bg-red-50 dark:bg-red-900/10' : ''}>
-                      <td className="font-mono text-sm">{issue.issueId}</td>
-                      <td className="font-medium">{issue.bookTitle}</td>
+                  {issues.filter(i => ['Issued', 'Overdue', 'Returned'].includes(i.status)).map(issue => (
+                    <tr key={issue._id} className={issue.status === 'Overdue' ? 'bg-red-50 dark:bg-red-900/10' : ''}>
+                      <td className="font-mono text-sm">{issue._id.substring(issue._id.length - 6)}</td>
+                      <td className="font-medium">{issue.bookId?.title}</td>
                       <td>
                         <div className="flex flex-col">
-                          <span>{issue.studentName}</span>
-                          <span className="text-xs text-muted">{issue.regNo}</span>
+                          <span className="font-bold text-gray-800 dark:text-white">
+                            {students.find(s => s.id === issue.userId || s.referenceId === issue.userId)?.name || issue.userId}
+                          </span>
+                          <span className="text-xs text-muted">{issue.userId} • {issue.userType}</span>
                         </div>
                       </td>
-                      <td>{new Date(issue.issueDate).toLocaleDateString()}</td>
-                      <td className={issue.status === 'Overdue' ? 'text-danger font-bold' : ''}>{new Date(issue.dueDate).toLocaleDateString()}</td>
+                      <td>{issue.issueDate ? new Date(issue.issueDate).toLocaleDateString() : '-'}</td>
+                      <td className={issue.status === 'Overdue' ? 'text-danger font-bold' : ''}>{issue.dueDate ? new Date(issue.dueDate).toLocaleDateString() : '-'}</td>
                       <td>
                         {issue.status === 'Overdue' ? (
                           <div className="flex flex-col gap-1">
                             <span className="text-danger font-bold text-xs uppercase px-2 py-1 bg-red-100 rounded inline-block w-max">Overdue</span>
-                            <span className="text-sm font-semibold">Fine: ₹{issue.fine}</span>
+                            <span className="text-sm font-semibold">Fine: ₹{issue.fineAmount}</span>
                           </div>
                         ) : issue.status === 'Returned' ? (
                           <span className="text-gray-500 font-bold text-xs uppercase px-2 py-1 bg-gray-100 rounded inline-block w-max">Returned</span>
@@ -360,7 +439,7 @@ const LibraryManagement = () => {
                       </td>
                       <td>
                         {issue.status !== 'Returned' ? (
-                          <button className="btn-primary text-xs py-1 px-3" onClick={() => handleReturn(issue.issueId, issue.studentName)}>
+                          <button className="btn-primary text-xs py-1 px-3" onClick={() => handleReturn(issue._id, issue.userId)}>
                             Approve Return
                           </button>
                         ) : (
@@ -429,17 +508,19 @@ const LibraryManagement = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {MOCK_RESERVATIONS.map(res => (
-                    <tr key={res.resId}>
-                      <td className="font-mono text-sm">{res.resId}</td>
+                  {issues.filter(i => i.status === 'Pending').map(res => (
+                    <tr key={res._id}>
+                      <td className="font-mono text-sm">{res._id.substring(res._id.length - 6)}</td>
                       <td>
                         <div className="flex flex-col">
-                          <span>{res.studentName}</span>
-                          <span className="text-xs text-muted">{res.regNo}</span>
+                          <span className="font-bold text-gray-800 dark:text-white">
+                            {students.find(s => s.id === res.userId || s.referenceId === res.userId)?.name || res.userId}
+                          </span>
+                          <span className="text-xs text-muted">{res.userId} • {res.userType}</span>
                         </div>
                       </td>
-                      <td className="font-medium">{res.bookTitle}</td>
-                      <td>{res.reqDate}</td>
+                      <td className="font-medium">{res.bookId?.title}</td>
+                      <td>{new Date(res.requestDate).toLocaleDateString()}</td>
                       <td>
                         {res.status === 'Pending' ? (
                           <span className="text-warning font-bold text-xs uppercase px-2 py-1 bg-yellow-100 rounded inline-block w-max">Pending</span>
@@ -450,16 +531,18 @@ const LibraryManagement = () => {
                       <td>
                         {res.status === 'Pending' && (
                           <div className="flex gap-2">
-                            <button className="btn-primary text-xs py-1 px-3" onClick={()=>alert(`Approved reservation for ${res.studentName}!`)}>Approve</button>
-                            <button className="btn-secondary text-xs py-1 px-3 text-danger" onClick={()=>alert(`Denied reservation for ${res.studentName}!`)}>Deny</button>
+                            <button className="btn-primary text-xs py-1 px-3" onClick={() => handleIssueRequest(res._id)}>Approve</button>
+                            <button className="btn-secondary text-xs py-1 px-3 text-danger" onClick={() => handleRejectRequest(res._id)}>Deny</button>
                           </div>
-                        )}
-                        {res.status === 'Approved' && (
-                          <span className="text-xs text-muted">Awaiting Pickup</span>
                         )}
                       </td>
                     </tr>
                   ))}
+                  {issues.filter(i => i.status === 'Pending').length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="text-center p-8 text-muted">No pending book requests</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -475,20 +558,18 @@ const LibraryManagement = () => {
               <p className="text-sm text-muted">Generate full library circulation history.</p>
             </div>
             <button className="btn-primary flex items-center gap-2"><Download size={16}/> Export Excel</button>
-          </div>
-
-          <div className="grid grid-cols-3 gap-6 mb-6">
+                   <div className="grid grid-cols-3 gap-6 mb-6">
             <div className="glass-card p-5">
               <h3 className="text-sm text-muted uppercase font-bold mb-1">Total Fine Collected</h3>
-              <p className="text-2xl font-bold text-success">₹ 14,500</p>
+              <p className="text-2xl font-bold text-success">₹{totalFineCollected.toLocaleString()}</p>
             </div>
             <div className="glass-card p-5">
               <h3 className="text-sm text-muted uppercase font-bold mb-1">Most Active Dept</h3>
-              <p className="text-2xl font-bold text-primary">Computer Science</p>
+              <p className="text-2xl font-bold text-primary">{mostActiveDept}</p>
             </div>
             <div className="glass-card p-5">
               <h3 className="text-sm text-muted uppercase font-bold mb-1">Books Lost/Damaged</h3>
-              <p className="text-2xl font-bold text-danger">12</p>
+              <p className="text-2xl font-bold text-danger">0</p>
             </div>
           </div>
 
@@ -509,40 +590,39 @@ const LibraryManagement = () => {
                   <tr>
                     <th>Issue ID</th>
                     <th>Book Title</th>
-                    <th>Student Name</th>
+                    <th>Borrower Info</th>
                     <th>Returned On</th>
                     <th>Condition</th>
                     <th>Fine Paid</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td className="font-mono text-sm">IS-088</td>
-                    <td className="font-medium">Signals & Systems</td>
-                    <td>Neha Gupta</td>
-                    <td>2024-03-22</td>
-                    <td><span className="text-success text-xs font-bold uppercase">Good</span></td>
-                    <td>₹0</td>
-                  </tr>
-                  <tr>
-                    <td className="font-mono text-sm">IS-075</td>
-                    <td className="font-medium">Data Structures</td>
-                    <td>David Lee</td>
-                    <td>2024-03-21</td>
-                    <td><span className="text-danger text-xs font-bold uppercase">Damaged</span></td>
-                    <td>₹350</td>
-                  </tr>
-                  <tr>
-                    <td className="font-mono text-sm">IS-081</td>
-                    <td className="font-medium">Power System Analysis</td>
-                    <td>Alice Smith</td>
-                    <td>2024-03-20</td>
-                    <td><span className="text-success text-xs font-bold uppercase">Good</span></td>
-                    <td>₹50</td>
-                  </tr>
+                  {returnedTransactions.map(rt => (
+                    <tr key={rt._id}>
+                      <td className="font-mono text-sm">{rt._id.substring(rt._id.length - 6)}</td>
+                      <td className="font-medium">{rt.bookId?.title}</td>
+                      <td>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-gray-800 dark:text-white">
+                            {students.find(s => s.id === rt.userId || s.referenceId === rt.userId)?.name || rt.userId}
+                          </span>
+                          <span className="text-xs text-muted">{rt.userId} • {rt.userType}</span>
+                        </div>
+                      </td>
+                      <td>{new Date(rt.returnDate || rt.updatedAt).toLocaleDateString()}</td>
+                      <td><span className="text-success text-xs font-bold uppercase">Good</span></td>
+                      <td>₹{rt.fineAmount || 0}</td>
+                    </tr>
+                  ))}
+                  {returnedTransactions.length === 0 && (
+                    <tr>
+                      <td colSpan="6" className="text-center p-8 text-muted">No completed returns yet</td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
+          </div>
           </div>
         </div>
       )}

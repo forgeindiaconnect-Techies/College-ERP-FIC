@@ -1,16 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Edit2, Trash2, Calendar, MapPin, User, BookOpen, Clock, X, CheckCircle } from 'lucide-react';
 import { getStaff, getTimetable, publishTimetable } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './HodTimetable.css';
 
 // Try to grab logged in HOD session
 const getHodSession = () => {
   try {
     return JSON.parse(sessionStorage.getItem('hod_session')) || {
-      name: 'Prof. Rajan Iyer', dept: 'Electrical Engg.', deptCode: 'EE', role: 'HOD'
+      name: 'Prof. Rajan Iyer', dept: 'Cyber Security', deptCode: 'CS', role: 'HOD'
     };
   } catch (e) {
-    return { name: 'Prof. Rajan Iyer', dept: 'Electrical Engg.', deptCode: 'EE', role: 'HOD' };
+    return { name: 'Prof. Rajan Iyer', dept: 'Cyber Security', deptCode: 'CS', role: 'HOD' };
   }
 };
 
@@ -49,6 +50,7 @@ const HodTimetable = () => {
   const [schedule, setSchedule] = useState([]);
   const [facultyList, setFacultyList] = useState([]);
   const [subjectList, setSubjectList] = useState([]);
+  const [selectedSem, setSelectedSem] = useState('Semester 3');
 
   /* Modal state */
   const [modalOpen, setModalOpen] = useState(false);
@@ -56,60 +58,61 @@ const HodTimetable = () => {
   const [form, setForm] = useState(EMPTY_SLOT);
   const [saved, setSaved] = useState(false);
 
-  useEffect(() => {
-    const loadTimetable = async () => {
-      try {
-        const res = await getTimetable(HOD_DEPT, 'Sem 6'); // Default to Sem 6 for demo, in real life you'd have a semester dropdown
-        if (res.data && res.data.schedule && res.data.schedule.length > 0) {
-          setSchedule(res.data.schedule);
-        } else {
-          setSchedule([]);
-        }
-      } catch (err) {
-        console.error('Failed to load timetable', err);
+  const loadData = React.useCallback(async () => {
+    try {
+      setLoading(true);
+      const res = await getTimetable(HOD_DEPT, selectedSem);
+      if (res.data && res.data.schedule && res.data.schedule.length > 0) {
+        setSchedule(res.data.schedule);
+      } else {
         setSchedule([]);
       }
-    };
-    loadTimetable();
+    } catch (err) {
+      console.error('Failed to load timetable', err);
+      setSchedule([]);
+    }
 
     // Load subjects for the select dropdown
     const savedSubjects = localStorage.getItem('erp_subjects');
     if (savedSubjects) {
       const allSubs = JSON.parse(savedSubjects);
-      const deptSubs = allSubs.filter(s => s.dept === HOD_DEPT).map(s => s.name);
+      const deptSubs = allSubs.filter(s => s.dept === HOD_DEPT && s.sem === selectedSem).map(s => s.name);
       setSubjectList([...new Set(deptSubs)]);
     } else {
       setSubjectList([]);
     }
 
     // Load faculty for the select dropdown from backend
-    const fetchFaculty = async () => {
-      try {
-        const res = await getStaff();
-        const filteredStaff = (res.data || []).filter(s => s.dept === HOD_DEPT);
-        
-        if (filteredStaff.length > 0) {
-          setFacultyList(filteredStaff.map(s => s.name));
-        } else {
-          setFacultyList([]);
-        }
-      } catch (err) {
-        console.warn('Failed to load faculty', err);
+    try {
+      const res = await getStaff();
+      const filteredStaff = (res.data || []).filter(s => s.dept === HOD_DEPT);
+      
+      if (filteredStaff.length > 0) {
+        setFacultyList(filteredStaff);
+      } else {
         setFacultyList([]);
-      } finally {
-        setLoading(false);
       }
-    };
-    
-    fetchFaculty();
-  }, [HOD_DEPT]);
+    } catch (err) {
+      console.warn('Failed to load faculty', err);
+      setFacultyList([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [HOD_DEPT, selectedSem]);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Sync timetable and staff data
+  useRealtimeSync(loadData, ['staff', 'subjects']);
 
   const saveTimetable = async (newSchedule) => {
     setSchedule(newSchedule);
     try {
       await publishTimetable({
         department: HOD_DEPT,
-        semester: 'Sem 6',
+        semester: selectedSem,
         schedule: newSchedule
       });
     } catch (err) {
@@ -132,7 +135,7 @@ const HodTimetable = () => {
       ...EMPTY_SLOT, 
       day: dayStr || DAYS[0], 
       period: periodNum || 1, 
-      faculty: facultyList.length > 0 ? facultyList[0] : '',
+      faculty: facultyList.length > 0 ? facultyList[0].name : '',
       subject: subjectList.length > 0 ? subjectList[0] : ''
     });
     setSaved(false);
@@ -162,7 +165,7 @@ const HodTimetable = () => {
   const closeModal = () => {
     setModalOpen(false);
     setEditTarget(null);
-    setForm({ ...EMPTY_SLOT, faculty: facultyList.length > 0 ? facultyList[0] : '', subject: subjectList.length > 0 ? subjectList[0] : '' });
+    setForm({ ...EMPTY_SLOT, faculty: facultyList.length > 0 ? facultyList[0].name : '', subject: subjectList.length > 0 ? subjectList[0] : '' });
     setSaved(false);
   };
 
@@ -201,9 +204,23 @@ const HodTimetable = () => {
           <h1>Department Timetable</h1>
           <p className="text-muted">Review, add, or coordinate class schedules and rooms for <strong>{HOD_DEPT}</strong>.</p>
         </div>
-        <button id="add-slot-btn" className="btn-primary shadow-glow" onClick={() => openAdd('', 1)}>
-          <Plus size={18} /> Add Schedule Slot
-        </button>
+        <div style={{display: 'flex', gap: '1rem', alignItems: 'center'}}>
+          <select 
+            value={selectedSem} 
+            onChange={e => setSelectedSem(e.target.value)}
+            className="bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] rounded px-4 py-2 outline-none focus:border-[#8b5cf6]"
+          >
+            <option>Semester 1</option>
+            <option>Semester 2</option>
+            <option>Semester 3</option>
+            <option>Semester 4</option>
+            <option>Semester 5</option>
+            <option>Semester 6</option>
+          </select>
+          <button id="add-slot-btn" className="btn-primary shadow-glow" onClick={() => openAdd('', 1)}>
+            <Plus size={18} /> Add Schedule Slot
+          </button>
+        </div>
       </div>
 
       {/* Grid Timetable Wrapper */}
@@ -290,25 +307,55 @@ const HodTimetable = () => {
                 </div>
 
                 <div className="form-group">
-                  <label><BookOpen size={13} /> Subject Name *</label>
-                  <select required value={form.subject || (subjectList.length > 0 ? subjectList[0] : '')} onChange={e => setForm({ ...form, subject: e.target.value })}>
-                    {subjectList.length === 0 ? (
-                      <option value="">No Subjects Available</option>
-                    ) : (
-                      subjectList.map((name, idx) => <option key={`${name}-${idx}`} value={name}>{name}</option>)
-                    )}
-                  </select>
+                  <label><User size={13} /> Assign Faculty</label>
+                  {facultyList.length > 0 ? (
+                    <select 
+                      value={form.faculty} 
+                      onChange={e => {
+                        const newFac = e.target.value;
+                        const facObj = facultyList.find(f => f.name === newFac);
+                        // Auto-select subject if they have one assigned
+                        const newSub = (facObj && facObj.subjects && facObj.subjects.length > 0) ? facObj.subjects[0] : form.subject;
+                        setForm({ ...form, faculty: newFac, subject: newSub });
+                      }}
+                    >
+                      <option value="">Select Faculty</option>
+                      {facultyList.map((f, i) => <option key={i} value={f.name}>{f.name}</option>)}
+                    </select>
+                  ) : (
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. Dr. Ananya Rao"
+                      value={form.faculty} 
+                      onChange={e => setForm({ ...form, faculty: e.target.value })} 
+                    />
+                  )}
                 </div>
 
                 <div className="form-group">
-                  <label><User size={13} /> Assign Faculty</label>
-                  <select value={form.faculty || (facultyList.length > 0 ? facultyList[0] : '')} onChange={e => setForm({ ...form, faculty: e.target.value })}>
-                    {facultyList.length === 0 ? (
-                      <option value="">No Faculty Available</option>
-                    ) : (
-                      facultyList.map(name => <option key={name} value={name}>{name}</option>)
-                    )}
-                  </select>
+                  <label><BookOpen size={13} /> Subject Name *</label>
+                  {subjectList.length > 0 ? (
+                    <select value={form.subject} onChange={e => setForm({ ...form, subject: e.target.value })}>
+                      <option value="">Select Subject</option>
+                      {/* Only show subjects related to the selected faculty if they have specific subjects, else show all */}
+                      {(() => {
+                        const selFac = facultyList.find(f => f.name === form.faculty);
+                        if (selFac && selFac.subjects && selFac.subjects.length > 0) {
+                          return selFac.subjects.map((s, i) => <option key={i} value={s}>{s}</option>);
+                        }
+                        return subjectList.map((s, i) => <option key={i} value={s}>{s}</option>);
+                      })()}
+                    </select>
+                  ) : (
+                    <input 
+                      type="text" 
+                      required 
+                      placeholder="e.g. Data Structures"
+                      value={form.subject} 
+                      onChange={e => setForm({ ...form, subject: e.target.value })} 
+                    />
+                  )}
                 </div>
 
                 <div className="form-group">

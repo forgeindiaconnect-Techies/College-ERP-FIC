@@ -1,5 +1,6 @@
 import express from 'express';
 import Notification from '../models/Notification.js';
+import User from '../models/User.js';
 import { protect } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -60,6 +61,45 @@ router.put('/read-all', protect, async (req, res) => {
     res.json({ message: 'All notifications marked as read' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error updating notifications' });
+  }
+});
+
+// @desc    Create a new notification
+// @route   POST /api/notifications
+// @access  Private
+router.post('/', protect, async (req, res) => {
+  try {
+    const { recipient, email, targetRoles, title, message, type, link } = req.body;
+    let actualRecipient = recipient;
+
+    if (email) {
+      let user = await User.findOne({ email });
+      if (user) {
+        actualRecipient = user._id;
+      }
+    }
+    
+    // Fallback: if actualRecipient is still undefined, try finding by name (passed as targetName)
+    if (!actualRecipient && req.body.targetName) {
+      const userByName = await User.findOne({ name: req.body.targetName });
+      if (userByName) {
+        actualRecipient = userByName._id;
+      }
+    }
+    
+    const notification = new Notification({
+      recipient: actualRecipient,
+      targetRoles,
+      title,
+      message,
+      type,
+      link
+    });
+
+    const created = await notification.save();
+    res.status(201).json(created);
+  } catch (error) {
+    res.status(500).json({ message: 'Server Error creating notification' });
   }
 });
 

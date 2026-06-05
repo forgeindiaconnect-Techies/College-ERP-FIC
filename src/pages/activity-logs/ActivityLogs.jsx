@@ -2,16 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { Search, Filter, Clock, MapPin, User, Activity, AlertCircle, CheckCircle, Shield } from 'lucide-react';
 import './ActivityLogs.css';
 
-const MOCK_LOGS = [
-  { id: 'LOG001', user: 'Admin', role: 'Super Admin', action: 'Assigned HOD to IT', module: 'System Settings', date: '2026-05-26 10:45 AM', ip: '192.168.1.10', status: 'Success', dept: 'IT' },
-  { id: 'LOG002', user: 'Ramesh K.', role: 'Sub Admin', action: 'Added new student', module: 'Student Management', date: '2026-05-26 09:30 AM', ip: '192.168.1.14', status: 'Success', dept: 'CSE' },
-  { id: 'LOG003', user: 'Dr. Ananya', role: 'HOD', action: 'Updated attendance', module: 'Attendance', date: '2026-05-26 08:15 AM', ip: '192.168.1.22', status: 'Success', dept: 'ECE' },
-  { id: 'LOG004', user: 'Prof. Karthik', role: 'Staff', action: 'Uploaded internal marks', module: 'Examinations', date: '2026-05-25 04:20 PM', ip: '192.168.1.35', status: 'Success', dept: 'CSE' },
-  { id: 'LOG005', user: 'John Doe', role: 'Student', action: 'Failed login attempt', module: 'Authentication', date: '2026-05-25 02:10 PM', ip: '117.204.14.2', status: 'Failed', dept: 'CSE' },
-  { id: 'LOG006', user: 'Sub Admin', role: 'Sub Admin', action: 'Sent announcement', module: 'Announcements', date: '2026-05-25 11:00 AM', ip: '192.168.1.14', status: 'Success', dept: 'All' },
-  { id: 'LOG007', user: 'Accounts Dept', role: 'Accounts', action: 'Generated fees report', module: 'Reports', date: '2026-05-24 03:45 PM', ip: '192.168.1.50', status: 'Success', dept: 'All' },
-  { id: 'LOG008', user: 'Dr. Meena', role: 'HOD', action: 'Approved staff leave', module: 'Leaves', date: '2026-05-24 10:15 AM', ip: '192.168.1.23', status: 'Success', dept: 'MECH' },
-];
+// MOCK_LOGS removed, fetching real data via API
+import api from '../../api/index';
 
 const ActivityLogs = () => {
   const [logs, setLogs] = useState([]);
@@ -39,22 +31,30 @@ const ActivityLogs = () => {
     }
     setUserContext(context);
 
-    // 2. Filter Mock Logs based on role
-    setTimeout(() => {
-      let visibleLogs = [...MOCK_LOGS];
-      
-      if (context.role === 'Sub Admin') {
-        // Sub Admin cannot see Super Admin logs or System Settings modifications
-        visibleLogs = visibleLogs.filter(l => l.role !== 'Super Admin' && l.module !== 'System Settings');
-      } else if (context.role === 'HOD') {
-        // HOD sees only logs affecting their department (or their own actions)
-        visibleLogs = visibleLogs.filter(l => l.dept === context.dept || l.role === 'HOD');
+    const fetchLogs = async () => {
+      try {
+        const res = await api.get('/reports/activity-logs');
+        // Map database model fields to UI fields
+        const formattedLogs = res.data.map(l => ({
+          id: l._id,
+          user: l.userName,
+          role: l.role,
+          action: l.action,
+          module: l.moduleName,
+          date: new Date(l.createdAt).toLocaleString(),
+          ip: l.ip || '127.0.0.1',
+          status: l.status || 'Success',
+          dept: l.dept
+        }));
+        setLogs(formattedLogs);
+      } catch (err) {
+        console.error('Failed to fetch activity logs:', err);
+      } finally {
+        setLoading(false);
       }
-      // Admin sees everything.
+    };
 
-      setLogs(visibleLogs);
-      setLoading(false);
-    }, 500);
+    fetchLogs();
   }, []);
 
   const filtered = logs.filter(l => {

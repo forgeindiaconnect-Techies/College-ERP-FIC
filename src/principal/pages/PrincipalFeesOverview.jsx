@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { DollarSign, TrendingUp, AlertCircle, CheckCircle, Award, Users } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts';
 import { getAllFees } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import '../../pages/Dashboard.css';
 
 const deptFees = [
@@ -41,39 +42,66 @@ const studentFees = [
   { name: 'Ritu Sen',       dept: 'MBA',  paid: 250000,  pending: 0,      status: 'Paid',    mode: 'Online' },
 ];
 
-const scholarships = [
-  { name: 'Ananya Sen', dept: 'ECE', type: 'Merit-cum-Means', amount: 85000, status: 'Disbursed' },
-  { name: 'Ritu Sen', dept: 'MBA', type: 'State Govt. SC/ST', amount: 60000, status: 'Disbursed' },
-  { name: 'Neha Gupta', dept: 'ECE', type: 'Need-based Grant', amount: 40000, status: 'Pending' },
-];
+// scholarships are read from localStorage (set by Accounts > Scholarships page)
+const loadScholarsFromStorage = () => {
+  try {
+    return JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
+  } catch { return []; }
+};
 
 const fmt = (v) => v >= 100000 ? `₹${(v / 100000).toFixed(1)}L` : `₹${(v / 1000).toFixed(0)}K`;
 
 export default function PrincipalFeesOverview() {
   const [tab, setTab] = useState('overview');
   const [feeList, setFeeList] = useState(studentFees);
+  const [scholarships, setScholarships] = useState(loadScholarsFromStorage);
 
+  // Keep scholarships in sync whenever Accounts page updates localStorage
   useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'erp_scholarships') {
+        setScholarships(loadScholarsFromStorage());
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    // Also poll every 5 seconds in case same-tab update
+    const timer = setInterval(() => setScholarships(loadScholarsFromStorage()), 5000);
+    return () => { window.removeEventListener('storage', onStorage); clearInterval(timer); };
+  }, []);
+
+  const fetchFees = useCallback(() => {
     getAllFees()
       .then(res => res.data)
       .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          // Normalize the student fees
-          const formatted = data.map(record => ({
-            name: record.studentName || 'Student',
-            dept: record.dept || record.department || 'CSE',
-            paid: record.paidAmount || 0,
-            pending: record.pendingAmount || 0,
-            status: record.status || 'Paid',
-            mode: record.paymentMode || 'Online'
-          }));
+          const formatted = data.map(record => {
+            const paidAmt = record.paidAmount || 0;
+            const pendingAmt = record.pendingAmount || 0;
+            const totalAmt = record.totalFees || (paidAmt + pendingAmt);
+            let safeStatus = record.status || 'Paid';
+            if (paidAmt >= totalAmt && totalAmt > 0) safeStatus = 'Paid';
+
+            return {
+              name: record.studentName || 'Student',
+              dept: record.dept || record.department || 'CSE',
+              paid: paidAmt,
+              pending: pendingAmt,
+              status: safeStatus,
+              mode: record.paymentMode || 'Online'
+            };
+          });
           setFeeList(formatted);
-        }
       })
       .catch(err => {
         console.warn('API /api/fees offline. Loading backup fee ledger.', err);
       });
   }, []);
+
+  // Real-time sync — auto-refresh whenever Accounts updates fees, salaries, expenses
+  useRealtimeSync(fetchFees, ['fees', 'salaries', 'expenses']);
+
+  useEffect(() => {
+    fetchFees();
+  }, [fetchFees]);
 
   const totalCollected = deptFees.reduce((a, d) => a + d.collected, 0);
   const totalPending = deptFees.reduce((a, d) => a + d.pending, 0);
@@ -226,37 +254,47 @@ export default function PrincipalFeesOverview() {
       {tab === 'scholarships' && (
         <div className="glass-card animate-fade-in" style={{ padding: '1.5rem', borderRadius: 16 }}>
           <h4 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem', marginBottom: '1rem' }}>🎓 Scholarship & Fee Waiver Registry</h4>
-          <div className="table-container">
-            <table>
-              <thead>
-                <tr><th>Student Name</th><th>Department</th><th>Scholarship Type</th><th>Amount</th><th>Status</th><th>Action</th></tr>
-              </thead>
-              <tbody>
-                {scholarships.map((s, i) => (
-                  <tr key={i}>
-                    <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.name}</td>
-                    <td><span style={{ background: 'rgba(245,158,11,0.1)', color: '#f59e0b', padding: '2px 7px', borderRadius: 5, fontSize: '0.72rem', fontWeight: 700 }}>{s.dept}</span></td>
-                    <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{s.type}</td>
-                    <td style={{ fontWeight: 800, color: '#10b981', fontSize: '0.9rem' }}>{fmt(s.amount)}</td>
-                    <td>
-                      <span style={{ background: s.status === 'Disbursed' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)', color: s.status === 'Disbursed' ? '#10b981' : '#f59e0b', padding: '3px 9px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700 }}>{s.status}</span>
-                    </td>
-                    <td>
-                      <button style={{ padding: '4px 10px', background: '#6366f1', color: 'white', border: 'none', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700, cursor: 'pointer' }}>View Certificate</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-            {[['Total Scholarships', scholarships.length, '#f59e0b'], ['Disbursed', scholarships.filter(s => s.status === 'Disbursed').length, '#10b981'], ['Total Value', fmt(scholarships.reduce((a, s) => a + s.amount, 0)), '#6366f1']].map(([k, v, c]) => (
-              <div key={k} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '12px 16px', textAlign: 'center', borderTop: `3px solid ${c}` }}>
-                <div style={{ fontSize: '1.3rem', fontWeight: 800, color: c }}>{v}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>{k}</div>
+          {scholarships.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+              No scholarships have been granted yet. Go to <strong>Accounts → Scholarships</strong> to grant one.
+            </div>
+          ) : (
+            <>
+              <div className="table-container">
+                <table>
+                  <thead>
+                    <tr><th>Student Name</th><th>Student ID</th><th>Scholarship Type</th><th>Fee Waiver</th><th>Granted Date</th><th>Status</th></tr>
+                  </thead>
+                  <tbody>
+                    {scholarships.map((s, i) => (
+                      <tr key={s.id || i}>
+                        <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{s.studentName || s.name}</td>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontFamily: 'monospace' }}>{s.studentId}</td>
+                        <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{s.type}</td>
+                        <td style={{ fontWeight: 800, color: '#10b981', fontSize: '0.9rem' }}>{s.amount}</td>
+                        <td style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{s.date || '—'}</td>
+                        <td>
+                          <span style={{ background: s.status === 'Active' ? 'rgba(16,185,129,0.12)' : 'rgba(245,158,11,0.12)', color: s.status === 'Active' ? '#10b981' : '#f59e0b', padding: '3px 9px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700 }}>{s.status}</span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            ))}
-          </div>
+              <div style={{ marginTop: '1.2rem', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
+                {[
+                  ['Total Scholarships', scholarships.length, '#f59e0b'],
+                  ['Active', scholarships.filter(s => s.status === 'Active').length, '#10b981'],
+                  ['Full Waivers (100%)', scholarships.filter(s => s.amount === '100%').length, '#6366f1']
+                ].map(([k, v, c]) => (
+                  <div key={k} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '12px 16px', textAlign: 'center', borderTop: `3px solid ${c}` }}>
+                    <div style={{ fontSize: '1.3rem', fontWeight: 800, color: c }}>{v}</div>
+                    <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)', marginTop: 2 }}>{k}</div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       )}
     </div>

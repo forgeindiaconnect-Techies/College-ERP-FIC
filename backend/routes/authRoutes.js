@@ -13,6 +13,7 @@ import Staff from '../models/Staff.js';
 import Department from '../models/Department.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import bcrypt from 'bcryptjs';
+import ActivityLog from '../models/ActivityLog.js';
 
 const router = express.Router();
 
@@ -32,6 +33,17 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email: { $regex: new RegExp(`^${email.trim()}$`, 'i') } });
 
     if (user && (await user.matchPassword(password))) {
+      // Async Activity Log
+      ActivityLog.create({
+        userId: user._id.toString(),
+        userName: user.name,
+        role: user.role,
+        action: 'System Login',
+        moduleName: 'Authentication',
+        dept: user.department || 'System',
+        ip: req.ip || req.connection.remoteAddress
+      }).catch(err => console.error('Failed to log login activity', err));
+
       res.json({
         _id: user._id,
         name: user.name,
@@ -254,7 +266,8 @@ router.post('/seed', async (req, res) => {
 // GET all users (Admin only)
 router.get('/users', protect, async (req, res) => {
   try {
-    if (req.user.role !== 'Admin' && req.user.role !== 'Principal') {
+    const role = (req.user.role || '').toLowerCase();
+    if (role !== 'admin' && role !== 'principal' && role !== 'system admin') {
       return res.status(403).json({ message: 'Access denied: Admin/Principal only' });
     }
     const users = await User.find({}, '-password');
@@ -276,6 +289,7 @@ router.post('/users', protect, authorize('Admin', 'Sub Admin', 'Principal'), asy
     const saved = await user.save();
     const response = saved.toObject();
     delete response.password;
+    req.app.get('io').emit('dataUpdated', { module: 'users', action: 'created' });
     res.status(201).json(response);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -307,6 +321,7 @@ router.put('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), 
     const saved = await user.save();
     const response = saved.toObject();
     delete response.password;
+    req.app.get('io').emit('dataUpdated', { module: 'users', action: 'updated' });
     res.json(response);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -320,6 +335,7 @@ router.delete('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    req.app.get('io').emit('dataUpdated', { module: 'users', action: 'deleted' });
     res.json({ message: 'User account successfully deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

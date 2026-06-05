@@ -22,10 +22,15 @@ const StudentAnnouncements = () => {
     const saved = localStorage.getItem('erp_announcements');
     let allAnns = saved ? JSON.parse(saved) : DEFAULT_ANNOUNCEMENTS;
     
-    // Filter for Students: 'All Departments', 'Only Students', and their specific department
+    // Filter for Students: 'All', 'All Roles', 'All Departments', and 'Students'
     const studentAnns = allAnns
-      .map(a => ({ ...a, targetAudience: a.targetAudience || 'All Departments' }))
-      .filter(a => a.targetAudience === 'All Departments' || a.targetAudience.includes('Students'));
+      .map(a => ({ ...a, targetAudience: a.targetAudience || 'All' }))
+      .filter(a => 
+        a.targetAudience === 'All' || 
+        a.targetAudience === 'All Roles' || 
+        a.targetAudience === 'All Departments' || 
+        a.targetAudience.includes('Student')
+      );
     
     setAnnouncements(studentAnns);
     setLoading(false);

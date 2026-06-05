@@ -60,6 +60,11 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'A
           referenceId: newStudent.id
         });
         await user.save();
+      } else {
+        // If they recreated the student with the same email but new ID, update the referenceId
+        existingUser.referenceId = newStudent.id;
+        existingUser.department = newStudent.dept;
+        await existingUser.save();
       }
     } catch (userErr) {
       console.error('Failed to create User account for Student:', userErr);
@@ -90,7 +95,16 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'),
 // Delete student
 router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), async (req, res) => {
   try {
-    await Student.findOneAndDelete({ id: req.params.id });
+    const studentId = req.params.id;
+    await Student.findOneAndDelete({ id: studentId });
+    // IMPORTANT: Delete marks associated with this student so reused IDs don't get random old CGPAs
+    try {
+      const Mark = (await import('../models/Mark.js')).default;
+      await Mark.deleteMany({ studentId });
+    } catch(err) {
+      console.warn('Failed to delete marks for student:', err.message);
+    }
+    
     req.app.get('io').emit('dataUpdated', { module: 'students', action: 'deleted' });
     res.json({ message: 'Student deleted' });
   } catch (err) {

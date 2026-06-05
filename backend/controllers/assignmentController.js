@@ -1,5 +1,6 @@
 import Assignment from '../models/Assignment.js';
 import AssignmentSubmission from '../models/AssignmentSubmission.js';
+import ActivityLog from '../models/ActivityLog.js';
 
 // Create a new Assignment
 export const createAssignment = async (req, res) => {
@@ -17,6 +18,22 @@ export const createAssignment = async (req, res) => {
     });
     
     await newAssignment.save();
+
+    // Log Activity
+    try {
+      await ActivityLog.create({
+        userId: faculty,
+        userName: faculty,
+        role: 'Staff',
+        action: `Posted new assignment: ${title}`,
+        moduleName: 'Assignments',
+        dept: department,
+        ip: req.ip || req.connection.remoteAddress
+      });
+    } catch (logErr) {
+      console.error('Failed to log activity:', logErr);
+    }
+
     res.status(201).json(newAssignment);
   } catch (err) {
     res.status(500).json({ message: 'Error creating assignment', error: err.message });

@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, CalendarCheck, BookOpenCheck,
-  ClipboardList, Calendar, LogOut, ChevronRight, FileText, Megaphone, GraduationCap, IndianRupee
+  ClipboardList, Calendar, LogOut, ChevronRight, FileText, Megaphone, GraduationCap, IndianRupee, Briefcase, Library
 } from 'lucide-react';
 import './StaffSidebar.css';
 
@@ -29,8 +29,10 @@ const StaffSidebar = () => {
     { name: 'Exams', path: '/staff/exams', icon: <GraduationCap size={20} /> },
     { name: 'Student List', path: '/staff/students', icon: <Users size={20} /> },
     { name: 'Timetable', path: '/staff/timetable', icon: <Calendar size={20} /> },
-    { name: 'Leave Requests', path: '/staff/leaves', icon: <FileText size={20} /> },
+    { name: 'Leaves', path: '/staff/leaves', icon: <FileText size={20} /> },
     { name: 'Payroll', path: '/staff/payroll', icon: <IndianRupee size={20} /> },
+    { name: 'Placement', path: '/staff/placement', icon: <Briefcase size={20} /> },
+    { name: 'Library', path: '/staff/library', icon: <Library size={20} /> },
   ];
 
   const handleLogout = () => {

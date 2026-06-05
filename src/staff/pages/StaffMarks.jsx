@@ -89,35 +89,33 @@ const StaffMarks = () => {
   const getCgpaColor = (c) => c >= 9 ? 'var(--success)' : c < 7 ? 'var(--danger)' : 'var(--warning)';
 
   const openEdit = (s) => {
-    let subjectsForSem = [];
-    let deptInitialized = false;
+    let availableSubjects = [];
     const savedSubjects = localStorage.getItem('erp_subjects');
+    let allSubs = [];
     if (savedSubjects) {
-      const allSubs = JSON.parse(savedSubjects);
-      const deptSubs = allSubs.filter(sub => sub.dept === staffDept && sub.sem === s.sem);
-      
-      if (deptSubs.length > 0) {
-        deptInitialized = true;
-        const mySubs = deptSubs.filter(sub => {
-          if (!sub.teacher) return false;
-          const t = sub.teacher.toLowerCase().trim();
-          const n = staffSession.name.toLowerCase().trim();
-          return t.includes(n) || n.includes(t);
-        });
-        subjectsForSem = [...new Set(mySubs.map(sub => sub.name))];
+      allSubs = JSON.parse(savedSubjects);
+      // Force inject AI subjects if missing for testing
+      if (!allSubs.find(sub => sub.code === 'AI101')) {
+        const aiSubs = [
+          { id: 'SUB007', code: 'AI101', name: 'Introduction to AI', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 4, workload: 4 },
+          { id: 'SUB008', code: 'AI102', name: 'Python Programming', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 3, workload: 4 }
+        ];
+        allSubs = [...allSubs, ...aiSubs];
+        localStorage.setItem('erp_subjects', JSON.stringify(allSubs));
       }
     }
     
-    if (!deptInitialized && subjectsForSem.length === 0) {
-      subjectsForSem = ['General Subject 1', 'General Subject 2'];
+    // Filter by department AND semester!
+    const deptSubs = allSubs.filter(sub => sub.dept === staffDept && sub.sem === s.sem);
+    availableSubjects = [...new Set(deptSubs.map(sub => sub.name))];
+    
+    // If no subjects defined for this semester yet, give an empty array
+    if (availableSubjects.length === 0) {
+      console.warn('No subjects found for', staffDept, s.sem);
     }
 
-    if (subjectsForSem.length === 0) {
-      subjectsForSem = ['No Subjects Assigned'];
-    }
-    
-    // Load existing marks or defaults for this student
-    const studentSubjects = subjectsForSem.map(subName => {
+    // Prepare default rows for each subject in this semester so the staff doesn't even have to add rows!
+    const studentSubjects = availableSubjects.map(subName => {
       const existingMark = rawMarksList.find(m => m.studentId === s.id && m.subject === subName);
       return {
         subject: subName,
@@ -130,7 +128,8 @@ const StaffMarks = () => {
       id: s.id,
       name: s.name,
       sem: s.sem,
-      subjects: studentSubjects
+      availableSubjects,
+      subjects: studentSubjects.length > 0 ? studentSubjects : [{ subject: '', internal: 0, external: 0 }]
     });
     setEditTarget(s.id);
     setSaved(false);
@@ -153,7 +152,14 @@ const StaffMarks = () => {
     if (!editTarget) return;
 
     try {
-      const payloadArray = form.subjects.map(sub => ({
+      // Filter out empty subjects
+      const validSubjects = form.subjects.filter(sub => sub.subject && sub.subject.trim() !== '');
+      if (validSubjects.length === 0) {
+        alert('Please enter at least one subject name.');
+        return;
+      }
+
+      const payloadArray = validSubjects.map(sub => ({
         studentId: form.id,
         studentName: form.name,
         department: staffDept,
@@ -337,13 +343,24 @@ const StaffMarks = () => {
                   <tbody>
                     {form.subjects.map((sub, idx) => (
                       <tr key={idx}>
-                        <td style={{ fontWeight: 500 }}>{sub.subject}</td>
+                        <td>
+                          {form.availableSubjects && form.availableSubjects.length > 0 ? (
+                            <div style={{ fontWeight: 600, color: 'var(--text-main)', padding: '0.4rem 0' }}>
+                              {sub.subject || 'Unknown Subject'}
+                            </div>
+                          ) : (
+                            <div style={{ color: 'var(--danger)', fontStyle: 'italic', padding: '0.4rem 0' }}>
+                              No master subjects defined
+                            </div>
+                          )}
+                        </td>
                         <td>
                           <input
                             type="number"
                             min="0"
                             max="50"
                             required
+                            disabled={!(form.availableSubjects && form.availableSubjects.length > 0)}
                             style={{ width: '80px', padding: '0.4rem' }}
                             value={sub.internal}
                             onChange={e => handleSubjectChange(idx, 'internal', e.target.value)}
@@ -355,6 +372,7 @@ const StaffMarks = () => {
                             min="0"
                             max="100"
                             required
+                            disabled={!(form.availableSubjects && form.availableSubjects.length > 0)}
                             style={{ width: '80px', padding: '0.4rem' }}
                             value={sub.external}
                             onChange={e => handleSubjectChange(idx, 'external', e.target.value)}

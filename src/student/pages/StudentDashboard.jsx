@@ -6,11 +6,12 @@ import {
 } from 'recharts';
 import {
   ClipboardList, BookOpen, AlertCircle, FileText, Bell,
-  Percent, Calendar, ShieldAlert, Clock, MapPin, User
+  Percent, Calendar, ShieldAlert, Clock, MapPin, User, Briefcase
 } from 'lucide-react';
 import { 
   getStudentById, getAttendanceByStudent, 
-  getMarksByStudent, getFeesByStudent, getExams 
+  getMarksByStudent, getFeesByStudent, getExams,
+  getTimetable, getNotifications, getMyLibraryTransactions
 } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StudentDashboard.css';
@@ -20,7 +21,7 @@ const DEFAULT_STUDENT = {
   id: 'CS2022001',
   name: 'John Doe',
   dept: 'Cyber Security',
-  sem: 'Sem 3',
+  sem: 'Semester 6',
   email: 'john@college.edu'
 };
 
@@ -42,6 +43,7 @@ const getSubjectCode = (subject) => {
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const studentIdRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [studentSession, setStudentSession] = useState(DEFAULT_STUDENT);
 
@@ -51,6 +53,10 @@ const StudentDashboard = () => {
   const [assignmentsCount, setAssignmentsCount] = useState(0);
   const [exams, setExams] = useState([]);
   const [todaySchedule, setTodaySchedule] = useState([]);
+  const [scholarship, setScholarship] = useState(null);
+  const [notifications, setNotifications] = useState([]);
+  const [hasOverdueBooks, setHasOverdueBooks] = useState(false);
+  const [overdueFines, setOverdueFines] = useState(0);
 
   useEffect(() => {
     const init = async () => {
@@ -66,16 +72,41 @@ const StudentDashboard = () => {
       }
 
       try {
-        const studentId = activeStud.referenceId || activeStud.id || activeStud._id;
+        let studentId = activeStud.referenceId || activeStud.id || activeStud._id;
+        
+        // Ensure we are using the correct Register Number (like ST2026010), not a MongoDB _id
+        if (studentId && studentId.length === 24 && /^[0-9a-fA-F]{24}$/.test(studentId)) {
+          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const match = erpStudents.find(s => s._id === studentId || s.id === studentId);
+          if (match && match.id) {
+            studentId = match.id;
+          }
+        }
+
         studentIdRef.current = studentId; // track for real-time sync
         // Fetch real data in parallel
-        const [studentRes, marksRes, feesRes, attendanceRes, examsRes] = await Promise.all([
+        const [studentRes, marksRes, feesRes, attendanceRes, examsRes, notifRes, libRes] = await Promise.all([
           getStudentById(studentId).catch(() => null),
           getMarksByStudent(studentId).catch(() => null),
           getFeesByStudent(studentId).catch(() => null),
           getAttendanceByStudent(studentId).catch(() => null),
-          getExams().catch(() => ({ data: [] }))
+          getExams().catch(() => ({ data: [] })),
+          getNotifications().catch(() => ({ data: [] })),
+          getMyLibraryTransactions().catch(() => ({ data: [] }))
         ]);
+
+        if (notifRes?.data && Array.isArray(notifRes.data)) {
+          setNotifications(notifRes.data);
+        }
+
+        if (libRes?.data && Array.isArray(libRes.data)) {
+          const overdueBooks = libRes.data.filter(t => t.status === 'Overdue');
+          if (overdueBooks.length > 0) {
+            setHasOverdueBooks(true);
+            const overdueTotal = overdueBooks.reduce((acc, curr) => acc + (curr.fineAmount || 0), 0);
+            setOverdueFines(overdueTotal);
+          }
+        }
 
         let dbRecord = studentRes?.data || null;
         if (!dbRecord) {
@@ -99,6 +130,12 @@ const StudentDashboard = () => {
         if (attendanceRes?.data && attendanceRes.data.length > 0) {
           const presentDays = attendanceRes.data.filter(r => r.status.toLowerCase() === 'present').length;
           dbRecord.attendance = Math.round((presentDays / attendanceRes.data.length) * 100);
+          
+          const todayStr = new Date().toISOString().split('T')[0];
+          const todayRecord = attendanceRes.data.find(r => r.date && r.date.toString().startsWith(todayStr));
+          dbRecord.todayStatus = todayRecord ? (todayRecord.status.toLowerCase() === 'present' ? 'Present' : 'Absent') : 'Not Marked';
+        } else {
+          dbRecord.todayStatus = 'Not Marked';
         }
         
         setStudentDetails(dbRecord);
@@ -107,37 +144,94 @@ const StudentDashboard = () => {
           setExams(examsRes.data);
         }
 
-        // Fetch timetable
+        // Fetch timetable from API
         const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         const todayName = dayNames[new Date().getDay()];
-        let savedTimetable = JSON.parse(localStorage.getItem('erp_timetable') || '[]');
-        
-        // Seed mock data if empty
-        if (savedTimetable.length === 0) {
-          savedTimetable = [
-            { dept: activeStud.dept, day: todayName, period: 1, subject: 'DBMS', faculty: 'Mr. Arun Kumar', classroom: 'Room A101' },
-            { dept: activeStud.dept, day: todayName, period: 2, subject: 'Computer Networks', faculty: 'Ms. Priya Sharma', classroom: 'Room A102' }
-          ];
-          localStorage.setItem('erp_timetable', JSON.stringify(savedTimetable));
+        try {
+          // Normalize to match Timetable DB format, prioritizing the active session semester
+          // so that the sidebar and the dashboard content remain perfectly synced.
+          const targetSem = activeStud.sem || dbRecord.sem || 'Sem 3';
+          let querySem = targetSem;
+          if (querySem && querySem.startsWith('Sem ')) {
+            querySem = querySem.replace('Sem ', 'Semester ');
+          }
+
+          // Force the visual dbRecord to match the active session so UI doesn't say "Sem 1" while querying "Sem 3"
+          dbRecord.sem = targetSem;
+
+          const targetDept = activeStud.dept || dbRecord.dept || 'Cyber Security';
+          dbRecord.dept = targetDept;
+          
+          setStudentDetails(dbRecord);
+          // also update the active session state if needed
+          const updatedSession = {...activeStud, sem: targetSem, dept: targetDept};
+          setStudentSession(updatedSession);
+          sessionStorage.setItem('student_session', JSON.stringify(updatedSession));
+          
+          const ttRes = await getTimetable(targetDept, querySem);
+          let todayClasses = [];
+          if (ttRes.data && ttRes.data.schedule) {
+            const scheduleData = ttRes.data.schedule;
+            
+            if (scheduleData.length > 0 && Array.isArray(scheduleData[0])) {
+              // 2D Array from Admin
+              const dayIndex = todayName === 'Sunday' || todayName === 'Saturday' ? 0 : dayNames.indexOf(todayName) - 1; 
+              const todayScheduleArray = scheduleData[dayIndex] || [];
+              
+              todayScheduleArray.forEach((subject, idx) => {
+                if (subject && subject !== 'Lunch') {
+                  todayClasses.push({
+                    dept: targetDept,
+                    day: todayName,
+                    period: idx + 1,
+                    subject: subject,
+                    faculty: 'Assigned Faculty',
+                    classroom: 'Main Block'
+                  });
+                }
+              });
+            } else {
+              // Object Array from HOD
+              todayClasses = scheduleData.filter(s => 
+                s.day.toLowerCase() === todayName.toLowerCase()
+              ).sort((a, b) => Number(a.period) - Number(b.period));
+            }
+          }
+          setTodaySchedule(todayClasses);
+        } catch (err) {
+          console.error('Failed to fetch timetable for dashboard', err);
+          setTodaySchedule([]);
         }
 
-        const todayClasses = savedTimetable.filter(s => 
-          s.dept === activeStud.dept && s.day.toLowerCase() === todayName.toLowerCase()
-        ).sort((a, b) => Number(a.period) - Number(b.period));
-        
-        setTodaySchedule(todayClasses);
-
-        // Calculate CGPA from marks, or fallback
         const marksData = marksRes?.data || [];
-        let cgpaTrend = [8.2, 8.4, 8.5, 8.6];
+        let cgpaTrend = [];
         let internal = 0, external = 0;
         if (marksData.length > 0) {
           internal = marksData[0].internalMarks || 0;
           external = marksData[0].semesterMarks || 0;
+          
+          // Group marks by semester to calculate CGPA per semester for the trend
+          const semMap = {};
+          marksData.forEach(m => {
+            if (!semMap[m.semester]) semMap[m.semester] = [];
+            semMap[m.semester].push(m.gpa || 0);
+          });
+          
+          let cumulativeGPA = 0;
+          let semCount = 0;
+          Object.keys(semMap).sort().forEach(sem => {
+            const semGPAs = semMap[sem];
+            const semAvg = semGPAs.reduce((a, b) => a + b, 0) / semGPAs.length;
+            cumulativeGPA += semAvg;
+            semCount++;
+            cgpaTrend.push(Number((cumulativeGPA / semCount).toFixed(2)));
+          });
+        } else {
+          cgpaTrend = [0];
         }
 
         setStudentMarks({
-          internal, external, trend: cgpaTrend
+          internal, external, trend: cgpaTrend, rawMarks: marksData
         });
 
         // Determine fee status based on backend
@@ -155,12 +249,28 @@ const StudentDashboard = () => {
         setAssignmentsCount(0);
         setLoading(false);
       }
+
+      // Check for Scholarships
+      try {
+        const scholarships = JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
+        const safeLower = str => (str || '').toString().trim().toLowerCase();
+        
+        const myScholarship = scholarships.find(s => {
+          const idMatch = safeLower(s.studentId) === safeLower(activeStud.id) || safeLower(s.studentId) === safeLower(activeStud.referenceId);
+          const nameMatch = safeLower(s.studentName) === safeLower(activeStud.name);
+          return idMatch || nameMatch;
+        });
+
+        if (myScholarship && myScholarship.status === 'Active') {
+          setScholarship(myScholarship);
+        }
+      } catch (e) {
+        console.error('Failed to parse scholarships', e);
+      }
     };
     init();
   }, [navigate]);
 
-  // Keep a ref to the last known student ID so we can refresh on data changes
-  const studentIdRef = useRef(null);
   const refreshStudentData = useCallback(async () => {
     const studentId = studentIdRef.current;
     if (!studentId) return;
@@ -177,7 +287,28 @@ const StudentDashboard = () => {
       }
       const marksData = marksRes?.data || [];
       if (marksData.length > 0) {
-        setStudentMarks({ internal: marksData[0].internalMarks || 42, external: marksData[0].externalMarks || 85, trend: [8.2, 8.4, 8.5, 8.6] });
+        const semMap = {};
+        marksData.forEach(m => {
+          if (!semMap[m.semester]) semMap[m.semester] = [];
+          semMap[m.semester].push(m.gpa || 0);
+        });
+        
+        let cumulativeGPA = 0;
+        let semCount = 0;
+        let cgpaTrend = [];
+        Object.keys(semMap).sort().forEach(sem => {
+          const semAvg = semMap[sem].reduce((a, b) => a + b, 0) / semMap[sem].length;
+          cumulativeGPA += semAvg;
+          semCount++;
+          cgpaTrend.push(Number((cumulativeGPA / semCount).toFixed(2)));
+        });
+
+        setStudentMarks({ 
+          internal: marksData[0].internalMarks || 0, 
+          external: marksData[0].semesterMarks || 0, 
+          trend: cgpaTrend,
+          rawMarks: marksData
+        });
       }
       const feesData = feesRes?.data || [];
       const pendingFee = feesData.find(f => f.status === 'Pending');
@@ -198,6 +329,9 @@ const StudentDashboard = () => {
     );
   }
 
+  // Calculate Placement Eligibility
+  const isPlacementEligible = (studentDetails.cgpa || 0) >= 7.0 && (studentDetails.arrears || 0) === 0 && (studentDetails.attendance || 0) >= 75;
+
   // Filter exams for student's department and semester
   const studDept = studentDetails?.department || studentDetails?.dept || studentSession?.department || studentSession?.dept || 'Cyber Security';
   const studSem = studentDetails?.sem || studentDetails?.semester || studentSession?.sem || studentSession?.semester || 'Sem 3';
@@ -212,16 +346,42 @@ const StudentDashboard = () => {
 
   // CGPA trend across semesters
   const trendData = studentMarks?.trend || [];
-  const cgpaTrendData = trendData.map((val, idx) => ({
+  const cgpaTrendData = trendData.length > 0 ? trendData.map((val, idx) => ({
     name: `Sem ${idx + 1}`,
     CGPA: val
-  }));
+  })) : [{ name: 'Sem 1', CGPA: 0 }];
 
-  // Performance Internals vs Externals
-  const performanceData = [];
+  // Performance Internals vs Externals (for current/latest semester)
+  let performanceData = [];
+  if (studentMarks && studentMarks.rawMarks && studentMarks.rawMarks.length > 0) {
+    const allMarks = studentMarks.rawMarks;
+    // Get the latest semester
+    const semesters = [...new Set(allMarks.map(m => m.semester))].sort();
+    const latestSem = semesters[semesters.length - 1];
+    
+    // Filter marks for the latest semester
+    performanceData = allMarks.filter(m => m.semester === latestSem).map(m => ({
+      subject: m.subject.length > 10 ? m.subject.substring(0, 10) + '...' : m.subject,
+      Internals: m.internalMarks || 0,
+      Externals: (m.semesterMarks || 0) / 2 // chart says "Half-Externals"
+    }));
+  }
 
   return (
     <div className="student-dashboard animate-fade-in">
+      {hasOverdueBooks && (
+        <div className="bg-red-500/10 border border-red-500/50 text-red-600 dark:text-red-400 p-5 rounded-2xl mb-8 flex items-start gap-4 shadow-sm">
+          <ShieldAlert size={28} className="shrink-0 mt-0.5" />
+          <div>
+            <h3 className="font-bold text-lg mb-1 text-red-700 dark:text-red-300">WARNING: Overdue Library Books</h3>
+            <p className="text-sm opacity-90 leading-relaxed">
+              You currently have one or more overdue library books. Your accumulated library fine is <strong>₹{overdueFines}</strong>. 
+              Please return the books to the Central Library immediately to avoid further penalties.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Welcome Banner */}
       <div className="student-welcome-banner">
         <div className="banner-left">
@@ -233,6 +393,21 @@ const StudentDashboard = () => {
         </div>
       </div>
 
+      {/* Scholarship Alert Banner */}
+      {scholarship && (
+        <div style={{ padding: '1rem', background: 'linear-gradient(to right, rgba(139, 92, 246, 0.1), rgba(16, 185, 129, 0.05))', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ background: '#8b5cf6', color: 'white', padding: '10px', borderRadius: '50%' }}>
+            <AlertCircle size={24} />
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-main)', fontWeight: 800 }}>Congratulations! {scholarship.type} Scholarship Active</h4>
+            <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              You have been awarded a <strong>{scholarship.amount} fee waiver</strong>. Check your <a href="#" onClick={(e) => { e.preventDefault(); navigate('/student/fees'); }} style={{ color: '#8b5cf6', fontWeight: 600 }}>Fees Portal</a> for the updated active statement.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* Metrics Row */}
       <div className="student-metrics-grid">
         <div className="glass-card s-metric-card">
@@ -240,7 +415,9 @@ const StudentDashboard = () => {
           <div className="s-metric-details">
             <span className="card-title-s">Attendance Rate</span>
             <h2 className="metric-value-s">{studentDetails.attendance}%</h2>
-            <div className="metric-sub-s text-success">✓ Above 75% threshold</div>
+            <div className={`metric-sub-s ${studentDetails.todayStatus === 'Present' ? 'text-success' : studentDetails.todayStatus === 'Absent' ? 'text-danger' : 'text-muted'}`}>
+              {studentDetails.todayStatus === 'Present' ? '✓ Present Today' : studentDetails.todayStatus === 'Absent' ? '✗ Absent Today' : '• Today: Not Marked'}
+            </div>
           </div>
         </div>
 
@@ -286,12 +463,16 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card s-metric-card">
-          <div className="metric-icon-s red"><ShieldAlert size={22} /></div>
+        <div className="glass-card s-metric-card" style={{ cursor: 'pointer', transition: 'all 0.3s' }} onClick={() => navigate('/student/placement')} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'none'}>
+          <div className={`metric-icon-s ${isPlacementEligible ? 'teal' : 'red'}`}>
+            <Briefcase size={22} />
+          </div>
           <div className="s-metric-details">
-            <span className="card-title-s">Semester Status</span>
-            <h2 className="metric-value-s">{studentDetails.status || 'Active'}</h2>
-            <div className="metric-sub-s text-success">Good Standing</div>
+            <span className="card-title-s">Placement Status</span>
+            <h2 className="metric-value-s">{isPlacementEligible ? 'Eligible ✅' : 'Not Eligible ❌'}</h2>
+            <div className={`metric-sub-s ${isPlacementEligible ? 'text-success' : 'text-danger'}`}>
+              {isPlacementEligible ? 'Eligible Drives: 12' : 'Action Required'}
+            </div>
           </div>
         </div>
       </div>
@@ -396,10 +577,22 @@ const StudentDashboard = () => {
         <div className="glass-card announcements-card-student" style={{ marginTop: 0 }}>
           <div className="announcements-header">
             <h3><Bell size={18} className="text-primary-s" /> Campus Alerts & Board</h3>
-            <span className="notif-pill">2 NEW</span>
+            {notifications.length > 0 && <span className="notif-pill">{notifications.filter(n => !n.isRead).length} NEW</span>}
           </div>
           <div className="announcement-list">
-            <p className="text-muted text-center" style={{ padding: '2rem' }}>No announcements available.</p>
+            {notifications.length === 0 ? (
+              <p className="text-muted text-center" style={{ padding: '2rem' }}>No announcements available.</p>
+            ) : (
+              notifications.map((n, i) => (
+                <div key={n._id || i} className="announcement-item" style={{ borderLeft: `4px solid ${n.type === 'Warning' ? '#ef4444' : n.type === 'Success' ? '#10b981' : '#f59e0b'}`, padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '0.8rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                    <h4 className="ann-title" style={{ fontSize: '1rem', color: 'var(--text-main)', margin: 0 }}>{n.title}</h4>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(n.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <p className="ann-desc" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{n.message}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

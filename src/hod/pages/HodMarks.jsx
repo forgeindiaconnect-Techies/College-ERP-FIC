@@ -64,10 +64,10 @@ const HodMarks = () => {
         sem: s.sem,
         internal: 40, // default since Student model doesn't store per-subject marks
         external: 70, // default
-        gpa: s.cgpa || 8.0,
-        cgpa: s.cgpa || 8.0,
+        gpa: s.cgpa != null ? s.cgpa : 0,
+        cgpa: s.cgpa != null ? s.cgpa : 0,
         arrears: 0,
-        trend: [s.cgpa || 8.0]
+        trend: [s.cgpa != null ? s.cgpa : 0]
       }));
       setMarks(mapped.length > 0 ? mapped : MOCK_MARKS_FALLBACK.filter(m => m.dept === HOD_DEPT));
       setLoading(false);

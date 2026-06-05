@@ -8,7 +8,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
   ResponsiveContainer, LineChart, Line, PieChart, Pie, Cell, AreaChart, Area 
 } from 'recharts';
-import { getStaff } from '../../api/index';
+import { getStaff, getStudents, createNotification } from '../../api/index';
 import '../../pages/Dashboard.css';
 
 // EMPTY INITIAL STATE
@@ -18,6 +18,7 @@ const trendData = [];
 
 export default function PrincipalStaffOverview() {
   const [staffList, setStaffList] = useState(initialStaff);
+  const [allStudents, setAllStudents] = useState([]);
   const [search, setSearch] = useState('');
   const [filterDept, setFilterDept] = useState('All');
   const [filterSubject, setFilterSubject] = useState('All');
@@ -43,26 +44,38 @@ export default function PrincipalStaffOverview() {
   useEffect(() => {
     const fetchPrincipalStaff = async () => {
       try {
-        const res = await getStaff();
-        if (res.data && Array.isArray(res.data)) {
-          const regularStaff = res.data.filter(s => s.role !== 'HOD' && s.designation !== 'HOD');
-          const formatted = regularStaff.map((s, i) => ({
-            id: s.id || s._id || i + 1,
-            name: s.name,
-            dept: s.dept || s.department || 'N/A',
-            designation: s.designation || 'Staff',
-            subjects: s.subjects || [],
-            attendance: s.attendance || 95,
-            performance: s.performance || 88,
-            students: s.students || 100,
-            experience: s.experience || 5,
-            email: s.email || 'staff@college.edu',
-            phone: s.phone || 'N/A',
-            status: s.status || 'Active',
-            publications: s.publications || 2,
-            rating: s.rating || 4.2,
-            bio: s.bio || ''
-          }));
+        const [staffRes, studentsRes] = await Promise.all([
+          getStaff().catch(() => ({ data: [] })),
+          getStudents().catch(() => ({ data: [] }))
+        ]);
+        
+        const studentsData = Array.isArray(studentsRes?.data) ? studentsRes.data : [];
+        setAllStudents(studentsData);
+
+        if (staffRes.data && Array.isArray(staffRes.data)) {
+          const regularStaff = staffRes.data.filter(s => s.role !== 'HOD' && s.designation !== 'HOD');
+          const formatted = regularStaff.map((s, i) => {
+            const staffDept = s.dept || s.department || 'N/A';
+            const realStudentCount = studentsData.filter(st => (st.dept === staffDept || st.department === staffDept)).length;
+            
+            return {
+              id: s.id || s._id || i + 1,
+              name: s.name,
+              dept: staffDept,
+              designation: s.designation || 'Staff',
+              subjects: s.subjects || [],
+              attendance: s.attendance || 95,
+              performance: s.performance || 88,
+              students: realStudentCount,
+              experience: s.experience || 5,
+              email: s.email || 'staff@college.edu',
+              phone: s.phone || 'N/A',
+              status: s.status || 'Active',
+              publications: s.publications || 2,
+              rating: s.rating || 4.2,
+              bio: s.bio || ''
+            };
+          });
           setStaffList(formatted);
         }
       } catch (err) {
@@ -118,19 +131,45 @@ export default function PrincipalStaffOverview() {
     setModalType(type);
   };
 
-  const handleSendNotification = (e) => {
+  const handleSendNotification = async (e) => {
     e.preventDefault();
-    showToast(`Notification sent successfully to ${selectedStaff.name}!`);
-    setNotificationMsg('');
-    setModalType(null);
+    try {
+      await createNotification({
+        email: selectedStaff.email,
+        targetName: selectedStaff.name,
+        targetRoles: [], // Avoid broadcasting to everyone
+        title: 'Message from Principal',
+        message: notificationMsg,
+        type: 'Warning'
+      });
+      showToast(`Notification sent successfully to ${selectedStaff.name}!`);
+      setNotificationMsg('');
+      setModalType(null);
+    } catch (error) {
+      console.error('Error sending notification:', error);
+      showToast(`Failed to send notification to ${selectedStaff.name}.`);
+    }
   };
 
-  const handleScheduleMeeting = (e) => {
+  const handleScheduleMeeting = async (e) => {
     e.preventDefault();
-    showToast(`Meeting scheduled with ${selectedStaff.name} on ${meetingDate} at ${meetingTime}`);
-    setMeetingDate('');
-    setMeetingTime('');
-    setModalType(null);
+    try {
+      await createNotification({
+        email: selectedStaff.email,
+        targetName: selectedStaff.name,
+        targetRoles: [], // Avoid broadcasting to everyone
+        title: 'Meeting Scheduled by Principal',
+        message: `A meeting has been scheduled for you on ${meetingDate} at ${meetingTime}. Please be available.`,
+        type: 'Warning'
+      });
+      showToast(`Meeting scheduled with ${selectedStaff.name} on ${meetingDate} at ${meetingTime}`);
+      setMeetingDate('');
+      setMeetingTime('');
+      setModalType(null);
+    } catch (error) {
+      console.error('Error scheduling meeting:', error);
+      showToast(`Failed to schedule meeting with ${selectedStaff.name}.`);
+    }
   };
 
   return (
@@ -459,7 +498,7 @@ export default function PrincipalStaffOverview() {
                     <div key={idx} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: 10, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <div>
                         <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.88rem' }}>{s}</div>
-                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Class Size: {selectedStaff.students} Students</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Total Dept Students: {selectedStaff.students}</div>
                       </div>
                       <span style={{ background: 'rgba(14,165,233,0.1)', color: '#0ea5e9', padding: '3px 8px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700 }}>Active Class</span>
                     </div>

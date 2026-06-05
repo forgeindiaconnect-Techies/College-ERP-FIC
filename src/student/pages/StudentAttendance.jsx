@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CalendarCheck, ShieldAlert, CheckCircle, Search, ArrowLeft, Calendar, BookOpen, Clock, User, XCircle, FileText } from 'lucide-react';
 import { getAttendanceByStudent } from '../../api/index';
+import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StudentAttendance.css';
 
 // Fallbacks
@@ -30,6 +31,99 @@ const StudentAttendance = () => {
     percentage: 0
   });
 
+  const fetchAttendanceData = React.useCallback(async (studentId) => {
+    try {
+      if (!studentId || studentId === 'CS2022001') return;
+
+      // Ensure we are using the correct Register Number (like ST2026010), not a MongoDB _id
+      let finalId = studentId;
+      if (studentId.length === 24 && /^[0-9a-fA-F]{24}$/.test(studentId)) {
+        const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+        const match = erpStudents.find(s => s._id === studentId || s.id === studentId);
+        if (match && match.id) {
+          finalId = match.id;
+        }
+      }
+      
+      const res = await getAttendanceByStudent(finalId);
+      if (res?.data && res.data.length > 0) {
+        const records = res.data;
+        
+        // Basic Analytics
+        const totalDays = records.length;
+        const presentCount = records.filter(r => r.status?.toLowerCase() === 'present').length;
+        const absentCount = records.filter(r => r.status?.toLowerCase() === 'absent').length;
+        const leaveCount = records.filter(r => r.status?.toLowerCase() === 'leave').length;
+        const percentage = Math.round((presentCount / totalDays) * 100);
+
+        setAnalytics({
+          total: totalDays,
+          present: presentCount,
+          absent: absentCount,
+          leave: leaveCount,
+          percentage
+        });
+
+        // Daily Logs
+        const logs = records.map(r => ({
+          date: new Date(r.date).toLocaleDateString('en-CA'),
+          subject: r.subject || 'General',
+          status: r.status?.toLowerCase() || 'present',
+          faculty: r.markedBy || 'System'
+        }));
+        logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setAttendanceLogs(logs);
+
+        // Subject-Wise Aggregation
+        const subjectsMap = {};
+        records.forEach(r => {
+          const sub = r.subject || 'General';
+          if (!subjectsMap[sub]) subjectsMap[sub] = { total: 0, present: 0 };
+          subjectsMap[sub].total += 1;
+          if (r.status?.toLowerCase() === 'present') subjectsMap[sub].present += 1;
+        });
+        
+        const subArray = Object.keys(subjectsMap).map(sub => ({
+          subject: sub,
+          total: subjectsMap[sub].total,
+          present: subjectsMap[sub].present,
+          percent: Math.round((subjectsMap[sub].present / subjectsMap[sub].total) * 100)
+        }));
+        setSubjectWise(subArray.sort((a, b) => b.percent - a.percent));
+
+        // Monthly Aggregation
+        const monthsMap = {};
+        records.forEach(r => {
+          const d = new Date(r.date);
+          const monthStr = d.toLocaleString('default', { month: 'long', year: 'numeric' });
+          if (!monthsMap[monthStr]) monthsMap[monthStr] = { total: 0, present: 0, sortKey: d.getTime() };
+          monthsMap[monthStr].total += 1;
+          if (r.status?.toLowerCase() === 'present') monthsMap[monthStr].present += 1;
+        });
+
+        const monthArray = Object.keys(monthsMap).map(m => ({
+          month: m,
+          sortKey: monthsMap[m].sortKey,
+          percent: Math.round((monthsMap[m].present / monthsMap[m].total) * 100)
+        }));
+        setMonthly(monthArray.sort((a, b) => b.sortKey - a.sortKey));
+
+      } else {
+        // Fallbacks for empty database
+        const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+        const localMatch = erpStudents.find(s => s.rollNo === studentId || s.id === studentId);
+        if (localMatch && localMatch.attendance) {
+          const parsed = parseInt(String(localMatch.attendance).replace('%', '').trim());
+          if (!isNaN(parsed)) setAnalytics(prev => ({ ...prev, percentage: parsed }));
+        }
+      }
+    } catch (err) {
+      console.error('Failed to fetch backend student attendance:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     // 1. Session check
     const session = sessionStorage.getItem('student_session');
@@ -42,89 +136,19 @@ const StudentAttendance = () => {
       return;
     }
 
-    const loadAttendance = async () => {
-      try {
-        const res = await getAttendanceByStudent(activeStud.id || activeStud.referenceId || activeStud._id);
-        if (res?.data && res.data.length > 0) {
-          const records = res.data;
-          
-          // Basic Analytics
-          const totalDays = records.length;
-          const presentCount = records.filter(r => r.status?.toLowerCase() === 'present').length;
-          const absentCount = records.filter(r => r.status?.toLowerCase() === 'absent').length;
-          const leaveCount = records.filter(r => r.status?.toLowerCase() === 'leave').length;
-          const percentage = Math.round((presentCount / totalDays) * 100);
+    const studentId = activeStud.referenceId || activeStud.id || activeStud._id;
+    fetchAttendanceData(studentId);
+  }, [navigate, fetchAttendanceData]);
 
-          setAnalytics({
-            total: totalDays,
-            present: presentCount,
-            absent: absentCount,
-            leave: leaveCount,
-            percentage
-          });
+  // Hook up real-time auto-refresh mechanism
+  const refreshAttendance = React.useCallback(() => {
+    const studentId = studentSession.referenceId || studentSession.id || studentSession._id;
+    if (studentId) {
+      fetchAttendanceData(studentId);
+    }
+  }, [studentSession, fetchAttendanceData]);
 
-          // Daily Logs
-          const logs = records.map(r => ({
-            date: new Date(r.date).toLocaleDateString('en-CA'),
-            subject: r.subject || 'General',
-            status: r.status?.toLowerCase() || 'present',
-            faculty: r.markedBy || 'System'
-          }));
-          logs.sort((a, b) => new Date(b.date) - new Date(a.date));
-          setAttendanceLogs(logs);
-
-          // Subject-Wise Aggregation
-          const subjectsMap = {};
-          records.forEach(r => {
-            const sub = r.subject || 'General';
-            if (!subjectsMap[sub]) subjectsMap[sub] = { total: 0, present: 0 };
-            subjectsMap[sub].total += 1;
-            if (r.status?.toLowerCase() === 'present') subjectsMap[sub].present += 1;
-          });
-          
-          const subArray = Object.keys(subjectsMap).map(sub => ({
-            subject: sub,
-            total: subjectsMap[sub].total,
-            present: subjectsMap[sub].present,
-            percent: Math.round((subjectsMap[sub].present / subjectsMap[sub].total) * 100)
-          }));
-          setSubjectWise(subArray.sort((a, b) => b.percent - a.percent));
-
-          // Monthly Aggregation
-          const monthsMap = {};
-          records.forEach(r => {
-            const d = new Date(r.date);
-            const monthStr = d.toLocaleString('default', { month: 'long', year: 'numeric' });
-            if (!monthsMap[monthStr]) monthsMap[monthStr] = { total: 0, present: 0, sortKey: d.getTime() };
-            monthsMap[monthStr].total += 1;
-            if (r.status?.toLowerCase() === 'present') monthsMap[monthStr].present += 1;
-          });
-
-          const monthArray = Object.keys(monthsMap).map(m => ({
-            month: m,
-            sortKey: monthsMap[m].sortKey,
-            percent: Math.round((monthsMap[m].present / monthsMap[m].total) * 100)
-          }));
-          setMonthly(monthArray.sort((a, b) => b.sortKey - a.sortKey));
-
-        } else {
-          // Fallbacks for empty database
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
-          const localMatch = erpStudents.find(s => s.rollNo === activeStud.id || s.id === activeStud.id);
-          if (localMatch && localMatch.attendance) {
-            const parsed = parseInt(String(localMatch.attendance).replace('%', '').trim());
-            if (!isNaN(parsed)) setAnalytics(prev => ({ ...prev, percentage: parsed }));
-          }
-        }
-      } catch (err) {
-        console.error('Failed to fetch backend student attendance:', err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadAttendance();
-  }, [navigate]);
+  useRealtimeSync(refreshAttendance, ['attendance']);
 
   const getProgressClass = (percent) => {
     if (percent >= 75) return 'safe';

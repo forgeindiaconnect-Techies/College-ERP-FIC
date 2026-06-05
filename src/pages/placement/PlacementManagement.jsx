@@ -4,7 +4,12 @@ import {
   Users, Award, Search, Plus, MapPin, DollarSign,
   CheckCircle, XCircle, Clock, Download
 } from 'lucide-react';
-import { getPlacementCompanies, getPlacementJobs, getPlacementApplications, getPlacementInterviews, getPlacementSelections } from '../../api/index';
+import { 
+  getPlacementCompanies, getPlacementJobs, getPlacementApplications, 
+  getPlacementInterviews, getPlacementSelections,
+  createPlacementCompany, createPlacementJob, getEligibleStudentsForJob,
+  updatePlacementApplicationStatus, createPlacementInterview, createPlacementSelection
+} from '../../api/index';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, LineChart, Line, AreaChart, Area
@@ -27,9 +32,51 @@ const PlacementManagement = () => {
   const [selections, setSelections] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  // Modals state
+  const [showCompanyModal, setShowCompanyModal] = useState(false);
+  const [companyForm, setCompanyForm] = useState({ name: '', sector: '', location: '', website: '', hrName: '', hrEmail: '', hrContact: '' });
+
+  const [showJobModal, setShowJobModal] = useState(false);
+  const [jobForm, setJobForm] = useState({ company: '', role: '', ctc: '', eligibility: '', minCgpa: 0, maxArrears: 0, eligibleDepartments: [], driveDate: '', deadline: '' });
+
+  const [showInterviewModal, setShowInterviewModal] = useState(false);
+  const [interviewForm, setInterviewForm] = useState({ company: '', role: '', round: '', date: '', time: '', mode: 'Online', venue: '', panel: '', candidates: 0 });
+
+  const [showSelectionModal, setShowSelectionModal] = useState(false);
+  const [selectionForm, setSelectionForm] = useState({ student: '', regNo: '', company: '', role: '', ctc: '', date: '' });
+
+  // Eligibility tracker state
+  const [selectedEligibleJob, setSelectedEligibleJob] = useState('');
+  const [eligibleStudents, setEligibleStudents] = useState([]);
+  const [notEligibleStudents, setNotEligibleStudents] = useState([]);
+  const [eligibilityLoading, setEligibilityLoading] = useState(false);
+
   React.useEffect(() => {
     fetchPlacementData();
   }, []);
+
+  React.useEffect(() => {
+    if (selectedEligibleJob) {
+      const fetchEligible = async () => {
+        setEligibilityLoading(true);
+        try {
+          const res = await getEligibleStudentsForJob(selectedEligibleJob);
+          setEligibleStudents(res.data.eligible || []);
+          setNotEligibleStudents(res.data.notEligible || []);
+        } catch (error) {
+          console.error('Failed to load eligible students', error);
+          setEligibleStudents([]);
+          setNotEligibleStudents([]);
+        } finally {
+          setEligibilityLoading(false);
+        }
+      };
+      fetchEligible();
+    } else {
+      setEligibleStudents([]);
+      setNotEligibleStudents([]);
+    }
+  }, [selectedEligibleJob]);
 
   const fetchPlacementData = async () => {
     try {
@@ -51,6 +98,115 @@ const PlacementManagement = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Auto-select first job for Eligibility Tracker
+  React.useEffect(() => {
+    if (jobs.length > 0 && !selectedEligibleJob) {
+      setSelectedEligibleJob(jobs[0]._id || jobs[0].jobId);
+    }
+  }, [jobs, selectedEligibleJob]);
+
+  const handleAddCompany = async (e) => {
+    e.preventDefault();
+    try {
+      await createPlacementCompany(companyForm);
+      setShowCompanyModal(false);
+      setCompanyForm({ name: '', sector: '', location: '', website: '', hrName: '', hrEmail: '', hrContact: '' });
+      fetchPlacementData();
+    } catch (error) {
+      console.error('Failed to add company', error);
+    }
+  };
+
+  const handleAddJob = async (e) => {
+    e.preventDefault();
+    try {
+      await createPlacementJob(jobForm);
+      setShowJobModal(false);
+      setJobForm({ company: '', role: '', ctc: '', eligibility: '', minCgpa: 0, maxArrears: 0, eligibleDepartments: [], driveDate: '', deadline: '' });
+      fetchPlacementData();
+    } catch (error) {
+      console.error('Failed to add job', error);
+    }
+  };
+
+  const handleUpdateAppStatus = async (id, currentStatus) => {
+    const statuses = ['Applied', 'Shortlisted', 'Waitlisted', 'Rejected'];
+    const nextIdx = (statuses.indexOf(currentStatus) + 1) % statuses.length;
+    const nextStatus = statuses[nextIdx];
+    try {
+      await updatePlacementApplicationStatus(id, nextStatus);
+      fetchPlacementData();
+    } catch (error) {
+      console.error('Failed to update app status', error);
+    }
+  };
+
+  const handleAddInterview = async (e) => {
+    e.preventDefault();
+    try {
+      await createPlacementInterview(interviewForm);
+      setShowInterviewModal(false);
+      setInterviewForm({ company: '', role: '', round: '', date: '', time: '', mode: 'Online', venue: '', panel: '', candidates: 0 });
+      fetchPlacementData();
+    } catch (error) {
+      console.error('Failed to schedule interview', error);
+    }
+  };
+
+  const handleAddSelection = async (e) => {
+    e.preventDefault();
+    try {
+      await createPlacementSelection(selectionForm);
+      setShowSelectionModal(false);
+      setSelectionForm({ student: '', regNo: '', company: '', role: '', ctc: '', date: '' });
+      fetchPlacementData();
+    } catch (error) {
+      console.error('Failed to add selected student', error);
+    }
+  };
+
+  const packageStats = React.useMemo(() => {
+    let max = 0;
+    let sum = 0;
+    let count = 0;
+    selections.forEach(sel => {
+      const match = sel.ctc.match(/(\d+(\.\d+)?)/);
+      if (match) {
+        const val = parseFloat(match[1]);
+        if (val > max) max = val;
+        sum += val;
+        count++;
+      }
+    });
+    return {
+      highest: max > 0 ? `${max} LPA` : 'N/A',
+      average: count > 0 ? `${(sum/count).toFixed(2)} LPA` : 'N/A'
+    };
+  }, [selections]);
+
+  const downloadCSV = (filename, rows) => {
+    const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const downloadNIRFReport = () => {
+    const headers = ["Registration Number", "Student Name", "Placed Company", "Role", "Package (CTC)"];
+    const rows = selections.map(sel => [sel.regNo, sel.student, sel.company, sel.role, sel.ctc]);
+    downloadCSV("NIRF_Placement_Report.csv", [headers, ...rows]);
+  };
+
+  const downloadDepartmentSummary = () => {
+    const headers = ["Company Name", "Sector", "Location", "Active Drives"];
+    const rows = companies.map(comp => [comp.name, comp.sector, comp.location, comp.drives]);
+    downloadCSV("Department_Placement_Summary.csv", [headers, ...rows]);
   };
 
   const TABS = [
@@ -85,7 +241,7 @@ const PlacementManagement = () => {
 
       {activeTab === 'Dashboard' && (
         <div className="animate-fade-in">
-          <div className="placement-grid">
+          <div className="placement-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
             <div className="glass-card p-5 relative overflow-hidden">
               <Building size={24} className="text-blue-500 mb-2"/>
               <h3 className="text-sm text-muted uppercase font-bold">Total Companies</h3>
@@ -93,12 +249,12 @@ const PlacementManagement = () => {
             </div>
             <div className="glass-card p-5 relative overflow-hidden">
               <Briefcase size={24} className="text-purple-500 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Active Jobs</h3>
+              <h3 className="text-sm text-muted uppercase font-bold">Active Drives</h3>
               <p className="text-2xl font-bold mt-1">{jobs.length}</p>
             </div>
             <div className="glass-card p-5 relative overflow-hidden">
               <Users size={24} className="text-yellow-500 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Total Applications</h3>
+              <h3 className="text-sm text-muted uppercase font-bold">Applications</h3>
               <p className="text-2xl font-bold mt-1">{applications.length}</p>
             </div>
             <div className="glass-card p-5 relative overflow-hidden">
@@ -106,28 +262,63 @@ const PlacementManagement = () => {
               <h3 className="text-sm text-muted uppercase font-bold">Students Placed</h3>
               <p className="text-2xl font-bold text-success mt-1">{selections.length}</p>
             </div>
+            <div className="glass-card p-5 relative overflow-hidden">
+              <DollarSign size={24} className="text-blue-400 mb-2"/>
+              <h3 className="text-sm text-muted uppercase font-bold">Highest Package</h3>
+              <p className="text-2xl font-bold mt-1">{packageStats.highest}</p>
+            </div>
+            <div className="glass-card p-5 relative overflow-hidden">
+              <DollarSign size={24} className="text-green-400 mb-2"/>
+              <h3 className="text-sm text-muted uppercase font-bold">Avg Package</h3>
+              <p className="text-2xl font-bold mt-1">{packageStats.average}</p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             <div className="glass-card p-6">
-              <h2 className="text-lg font-bold mb-4">Placement Trends (YTD)</h2>
-              <ResponsiveContainer width="100%" height={300}>
-                <AreaChart data={CHART_DATA}>
-                  <defs>
-                    <linearGradient id="colorPlaced" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.2} />
-                  <XAxis dataKey="month" stroke="var(--text-muted)" />
-                  <YAxis stroke="var(--text-muted)" />
-                  <Tooltip contentStyle={{background:'var(--bg-secondary)', border:'none', borderRadius:'8px'}}/>
-                  <Area type="monotone" dataKey="placed" stroke="#3b82f6" fillOpacity={1} fill="url(#colorPlaced)" />
-                </AreaChart>
-              </ResponsiveContainer>
+              <h3 className="font-bold mb-4">Placement Trends (YTD)</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={CHART_DATA}>
+                    <defs>
+                      <linearGradient id="colorPlaced" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--success-color)" stopOpacity={0.8}/>
+                        <stop offset="95%" stopColor="var(--success-color)" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="month" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)', borderRadius: '8px' }} />
+                    <Area type="monotone" dataKey="placed" stroke="var(--success-color)" fillOpacity={1} fill="url(#colorPlaced)" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
             </div>
+            
+            <div className="glass-card p-6">
+              <h3 className="font-bold mb-4">Department-wise Placement %</h3>
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={[
+                    { dept: 'CSE', percentage: 88 },
+                    { dept: 'IT', percentage: 82 },
+                    { dept: 'ECE', percentage: 75 },
+                    { dept: 'EEE', percentage: 65 },
+                    { dept: 'MECH', percentage: 55 }
+                  ]}>
+                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.1)" />
+                    <XAxis dataKey="dept" axisLine={false} tickLine={false} />
+                    <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
+                    <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)', borderRadius: '8px' }} />
+                    <Bar dataKey="percentage" fill="var(--primary-color)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </div>
+          </div>
 
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
             <div className="glass-card p-6">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-lg font-bold">Upcoming Interviews</h2>
@@ -158,18 +349,31 @@ const PlacementManagement = () => {
         <div className="animate-fade-in">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">Partner Companies</h2>
-            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Add Company</button>
+            <button className="btn-primary flex items-center gap-2" onClick={() => setShowCompanyModal(true)}><Plus size={16}/> Add Company</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {companies.map(company => (
               <div key={company.companyId} className="glass-card company-card">
                 <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-lg">{company.name}</h3>
+                  <div className="flex items-center gap-3">
+                    {company.logo ? (
+                      <img src={company.logo} alt={company.name} className="w-8 h-8 rounded-full object-cover" />
+                    ) : (
+                      <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center font-bold">{company.name.charAt(0)}</div>
+                    )}
+                    <h3 className="font-bold text-lg">{company.name}</h3>
+                  </div>
                   <span className="text-xs font-bold px-2 py-1 bg-green-100 text-green-700 rounded-full">{company.status}</span>
                 </div>
                 <p className="text-sm text-muted mb-4">{company.sector}</p>
                 <div className="flex flex-col gap-2 text-sm">
                   <div className="flex items-center gap-2 text-muted"><MapPin size={14}/> {company.location}</div>
+                  {company.website && (
+                    <div className="flex items-center gap-2 text-muted"><Search size={14}/> <a href={company.website} target="_blank" rel="noreferrer" className="text-blue-500 hover:underline">Website</a></div>
+                  )}
+                  {company.hrName && (
+                    <div className="flex items-center gap-2 text-muted"><Users size={14}/> HR: {company.hrName} {company.hrContact ? `(${company.hrContact})` : ''}</div>
+                  )}
                   <div className="flex items-center gap-2 text-muted"><Briefcase size={14}/> {company.drives} Active Drives</div>
                 </div>
               </div>
@@ -182,16 +386,16 @@ const PlacementManagement = () => {
         <div className="animate-fade-in">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">Active Campus Drives</h2>
-            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Post Job</button>
+            <button className="btn-primary flex items-center gap-2" onClick={() => setShowJobModal(true)}><Plus size={16}/> Post Job</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {jobs.map(job => (
-              <div key={job.jobId} className="glass-card job-card relative">
-                <div className="absolute top-4 right-4 bg-primary-light text-primary px-3 py-1 rounded-full text-xs font-bold">
-                  {job.applicants} Applied
+              <div key={job.jobId} className="glass-card job-card relative" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                <div style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', padding: '4px 12px', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 700 }}>
+                  {job.applicants || 0} Applied
                 </div>
-                <h3 className="font-bold text-xl mb-1">{job.role}</h3>
-                <p className="text-primary font-bold mb-4">{job.company}</p>
+                <h3 className="font-bold text-xl mb-1" style={{ maxWidth: '70%' }}>{job.role}</h3>
+                <p className="font-bold mb-4" style={{ color: '#3b82f6' }}>{job.company}</p>
                 
                 <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
                   <div>
@@ -201,6 +405,14 @@ const PlacementManagement = () => {
                   <div>
                     <span className="text-muted block text-xs">Eligibility</span>
                     <span className="font-bold flex items-center gap-1"><CheckCircle size={14}/> {job.eligibility}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted block text-xs">Drive Date</span>
+                    <span className="font-bold flex items-center gap-1"><Calendar size={14}/> {job.driveDate ? new Date(job.driveDate).toLocaleDateString() : 'TBA'}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted block text-xs">Max Arrears</span>
+                    <span className="font-bold flex items-center gap-1"><XCircle size={14}/> {job.maxArrears} allowed</span>
                   </div>
                 </div>
                 <div className="pt-4 border-t border-gray-200 dark:border-gray-800 flex justify-between items-center">
@@ -228,26 +440,35 @@ const PlacementManagement = () => {
                 <tr>
                   <th>Reg No</th>
                   <th>Student Name</th>
+                  <th>Department</th>
+                  <th>CGPA</th>
                   <th>Company</th>
                   <th>Role</th>
                   <th>Status</th>
-                  <th>Actions</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {applications.map(app => (
-                  <tr key={app.applicationId}>
+                  <tr key={app._id}>
                     <td className="font-mono text-sm">{app.regNo}</td>
-                    <td className="font-medium">{app.student}</td>
+                    <td className="font-medium">{app.studentId?.name || app.student}</td>
+                    <td>{app.studentId?.dept || app.dept || '-'}</td>
+                    <td className="font-bold">{app.studentId?.cgpa || app.cgpa || '-'}</td>
                     <td className="font-bold text-primary">{app.company}</td>
                     <td>{app.role}</td>
                     <td>
-                      <span className={`text-xs font-bold px-2 py-1 rounded ${app.status === 'Shortlisted' ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700'}`}>
+                      <span className={`text-xs font-bold px-2 py-1 rounded ${
+                        app.status === 'Shortlisted' ? 'bg-green-100 text-green-700' : 
+                        app.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
+                        app.status === 'Waitlisted' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
                         {app.status}
                       </span>
                     </td>
                     <td>
-                      <button className="btn-secondary text-xs py-1 px-3">Update Status</button>
+                      <button className="btn-secondary text-xs py-1 px-3" onClick={() => handleUpdateAppStatus(app._id, app.status)}>Update Status</button>
                     </td>
                   </tr>
                 ))}
@@ -261,7 +482,7 @@ const PlacementManagement = () => {
         <div className="animate-fade-in glass-card">
           <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-green-50 dark:bg-green-900/10">
             <h2 className="font-bold text-success flex items-center gap-2"><Award size={20}/> Hall of Fame</h2>
-            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Add Placement</button>
+            <button className="btn-primary flex items-center gap-2" onClick={() => setShowSelectionModal(true)}><Plus size={16}/> Add Placement</button>
           </div>
           <div className="table-container">
             <table>
@@ -296,42 +517,71 @@ const PlacementManagement = () => {
         <div className="animate-fade-in glass-card">
           <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
             <h2 className="font-bold">Student Eligibility</h2>
-            <div className="search-box">
-              <Search size={16} className="text-muted"/>
-              <input type="text" placeholder="Search by Reg No..." />
+            <div className="flex gap-4">
+              <select 
+                value={selectedEligibleJob} 
+                onChange={(e) => setSelectedEligibleJob(e.target.value)}
+                className="bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-main)] rounded px-3 py-1 outline-none text-sm"
+              >
+                <option value="">Select a Campus Drive...</option>
+                {jobs.map(job => (
+                  <option key={job._id || job.jobId} value={job._id || job.jobId}>{job.company} - {job.role}</option>
+                ))}
+              </select>
+              <div className="search-box">
+                <Search size={16} className="text-muted"/>
+                <input type="text" placeholder="Search by Reg No..." />
+              </div>
             </div>
           </div>
           <div className="table-container">
-            <table>
-              <thead>
-                <tr>
-                  <th>Reg No</th>
-                  <th>Student Name</th>
-                  <th>Department</th>
-                  <th>CGPA</th>
-                  <th>Backlogs</th>
-                  <th>Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td className="font-mono text-sm">REG202301</td>
-                  <td className="font-medium">Amit Kumar</td>
-                  <td>Computer Science</td>
-                  <td className="font-bold">8.5</td>
-                  <td>0</td>
-                  <td><span className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">Eligible</span></td>
-                </tr>
-                <tr>
-                  <td className="font-mono text-sm">REG202302</td>
-                  <td className="font-medium">Priya Sharma</td>
-                  <td>Electronics</td>
-                  <td className="font-bold">6.2</td>
-                  <td>2</td>
-                  <td><span className="bg-red-100 text-red-700 px-2 py-1 rounded text-xs font-bold">Not Eligible</span></td>
-                </tr>
-              </tbody>
-            </table>
+            {eligibilityLoading ? (
+              <div className="p-8 text-center text-muted">Checking eligibility matrix...</div>
+            ) : !selectedEligibleJob ? (
+              <div className="p-8 text-center text-muted">Please select a campus drive to view eligible students.</div>
+            ) : (eligibleStudents.length === 0 && notEligibleStudents.length === 0) ? (
+              <div className="p-8 text-center text-muted">No students found.</div>
+            ) : (
+              <table>
+                <thead>
+                  <tr>
+                    <th>Reg No</th>
+                    <th>Student Name</th>
+                    <th>Department</th>
+                    <th>CGPA</th>
+                    <th>Arrears</th>
+                    <th>Status</th>
+                    <th>Action/Reason</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {eligibleStudents.map((student, idx) => (
+                    <tr key={`el-${idx}`}>
+                      <td className="font-mono text-sm">{student.id}</td>
+                      <td className="font-medium">{student.name}</td>
+                      <td>{student.dept}</td>
+                      <td className="font-bold">{student.cgpa}</td>
+                      <td>{student.arrears}</td>
+                      <td><span style={{ backgroundColor: '#d1fae5', color: '#047857', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>✓ Eligible</span></td>
+                      <td>
+                        <button className="btn-secondary text-xs py-1 px-3">Notify Student</button>
+                      </td>
+                    </tr>
+                  ))}
+                  {notEligibleStudents.map((student, idx) => (
+                    <tr key={`nel-${idx}`} className="opacity-75 bg-gray-50 dark:bg-gray-800/50">
+                      <td className="font-mono text-sm">{student.id}</td>
+                      <td className="font-medium">{student.name}</td>
+                      <td>{student.dept}</td>
+                      <td className="font-bold">{student.cgpa}</td>
+                      <td>{student.arrears}</td>
+                      <td><span style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>✗ Not Eligible</span></td>
+                      <td className="text-xs text-danger font-medium">{student.reason}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
       )}
@@ -340,7 +590,7 @@ const PlacementManagement = () => {
         <div className="animate-fade-in glass-card">
           <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
             <h2 className="font-bold">Interview Schedules</h2>
-            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Schedule Interview</button>
+            <button className="btn-primary flex items-center gap-2" onClick={() => setShowInterviewModal(true)}><Plus size={16}/> Schedule Interview</button>
           </div>
           <div className="table-container">
             <table>
@@ -348,26 +598,37 @@ const PlacementManagement = () => {
                 <tr>
                   <th>Company</th>
                   <th>Role</th>
-                  <th>Date & Time</th>
                   <th>Round</th>
+                  <th>Date & Time</th>
+                  <th>Mode & Venue</th>
+                  <th>Panel Details</th>
                   <th>Candidates</th>
-                  <th>Venue/Link</th>
+                  <th>Action</th>
                 </tr>
               </thead>
               <tbody>
                 {interviews.map(interview => (
-                  <tr key={interview.interviewId}>
+                  <tr key={interview._id || interview.interviewId}>
                     <td className="font-bold text-primary">{interview.company}</td>
                     <td>{interview.role}</td>
+                    <td><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{interview.round}</span></td>
                     <td>
-                      <div className="flex flex-col">
-                        <span>{new Date(interview.date).toLocaleDateString()}</span>
-                        <span className="text-xs text-muted">{interview.time}</span>
+                      <div className="flex flex-col text-sm">
+                        <span className="font-bold flex items-center gap-1"><Calendar size={14}/> {new Date(interview.date).toLocaleDateString()}</span>
+                        <span className="text-muted flex items-center gap-1"><Clock size={14}/> {interview.time}</span>
                       </div>
                     </td>
-                    <td><span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">{interview.round}</span></td>
+                    <td>
+                      <div className="flex flex-col text-sm">
+                        <span className={`font-bold ${interview.mode === 'Online' ? 'text-blue-500' : 'text-orange-500'}`}>{interview.mode}</span>
+                        <span className="text-muted">{interview.venue || '-'}</span>
+                      </div>
+                    </td>
+                    <td className="text-sm text-muted">{interview.panel || '-'}</td>
                     <td>{interview.candidates}</td>
-                    <td>Seminar Hall A</td>
+                    <td>
+                      <button className="btn-secondary text-xs py-1 px-3">View List</button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -382,8 +643,228 @@ const PlacementManagement = () => {
           <h2 className="text-xl font-bold mb-2">Placement Data Export</h2>
           <p className="text-muted max-w-md mb-6">Export NIRF placement data, company-wise selections, and department-wise statistics.</p>
           <div className="flex gap-4">
-            <button className="btn-primary flex items-center gap-2"><Download size={16}/> NIRF Report</button>
-            <button className="btn-secondary flex items-center gap-2"><Download size={16}/> Department Summary</button>
+            <button className="btn-primary flex items-center gap-2" onClick={downloadNIRFReport}><Download size={16}/> NIRF Report</button>
+            <button className="btn-secondary flex items-center gap-2" onClick={downloadDepartmentSummary}><Download size={16}/> Department Summary</button>
+          </div>
+        </div>
+      )}
+
+      {/* Add Company Modal */}
+      {showCompanyModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card">
+            <div className="modal-header">
+              <h2>Add Partner Company</h2>
+              <button className="close-btn" onClick={() => setShowCompanyModal(false)}><XCircle size={20}/></button>
+            </div>
+            <form onSubmit={handleAddCompany} className="modal-form">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group col-span-2">
+                  <label>Company Name</label>
+                  <input type="text" value={companyForm.name} onChange={e => setCompanyForm({...companyForm, name: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Industry Type</label>
+                  <input type="text" value={companyForm.sector} onChange={e => setCompanyForm({...companyForm, sector: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Location (HQ)</label>
+                  <input type="text" value={companyForm.location} onChange={e => setCompanyForm({...companyForm, location: e.target.value})} required />
+                </div>
+                <div className="form-group col-span-2">
+                  <label>Website</label>
+                  <input type="url" value={companyForm.website} onChange={e => setCompanyForm({...companyForm, website: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>HR Name</label>
+                  <input type="text" value={companyForm.hrName} onChange={e => setCompanyForm({...companyForm, hrName: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>HR Email</label>
+                  <input type="email" value={companyForm.hrEmail} onChange={e => setCompanyForm({...companyForm, hrEmail: e.target.value})} />
+                </div>
+                <div className="form-group col-span-2">
+                  <label>HR Contact (Phone)</label>
+                  <input type="text" value={companyForm.hrContact} onChange={e => setCompanyForm({...companyForm, hrContact: e.target.value})} />
+                </div>
+              </div>
+              <div className="modal-actions mt-4">
+                <button type="button" className="btn-secondary" onClick={() => setShowCompanyModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Save Company</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Post Job Modal */}
+      {showJobModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card max-h-[90vh] overflow-y-auto">
+            <div className="modal-header">
+              <h2>Post Campus Drive</h2>
+              <button className="close-btn" onClick={() => setShowJobModal(false)}><XCircle size={20}/></button>
+            </div>
+            <form onSubmit={handleAddJob} className="modal-form">
+              <div className="form-group">
+                <label>Company Name</label>
+                <select value={jobForm.company} onChange={e => setJobForm({...jobForm, company: e.target.value})} required>
+                  <option value="">Select Company</option>
+                  {companies.map(c => <option key={c.companyId} value={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label>Job Role</label>
+                  <input type="text" value={jobForm.role} onChange={e => setJobForm({...jobForm, role: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Package (CTC in LPA)</label>
+                  <input type="text" value={jobForm.ctc} onChange={e => setJobForm({...jobForm, ctc: e.target.value})} required placeholder="e.g. 4.5 LPA" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Eligibility Criteria Description (Visible to Students)</label>
+                <input type="text" value={jobForm.eligibility} onChange={e => setJobForm({...jobForm, eligibility: e.target.value})} required placeholder="e.g. CGPA: 7.0+, Dept: CSE, IT" />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label>Minimum CGPA Required</label>
+                  <input type="number" step="0.1" value={jobForm.minCgpa} onChange={e => setJobForm({...jobForm, minCgpa: Number(e.target.value)})} required />
+                </div>
+                <div className="form-group">
+                  <label>Maximum Arrears Allowed</label>
+                  <input type="number" value={jobForm.maxArrears} onChange={e => setJobForm({...jobForm, maxArrears: Number(e.target.value)})} required />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Eligible Departments (Comma separated codes like CSE, IT, ECE)</label>
+                <input type="text" value={jobForm.eligibleDepartments.join(', ')} onChange={e => setJobForm({...jobForm, eligibleDepartments: e.target.value.split(',').map(d=>d.trim())})} required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label>Drive Date</label>
+                  <input type="date" value={jobForm.driveDate} onChange={e => setJobForm({...jobForm, driveDate: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Last Date to Apply</label>
+                  <input type="date" value={jobForm.deadline} onChange={e => setJobForm({...jobForm, deadline: e.target.value})} required />
+                </div>
+              </div>
+              <div className="modal-actions mt-4">
+                <button type="button" className="btn-secondary" onClick={() => setShowJobModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Create Drive</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Schedule Interview Modal */}
+      {showInterviewModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card">
+            <div className="modal-header">
+              <h2>Schedule Interview</h2>
+              <button className="close-btn" onClick={() => setShowInterviewModal(false)}><XCircle size={20}/></button>
+            </div>
+            <form onSubmit={handleAddInterview} className="modal-form">
+              <div className="form-group">
+                <label>Company</label>
+                <select value={interviewForm.company} onChange={e => setInterviewForm({...interviewForm, company: e.target.value})} required>
+                  <option value="">Select Company</option>
+                  {companies.map(c => <option key={c.companyId} value={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Role</label>
+                <input type="text" value={interviewForm.role} onChange={e => setInterviewForm({...interviewForm, role: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label>Interview Round (e.g. Technical Round 1)</label>
+                <input type="text" value={interviewForm.round} onChange={e => setInterviewForm({...interviewForm, round: e.target.value})} required />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label>Date</label>
+                  <input type="date" value={interviewForm.date} onChange={e => setInterviewForm({...interviewForm, date: e.target.value})} required />
+                </div>
+                <div className="form-group">
+                  <label>Time</label>
+                  <input type="time" value={interviewForm.time} onChange={e => setInterviewForm({...interviewForm, time: e.target.value})} required />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label>Mode</label>
+                  <select value={interviewForm.mode} onChange={e => setInterviewForm({...interviewForm, mode: e.target.value})}>
+                    <option value="Online">Online</option>
+                    <option value="Offline">Offline</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Venue / Link</label>
+                  <input type="text" value={interviewForm.venue} onChange={e => setInterviewForm({...interviewForm, venue: e.target.value})} required placeholder="e.g. Main Auditorium / Zoom Link" />
+                </div>
+              </div>
+              <div className="form-group">
+                <label>Panel Details (Names / Roles)</label>
+                <input type="text" value={interviewForm.panel} onChange={e => setInterviewForm({...interviewForm, panel: e.target.value})} placeholder="e.g. John Doe (Senior SDE)" />
+              </div>
+              <div className="form-group">
+                <label>Number of Candidates Expected</label>
+                <input type="number" value={interviewForm.candidates} onChange={e => setInterviewForm({...interviewForm, candidates: Number(e.target.value)})} required />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowInterviewModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Schedule</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Selection Modal */}
+      {showSelectionModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card">
+            <div className="modal-header">
+              <h2>Add Selected Student</h2>
+              <button className="close-btn" onClick={() => setShowSelectionModal(false)}><XCircle size={20}/></button>
+            </div>
+            <form onSubmit={handleAddSelection} className="modal-form">
+              <div className="form-group">
+                <label>Student Name</label>
+                <input type="text" value={selectionForm.student} onChange={e => setSelectionForm({...selectionForm, student: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label>Registration Number</label>
+                <input type="text" value={selectionForm.regNo} onChange={e => setSelectionForm({...selectionForm, regNo: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label>Company</label>
+                <select value={selectionForm.company} onChange={e => setSelectionForm({...selectionForm, company: e.target.value})} required>
+                  <option value="">Select Company</option>
+                  {companies.map(c => <option key={c.companyId} value={c.name}>{c.name}</option>)}
+                </select>
+              </div>
+              <div className="form-group">
+                <label>Role</label>
+                <input type="text" value={selectionForm.role} onChange={e => setSelectionForm({...selectionForm, role: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label>Package (CTC in LPA)</label>
+                <input type="text" value={selectionForm.ctc} onChange={e => setSelectionForm({...selectionForm, ctc: e.target.value})} required />
+              </div>
+              <div className="form-group">
+                <label>Offer Date</label>
+                <input type="date" value={selectionForm.date} onChange={e => setSelectionForm({...selectionForm, date: e.target.value})} required />
+              </div>
+              <div className="modal-actions">
+                <button type="button" className="btn-secondary" onClick={() => setShowSelectionModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary">Add Selection</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

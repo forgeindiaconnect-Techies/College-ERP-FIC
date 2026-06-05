@@ -50,8 +50,31 @@ const FeesCollection = () => {
     name: '',
     email: '',
     phone: '',
-    dept: 'Computer Science',
+    aadhar: '',
+    dob: '',
+    dept: 'Computer Science Engineering',
     sem: 'Sem 1',
+    cgpa: '',
+    attendance: '',
+    feeStatus: 'Pending',
+    academicYear: '',
+    section: '',
+    admissionDate: '',
+    status: 'ACTIVE',
+    hostelRequired: '',
+    roomNumber: '',
+    hostelFeeAmount: '',
+    hostelFeeStatus: '',
+    hostelName: '',
+    blockWing: '',
+    bedNumber: '',
+    wardenName: '',
+    wardenContact: '',
+    transportRequired: '',
+    busRoute: '',
+    pickupPoint: '',
+    transportFeeStatus: '',
+    transportFeeAmount: ''
   });
   const [regError, setRegError] = useState('');
   const [regSuccess, setRegSuccess] = useState('');
@@ -125,6 +148,20 @@ const FeesCollection = () => {
     setSelectedStudent(s);
     setQuery(s.name);
     setSuggestions([]);
+    
+    // Calculate default fee based on department
+    let defaultFee = 45000; // default fallback
+    const dept = s.dept || s.department || '';
+    if (dept.includes('Computer Science') || dept.includes('Information')) defaultFee = 55000;
+    else if (dept.includes('Electronics') || dept.includes('Electrical')) defaultFee = 50000;
+    else if (dept.includes('Mechanical') || dept.includes('Civil')) defaultFee = 45000;
+    else if (dept.includes('Artificial Intelligence') || dept.includes('Cyber Security') || dept.includes('Robotics')) defaultFee = 60000;
+    else if (dept.includes('Biomedical') || dept.includes('Biotechnology')) defaultFee = 52000;
+    else if (dept.includes('Aeronautical') || dept.includes('Automobile') || dept.includes('Chemical')) defaultFee = 48000;
+
+    setAmount(defaultFee);
+    setFeeType('Tuition Fee');
+
     // Auto-fill semester from student record
     if (s.sem) setSemester(s.sem);
   };
@@ -166,10 +203,30 @@ const FeesCollection = () => {
         phone: regForm.phone.trim() || '9999999999',
         dept: regForm.dept,
         sem: regForm.sem,
-        cgpa: 0,
-        attendance: 100,
-        status: 'Active',
-        feeStatus: 'Pending',
+        idNumber: regForm.aadhar,
+        dob: regForm.dob,
+        academicYear: regForm.academicYear,
+        section: regForm.section,
+        batch: regForm.batch,
+        admissionDate: regForm.admissionDate,
+        cgpa: regForm.cgpa ? parseFloat(regForm.cgpa) : 0,
+        attendance: regForm.attendance ? parseInt(regForm.attendance) : 100,
+        status: regForm.status || 'Active',
+        feeStatus: regForm.feeStatus || 'Pending',
+        hostelRequired: regForm.hostelRequired,
+        roomNumber: regForm.roomNumber,
+        hostelFeeAmount: regForm.hostelFeeAmount,
+        hostelFeeStatus: regForm.hostelFeeStatus,
+        hostelName: regForm.hostelName,
+        blockWing: regForm.blockWing,
+        bedNumber: regForm.bedNumber,
+        wardenName: regForm.wardenName,
+        wardenContact: regForm.wardenContact,
+        transportRequired: regForm.transportRequired,
+        busRoute: regForm.busRoute,
+        pickupPoint: regForm.pickupPoint,
+        transportFeeAmount: regForm.transportFeeAmount,
+        transportFeeStatus: regForm.transportFeeStatus
       };
       
       const res = await createStudent(newStudentPayload);
@@ -188,11 +245,13 @@ const FeesCollection = () => {
           setShowRegModal(false);
           setRegSuccess('');
           setRegForm({
-            name: '',
-            email: '',
-            phone: '',
-            dept: 'Computer Science',
-            sem: 'Sem 1',
+            name: '', email: '', phone: '', aadhar: '', dob: '',
+            dept: 'Computer Science Engineering', sem: 'Sem 1',
+            cgpa: '', attendance: '', feeStatus: 'Pending',
+            academicYear: '', section: '', admissionDate: '', status: 'ACTIVE',
+            hostelRequired: '', roomNumber: '', hostelFeeAmount: '', hostelFeeStatus: '',
+            hostelName: '', blockWing: '', bedNumber: '', wardenName: '', wardenContact: '',
+            transportRequired: '', busRoute: '', pickupPoint: '', transportFeeStatus: '', transportFeeAmount: ''
           });
         }, 1200);
       }
@@ -529,118 +588,332 @@ const FeesCollection = () => {
         </div>
       </div>
 
-      {/* QUICK REGISTER STUDENT MODAL */}
+      {/* COMPREHENSIVE ADD NEW STUDENT MODAL */}
       {showRegModal && (
         <div style={{ position:'fixed', inset:0, zIndex:100, display:'flex', alignItems:'center', justifyContent:'center', background:'rgba(0,0,0,0.5)', backdropFilter:'blur(4px)' }}>
-          <div className="glass-card" style={{ width:'450px', padding:'28px', position:'relative', animation:'fadeIn 0.2s ease-out' }}>
-            <button onClick={() => setShowRegModal(false)} style={{ position:'absolute', right:'20px', top:'20px', background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)' }}>
-              <X size={20} />
-            </button>
+          <div className="glass-card" style={{ width:'800px', maxHeight:'90vh', overflowY:'auto', background:'var(--bg-primary)', padding:'0', position:'relative', animation:'fadeIn 0.2s ease-out', borderRadius:'12px', display:'flex', flexDirection:'column' }}>
             
-            <div style={{ display:'flex', alignItems:'center', gap:'10px', marginBottom:'20px', borderBottom:'1px solid var(--border-color)', pb:'12px', paddingBottom:'12px' }}>
-              <UserPlus style={{ color:'#3b82f6' }} size={24} />
+            <div style={{ position:'sticky', top:0, background:'var(--bg-primary)', zIndex:10, padding:'24px 32px', borderBottom:'1px solid var(--border-color)', display:'flex', justifyContent:'space-between', alignItems:'flex-start' }}>
               <div>
-                <h3 style={{ margin:0, fontWeight:700, color:'var(--text-main)', fontSize:'1.1rem' }}>Quick Register New Joiner</h3>
-                <p style={{ margin:'2px 0 0 0', fontSize:'0.8rem', color:'var(--text-muted)' }}>Add them to database instantly to take payment.</p>
+                <h2 style={{ margin:0, fontWeight:700, color:'var(--text-main)', fontSize:'1.4rem' }}>Add New Student</h2>
+                <p style={{ margin:'4px 0 0 0', fontSize:'0.9rem', color:'var(--text-muted)' }}>Fill in the details to register a new student.</p>
               </div>
+              <button onClick={() => setShowRegModal(false)} style={{ background:'none', border:'none', cursor:'pointer', color:'var(--text-muted)', padding:'4px' }}>
+                <X size={22} />
+              </button>
             </div>
 
-            {regError && (
-              <div style={{ padding:'10px 14px', background:'rgba(239,68,68,0.1)', border:'1px solid #ef4444', borderRadius:'8px', color:'#ef4444', fontSize:'0.85rem', fontWeight:600, marginBottom:'16px' }}>
-                {regError}
-              </div>
-            )}
-            
-            {regSuccess && (
-              <div style={{ padding:'10px 14px', background:'rgba(16,185,129,0.12)', border:'1px solid #10b981', borderRadius:'8px', color:'#10b981', fontSize:'0.85rem', fontWeight:600, marginBottom:'16px' }}>
-                {regSuccess}
-              </div>
-            )}
-
-            <form onSubmit={handleQuickRegister} style={{ display:'flex', flexDirection:'column', gap:'14px' }}>
-              <div>
-                <label style={{ display:'block', fontSize:'0.8rem', fontWeight:600, color:'var(--text-muted)', marginBottom:'4px' }}>Full Name *</label>
-                <input
-                  type="text"
-                  required
-                  placeholder="e.g. Rahul Sharma"
-                  value={regForm.name}
-                  onChange={e => setRegForm(prev => ({ ...prev, name: e.target.value }))}
-                  style={{ width:'100%', padding:'10px 12px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box' }}
-                />
-              </div>
-
-              <div>
-                <label style={{ display:'block', fontSize:'0.8rem', fontWeight:600, color:'var(--text-muted)', marginBottom:'4px' }}>Email Address *</label>
-                <input
-                  type="email"
-                  required
-                  placeholder="e.g. rahul@college.edu"
-                  value={regForm.email}
-                  onChange={e => setRegForm(prev => ({ ...prev, email: e.target.value }))}
-                  style={{ width:'100%', padding:'10px 12px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box' }}
-                />
-              </div>
-
-              <div style={{ display:'grid', gridTemplateColumns:'1.5fr 1fr', gap:'12px' }}>
-                <div>
-                  <label style={{ display:'block', fontSize:'0.8rem', fontWeight:600, color:'var(--text-muted)', marginBottom:'4px' }}>Department *</label>
-                  <select
-                    value={regForm.dept}
-                    onChange={e => setRegForm(prev => ({ ...prev, dept: e.target.value }))}
-                    style={{ width:'100%', padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none' }}
-                  >
-                    <option>Computer Science</option>
-                    <option>Electrical Engg.</option>
-                    <option>Mechanical Engg.</option>
-                    <option>Civil Engg.</option>
-                    <option>Information Tech.</option>
-                  </select>
+            <div style={{ padding:'0 32px 32px 32px' }}>
+              {regError && (
+                <div style={{ padding:'12px 16px', background:'rgba(239,68,68,0.1)', border:'1px solid #ef4444', borderRadius:'8px', color:'#ef4444', fontSize:'0.9rem', fontWeight:600, margin:'20px 0 0 0' }}>
+                  {regError}
                 </div>
-                <div>
-                  <label style={{ display:'block', fontSize:'0.8rem', fontWeight:600, color:'var(--text-muted)', marginBottom:'4px' }}>Admission Sem *</label>
-                  <select
-                    value={regForm.sem}
-                    onChange={e => setRegForm(prev => ({ ...prev, sem: e.target.value }))}
-                    style={{ width:'100%', padding:'10px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none' }}
-                  >
-                    <option>Sem 1</option>
-                    <option>Sem 2</option>
-                    <option>Sem 3</option>
-                    <option>Sem 4</option>
-                    <option>Sem 5</option>
-                    <option>Sem 6</option>
-                  </select>
+              )}
+              
+              {regSuccess && (
+                <div style={{ padding:'12px 16px', background:'rgba(16,185,129,0.12)', border:'1px solid #10b981', borderRadius:'8px', color:'#10b981', fontSize:'0.9rem', fontWeight:600, margin:'20px 0 0 0' }}>
+                  {regSuccess}
                 </div>
-              </div>
+              )}
 
-              <div>
-                <label style={{ display:'block', fontSize:'0.8rem', fontWeight:600, color:'var(--text-muted)', marginBottom:'4px' }}>Phone Number (Optional)</label>
-                <input
-                  type="text"
-                  placeholder="e.g. 9876543210"
-                  value={regForm.phone}
-                  onChange={e => setRegForm(prev => ({ ...prev, phone: e.target.value }))}
-                  style={{ width:'100%', padding:'10px 12px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box' }}
-                />
-              </div>
+              <form onSubmit={handleQuickRegister} style={{ display:'flex', flexDirection:'column', gap:'32px', marginTop:'24px' }}>
+                
+                {/* Personal Information */}
+                <div>
+                  <h3 style={{ fontSize:'1.1rem', fontWeight:700, color:'var(--text-main)', borderBottom:'1px solid var(--border-color)', paddingBottom:'12px', marginBottom:'20px' }}>Personal Information</h3>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px' }}>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        <User size={13}/> STUDENT NAME <span style={{color:'#ef4444'}}>*</span>
+                      </label>
+                      <input type="text" required placeholder="e.g. John Doe" value={regForm.name} onChange={e => setRegForm({...regForm, name: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        # REGISTER NUMBER
+                      </label>
+                      <input type="text" disabled placeholder="Auto-generated on save"
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'rgba(0,0,0,0.02)', color:'var(--text-muted)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem', cursor:'not-allowed' }} />
+                      <p style={{ fontSize:'0.7rem', color:'var(--text-muted)', margin:'6px 0 0 0', fontStyle:'italic' }}>Generated from Department + Year + Sequence</p>
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        ✉ EMAIL ADDRESS <span style={{color:'#ef4444'}}>*</span>
+                      </label>
+                      <input type="email" required placeholder="student@college.edu" value={regForm.email} onChange={e => setRegForm({...regForm, email: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        📞 PHONE NUMBER
+                      </label>
+                      <input type="text" placeholder="10-digit mobile number" value={regForm.phone} onChange={e => setRegForm({...regForm, phone: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        AADHAR/ID NUMBER
+                      </label>
+                      <input type="text" placeholder="ID Number" value={regForm.aadhar} onChange={e => setRegForm({...regForm, aadhar: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        DATE OF BIRTH
+                      </label>
+                      <input type="date" value={regForm.dob} onChange={e => setRegForm({...regForm, dob: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                  </div>
+                </div>
 
-              <div style={{ display:'flex', gap:'10px', justifyContent:'flex-end', marginTop:'10px', borderTop:'1px solid var(--border-color)', pt:'14px', paddingTop:'14px' }}>
-                <button
-                  type="button"
-                  onClick={() => setShowRegModal(false)}
-                  style={{ padding:'10px 18px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'none', color:'var(--text-main)', fontWeight:600, cursor:'pointer', fontSize:'0.9rem' }}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  style={{ padding:'10px 22px', borderRadius:'8px', border:'none', background:'linear-gradient(to right, #3b82f6, #2563eb)', color:'white', fontWeight:700, cursor:'pointer', fontSize:'0.9rem' }}
-                >
-                  Register Student
-                </button>
-              </div>
-            </form>
+                {/* Academic Information */}
+                <div>
+                  <h3 style={{ fontSize:'1.1rem', fontWeight:700, color:'var(--text-main)', borderBottom:'1px solid var(--border-color)', paddingBottom:'12px', marginBottom:'20px' }}>Academic Information</h3>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px' }}>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        📖 DEPARTMENT <span style={{color:'#ef4444'}}>*</span>
+                      </label>
+                      <select required value={regForm.dept} onChange={e => setRegForm({...regForm, dept: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }}>
+                        <option value="">— Select Department —</option>
+                        <option value="Computer Science Engineering">Computer Science Engineering</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Electronics & Communication Engineering">Electronics & Communication Engineering</option>
+                        <option value="Electrical & Electronics Engineering">Electrical & Electronics Engineering</option>
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                        <option value="Civil Engineering">Civil Engineering</option>
+                        <option value="Artificial Intelligence & Data Science">Artificial Intelligence & Data Science</option>
+                        <option value="Artificial Intelligence & Machine Learning">Artificial Intelligence & Machine Learning</option>
+                        <option value="Cyber Security">Cyber Security</option>
+                        <option value="Biomedical Engineering">Biomedical Engineering</option>
+                        <option value="Aeronautical Engineering">Aeronautical Engineering</option>
+                        <option value="Automobile Engineering">Automobile Engineering</option>
+                        <option value="Robotics Engineering">Robotics Engineering</option>
+                        <option value="Chemical Engineering">Chemical Engineering</option>
+                        <option value="Biotechnology Engineering">Biotechnology Engineering</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        SEMESTER
+                      </label>
+                      <select value={regForm.sem} onChange={e => setRegForm({...regForm, sem: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }}>
+                        <option value="">— Select Semester —</option>
+                        <option value="Sem 1">Sem 1</option><option value="Sem 2">Sem 2</option>
+                        <option value="Sem 3">Sem 3</option><option value="Sem 4">Sem 4</option>
+                        <option value="Sem 5">Sem 5</option><option value="Sem 6">Sem 6</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        # CGPA
+                      </label>
+                      <input type="text" placeholder="0.0 - 10.0" value={regForm.cgpa} onChange={e => setRegForm({...regForm, cgpa: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        % ATTENDANCE %
+                      </label>
+                      <input type="text" placeholder="0 - 100" value={regForm.attendance} onChange={e => setRegForm({...regForm, attendance: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        $ FEE STATUS
+                      </label>
+                      <select value={regForm.feeStatus} onChange={e => setRegForm({...regForm, feeStatus: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }}>
+                        <option value="Pending">Pending</option>
+                        <option value="Paid">Paid</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        ACADEMIC YEAR
+                      </label>
+                      <input type="text" placeholder="e.g. 2023-2027" value={regForm.academicYear} onChange={e => setRegForm({...regForm, academicYear: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        SECTION
+                      </label>
+                      <input type="text" placeholder="e.g. A" value={regForm.section} onChange={e => setRegForm({...regForm, section: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        BATCH
+                      </label>
+                      <input type="text" disabled placeholder="Auto-generated"
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'rgba(0,0,0,0.02)', color:'var(--text-muted)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem', cursor:'not-allowed' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        ADMISSION DATE
+                      </label>
+                      <input type="date" value={regForm.admissionDate} onChange={e => setRegForm({...regForm, admissionDate: e.target.value})}
+                        style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                    </div>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        ✓ STUDENT STATUS
+                      </label>
+                      <div style={{ display:'flex', borderRadius:'6px', overflow:'hidden', border:'1px solid var(--border-color)' }}>
+                        <div 
+                          onClick={() => setRegForm({...regForm, status: 'ACTIVE'})}
+                          style={{ flex:1, padding:'12px', textAlign:'center', background: regForm.status === 'ACTIVE' ? 'rgba(79,70,229,0.1)' : 'transparent', color: regForm.status === 'ACTIVE' ? '#4f46e5' : 'var(--text-muted)', fontWeight: regForm.status === 'ACTIVE' ? 700 : 600, borderRight:'1px solid var(--border-color)', cursor:'pointer', fontSize:'0.9rem' }}>ACTIVE</div>
+                        <div 
+                          onClick={() => setRegForm({...regForm, status: 'INACTIVE'})}
+                          style={{ flex:1, padding:'12px', textAlign:'center', background: regForm.status === 'INACTIVE' ? 'rgba(79,70,229,0.1)' : 'transparent', color: regForm.status === 'INACTIVE' ? '#4f46e5' : 'var(--text-muted)', fontWeight: regForm.status === 'INACTIVE' ? 700 : 600, cursor:'pointer', fontSize:'0.9rem' }}>INACTIVE</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Transport & Hostel */}
+                <div>
+                  <h3 style={{ fontSize:'1.1rem', fontWeight:700, color:'var(--text-main)', borderBottom:'1px solid var(--border-color)', paddingBottom:'12px', marginBottom:'20px' }}>Transport & Hostel</h3>
+                  <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'20px' }}>
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        HOSTEL REQUIRED? <span style={{color:'#ef4444'}}>*</span>
+                      </label>
+                      <select value={regForm.hostelRequired} onChange={e => setRegForm({...regForm, hostelRequired: e.target.value})} style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }}>
+                        <option value="">— Select —</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    </div>
+                    {regForm.hostelRequired === 'yes' && (
+                      <>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            HOSTEL NAME
+                          </label>
+                          <input type="text" placeholder="e.g. Boys Hostel A" value={regForm.hostelName} onChange={e => setRegForm({...regForm, hostelName: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            BLOCK / WING
+                          </label>
+                          <input type="text" placeholder="e.g. North Wing" value={regForm.blockWing} onChange={e => setRegForm({...regForm, blockWing: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            ROOM NUMBER
+                          </label>
+                          <input type="text" placeholder="Enter Room Number" value={regForm.roomNumber} onChange={e => setRegForm({...regForm, roomNumber: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            BED NUMBER
+                          </label>
+                          <input type="text" placeholder="e.g. 2" value={regForm.bedNumber} onChange={e => setRegForm({...regForm, bedNumber: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            WARDEN NAME
+                          </label>
+                          <input type="text" placeholder="e.g. Mr. Kumar" value={regForm.wardenName} onChange={e => setRegForm({...regForm, wardenName: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            WARDEN CONTACT
+                          </label>
+                          <input type="text" placeholder="Warden Phone" value={regForm.wardenContact} onChange={e => setRegForm({...regForm, wardenContact: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            HOSTEL FEE AMOUNT (₹) <span style={{color:'#ef4444'}}>*</span>
+                          </label>
+                          <input type="number" placeholder="e.g. 25000" value={regForm.hostelFeeAmount} onChange={e => setRegForm({...regForm, hostelFeeAmount: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            HOSTEL FEE STATUS <span style={{color:'#ef4444'}}>*</span>
+                          </label>
+                          <select value={regForm.hostelFeeStatus} onChange={e => setRegForm({...regForm, hostelFeeStatus: e.target.value})} style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }}>
+                            <option value="">— Select —</option>
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
+                    <div>
+                      <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                        TRANSPORT REQUIRED? <span style={{color:'#ef4444'}}>*</span>
+                      </label>
+                      <select value={regForm.transportRequired} onChange={e => setRegForm({...regForm, transportRequired: e.target.value})} style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }}>
+                        <option value="">— Select —</option>
+                        <option value="yes">Yes</option>
+                        <option value="no">No</option>
+                      </select>
+                    </div>
+                    {regForm.transportRequired === 'yes' && (
+                      <>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            BUS ROUTE <span style={{color:'#ef4444'}}>*</span>
+                          </label>
+                          <input type="text" placeholder="e.g. Route 4" value={regForm.busRoute} onChange={e => setRegForm({...regForm, busRoute: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            PICKUP POINT
+                          </label>
+                          <input type="text" placeholder="e.g. City Center" value={regForm.pickupPoint} onChange={e => setRegForm({...regForm, pickupPoint: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            TRANSPORT FEE AMOUNT (₹) <span style={{color:'#ef4444'}}>*</span>
+                          </label>
+                          <input type="number" placeholder="e.g. 15000" value={regForm.transportFeeAmount} onChange={e => setRegForm({...regForm, transportFeeAmount: e.target.value})}
+                            style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }} />
+                        </div>
+                        <div>
+                          <label style={{ display:'flex', gap:'6px', alignItems:'center', fontSize:'0.75rem', fontWeight:700, color:'var(--text-muted)', marginBottom:'8px', textTransform:'uppercase', letterSpacing:'0.5px' }}>
+                            TRANSPORT FEE STATUS <span style={{color:'#ef4444'}}>*</span>
+                          </label>
+                          <select value={regForm.transportFeeStatus} onChange={e => setRegForm({...regForm, transportFeeStatus: e.target.value})} style={{ width:'100%', padding:'12px 14px', borderRadius:'6px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', outline:'none', boxSizing:'border-box', fontSize:'0.95rem' }}>
+                            <option value="">— Select —</option>
+                            <option value="pending">Pending</option>
+                            <option value="paid">Paid</option>
+                          </select>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+
+                {/* Footer Buttons */}
+                <div style={{ display:'flex', gap:'12px', justifyContent:'flex-end', marginTop:'16px', borderTop:'1px solid var(--border-color)', paddingTop:'24px' }}>
+                  <button type="button" onClick={() => setShowRegModal(false)}
+                    style={{ padding:'12px 24px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-primary)', color:'var(--text-main)', fontWeight:600, cursor:'pointer', fontSize:'0.95rem' }}>
+                    Cancel
+                  </button>
+                  <button type="submit"
+                    style={{ padding:'12px 32px', borderRadius:'8px', border:'none', background:'#4f46e5', color:'white', fontWeight:700, cursor:'pointer', fontSize:'0.95rem', boxShadow:'0 4px 12px rgba(79,70,229,0.3)' }}>
+                    Save
+                  </button>
+                </div>
+              </form>
+            </div>
           </div>
         </div>
       )}

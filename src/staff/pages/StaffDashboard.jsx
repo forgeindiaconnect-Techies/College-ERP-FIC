@@ -6,7 +6,7 @@ import {
   ArrowRight, Activity, Plus, AlertCircle
 } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getStudents, getAllMarks, getAllAttendance, getExams } from '../../api/index';
+import { getStudents, getAllMarks, getAllAttendance, getExams, getNotifications } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StaffDashboard.css';
 
@@ -48,15 +48,20 @@ const StaffDashboard = () => {
   const [leaveForm, setLeaveForm] = useState({ type: 'Casual Leave', startDate: '', endDate: '', reason: '' });
   const [leaveSuccess, setLeaveSuccess] = useState(false);
 
+  // 10. Notifications
+  const [notifications, setNotifications] = useState([]);
+
   const loadDashboardData = useCallback(async () => {
     try {
-      const [studRes, marksRes, attRes, examsRes] = await Promise.all([
+      const [studRes, marksRes, attRes, examsRes, notifRes] = await Promise.all([
         getStudents(),
         getAllMarks(),
         getAllAttendance(),
-        getExams().catch(() => ({ data: [] }))
+        getExams().catch(() => ({ data: [] })),
+        getNotifications().catch(() => ({ data: [] }))
       ]);
 
+      if (notifRes?.data && Array.isArray(notifRes.data)) setNotifications(notifRes.data);
       if (studRes?.data) setStudents(studRes.data);
       if (examsRes?.data) setExams(examsRes.data);
       if (marksRes?.data) {
@@ -142,36 +147,48 @@ const StaffDashboard = () => {
   useEffect(() => {
     let dynSubjects = [];
     let classesMap = [];
-    let deptInitialized = false;
-    const savedSubjects = localStorage.getItem('erp_subjects');
-    if (savedSubjects) {
-      const allSubs = JSON.parse(savedSubjects);
-      const deptSubs = allSubs.filter(s => s.dept === staffDept);
+    
+    // Prioritize subjects from the authenticated database session
+    if (staffSession.subjects && Array.isArray(staffSession.subjects) && staffSession.subjects.length > 0) {
+      dynSubjects = staffSession.subjects;
+      classesMap = dynSubjects.map(sub => ({
+        subject: sub,
+        sem: 'Sem 3', // default fallback sem
+        dept: staffDept
+      }));
+    } else {
+      // Fallback to local storage if needed
+      let deptInitialized = false;
+      const savedSubjects = localStorage.getItem('erp_subjects');
+      if (savedSubjects) {
+        const allSubs = JSON.parse(savedSubjects);
+        const deptSubs = allSubs.filter(s => s.dept === staffDept);
+        
+        if (deptSubs.length > 0) {
+          deptInitialized = true;
+          const mySubs = deptSubs.filter(sub => {
+            if (!sub.teacher) return false;
+            const t = sub.teacher.toLowerCase().trim();
+            const n = (staffSession.name || '').toLowerCase().trim();
+            return t.includes(n) || n.includes(t);
+          });
+          dynSubjects = [...new Set(mySubs.map(s => s.name))];
+          classesMap = mySubs.map(sub => ({
+            subject: sub.name,
+            sem: sub.sem || 'Sem 3',
+            dept: staffDept
+          }));
+        }
+      }
       
-      if (deptSubs.length > 0) {
-        deptInitialized = true;
-        const mySubs = deptSubs.filter(sub => {
-          if (!sub.teacher) return false;
-          const t = sub.teacher.toLowerCase().trim();
-          const n = staffSession.name.toLowerCase().trim();
-          return t.includes(n) || n.includes(t);
-        });
-        dynSubjects = [...new Set(mySubs.map(s => s.name))];
-        classesMap = mySubs.map(sub => ({
-          subject: sub.name,
-          sem: sub.sem || 'Sem 3',
+      if (dynSubjects.length === 0) {
+        dynSubjects = ['General Course'];
+        classesMap = dynSubjects.map(sub => ({
+          subject: sub,
+          sem: 'Sem 3',
           dept: staffDept
         }));
       }
-    }
-    
-    if (!deptInitialized && dynSubjects.length === 0) {
-      dynSubjects = staffSession.subjects || ['General Course'];
-      classesMap = dynSubjects.map(sub => ({
-        subject: sub,
-        sem: 'Sem 3',
-        dept: staffDept
-      }));
     }
     
     setMySubjects(dynSubjects);
@@ -236,7 +253,15 @@ const StaffDashboard = () => {
   };
 
   // Chart: Mock performance average across subjects taught
-  const chartData = [];
+  const chartData = mySubjects.length > 0 ? mySubjects.map((sub) => ({
+    name: sub.length > 15 ? sub.substring(0, 15) + '...' : sub,
+    Performance: 70 + Math.floor(Math.random() * 20),
+    PassRate: 80 + Math.floor(Math.random() * 15)
+  })) : [
+    { name: 'General', Performance: 85, PassRate: 90 },
+    { name: 'Elective 1', Performance: 75, PassRate: 82 },
+    { name: 'Elective 2', Performance: 88, PassRate: 95 }
+  ];
 
   return (
     <div className={`staff-dashboard ${animate ? 'animate-fade-in' : ''}`}>
@@ -425,6 +450,36 @@ const StaffDashboard = () => {
                     </div>
                     <p className="leave-dates"><Clock size={12} /> {l.startDate} to {l.endDate}</p>
                     <p className="leave-reason">"{l.reason}"</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </div>
+
+          {/* Campus Alerts & Notifications */}
+          <div className="glass-card leave-status-card" style={{ marginTop: '1.5rem' }}>
+            <div className="staff-card-header" style={{ marginBottom: '1.25rem' }}>
+              <h3><AlertCircle size={18} className="text-warning-cgpa" /> Campus Alerts & Board</h3>
+              {notifications.length > 0 && (
+                <span className="badge-blue" style={{ background: '#ef44441a', color: '#ef4444', padding: '0.15rem 0.45rem', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 700 }}>
+                  {notifications.filter(n => !n.isRead).length} NEW
+                </span>
+              )}
+            </div>
+
+            <div className="leave-list" style={{ maxHeight: '250px', overflowY: 'auto' }}>
+              {notifications.length === 0 ? (
+                <p className="no-leave-data">No announcements available.</p>
+              ) : (
+                notifications.map((n, i) => (
+                  <div key={n._id || i} className="leave-item" style={{ borderLeft: `3px solid ${n.type === 'Warning' ? '#ef4444' : n.type === 'Success' ? '#10b981' : '#f59e0b'}`, paddingLeft: '0.75rem', marginBottom: '0.8rem' }}>
+                    <div className="leave-item-header" style={{ marginBottom: '4px' }}>
+                      <span className="leave-type" style={{ color: 'var(--text-main)', fontWeight: 700, fontSize: '0.85rem' }}>{n.title}</span>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(n.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <p className="leave-reason" style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: 0, lineHeight: 1.4 }}>
+                      {n.message}
+                    </p>
                   </div>
                 ))
               )}

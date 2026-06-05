@@ -12,7 +12,8 @@ const feeSchema = new mongoose.Schema({
   paymentDate: { type: Date },
   paymentMode: { type: String },
   status: { type: String, enum: ['Paid', 'Pending', 'Partial'], default: 'Pending' },
-  receiptNo: { type: String }
+  receiptNo: { type: String },
+  payments: { type: Array, default: [] }
 }, { timestamps: true });
 
 export default mongoose.model('Fee', feeSchema);

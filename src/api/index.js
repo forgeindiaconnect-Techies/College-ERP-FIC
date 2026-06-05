@@ -157,12 +157,7 @@ export const getFeesReport = () => api.get('/reports/fees');
 export const getPendingFeesReport = () => api.get('/reports/pending-fees');
 export const getDepartmentsReport = () => api.get('/reports/departments');
 
-// Library Management
-export const getLibraryBooks = () => api.get('/library/books');
-export const addLibraryBook = (data) => api.post('/library/books', data);
-export const getLibraryIssues = () => api.get('/library/issues');
-export const issueLibraryBook = (data) => api.post('/library/issues', data);
-export const returnLibraryBook = (id, data) => api.put(`/library/issues/${id}/return`, data);
+// Library Management (Old exports removed, new ones at bottom)
 
 // Transport Management
 export const getTransportRoutes = () => api.get('/transport/routes');
@@ -174,13 +169,35 @@ export const getHostelBlocks = () => api.get('/hostel/blocks');
 export const getHostelRooms = () => api.get('/hostel/rooms');
 export const getHostelStudents = () => api.get('/hostel/students');
 export const getHostelComplaints = () => api.get('/hostel/complaints');
+export const approveHostelComplaint = (id) => api.put(`/hostel/complaints/${id}/approve`);
+export const rejectHostelComplaint = (id) => api.put(`/hostel/complaints/${id}/reject`);
+export const resolveHostelComplaint = (id) => api.put(`/hostel/complaints/${id}/resolve`);
+export const getStudentHostelComplaints = (studentId) => api.get(`/hostel/complaints?studentId=${studentId}`);
+export const createHostelComplaint = (data) => api.post('/hostel/complaints', data);
+export const updateHostelComplaint = (id, data) => api.put(`/hostel/complaints/${id}`, data);
+
+// Placement Endpoints
+export const applyForPlacement = (data) => api.post('/placement/applications', data);
+
 
 // Placement Management
 export const getPlacementCompanies = () => api.get('/placement/companies');
+export const createPlacementCompany = (data) => api.post('/placement/companies', data);
+export const updatePlacementCompany = (id, data) => api.put(`/placement/companies/${id}`, data);
+export const deletePlacementCompany = (id) => api.delete(`/placement/companies/${id}`);
+
 export const getPlacementJobs = () => api.get('/placement/jobs');
+export const createPlacementJob = (data) => api.post('/placement/jobs', data);
+export const updatePlacementJob = (id, data) => api.put(`/placement/jobs/${id}`, data);
+export const deletePlacementJob = (id) => api.delete(`/placement/jobs/${id}`);
+export const getEligibleStudentsForJob = (id) => api.get(`/placement/jobs/${id}/eligible-students`);
+
 export const getPlacementApplications = () => api.get('/placement/applications');
+export const updatePlacementApplicationStatus = (id, status) => api.put(`/placement/applications/${id}/status`, { status });
 export const getPlacementInterviews = () => api.get('/placement/interviews');
+export const createPlacementInterview = (data) => api.post('/placement/interviews', data);
 export const getPlacementSelections = () => api.get('/placement/selections');
+export const createPlacementSelection = (data) => api.post('/placement/selections', data);
 
 // Settings & Security
 export const getSettings = () => api.get('/settings');
@@ -189,6 +206,7 @@ export const getLoginLogs = () => api.get('/settings/logs');
 
 // Notifications
 export const getNotifications = () => api.get('/notifications');
+export const createNotification = (data) => api.post('/notifications', data);
 export const markNotificationAsRead = (id) => api.put(`/notifications/${id}/read`);
 export const markAllNotificationsAsRead = () => api.put('/notifications/read-all');
 
@@ -214,6 +232,17 @@ export const getExams = () => api.get('/exams');
 export const createExam = (data) => api.post('/exams', data);
 export const updateExam = (id, data) => api.put(`/exams/${id}`, data);
 export const deleteExam = (id) => api.delete(`/exams/${id}`);
+
+// Library Management
+export const getLibraryBooks = (params) => api.get('/library/books', { params });
+export const createLibraryBook = (data) => api.post('/library/books', data);
+export const requestLibraryBook = (data) => api.post('/library/request', data);
+export const getMyLibraryTransactions = () => api.get('/library/my-transactions');
+export const getAllLibraryTransactions = (params) => api.get('/library/transactions', { params });
+export const issueLibraryBook = (id) => api.put(`/library/transactions/${id}/issue`);
+export const manualIssueLibraryBook = (data) => api.post('/library/transactions/manual-issue', data);
+export const returnLibraryBook = (id) => api.put(`/library/transactions/${id}/return`);
+export const rejectLibraryRequest = (id) => api.put(`/library/transactions/${id}/reject`);
 
 export default api;
 

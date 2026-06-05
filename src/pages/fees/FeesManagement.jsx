@@ -25,10 +25,10 @@ const MOCK_FEE_STRUCTURES = [
   { id: 'FS003', dept: 'Mechanical Engg.', sem: 'Sem 2', tuition: 50000, lab: 10000, library: 5000, total: 65000 },
 ];
 
-const MOCK_SCHOLARSHIPS = [
-  { id: 'SCH001', studentName: 'Lakshmi Rao', regNo: 'CE2020002', type: 'Merit', amount: 62000, status: 'Active' },
-  { id: 'SCH002', studentName: 'Raj Kumar', regNo: 'CS2021008', type: 'Sports', amount: 37500, status: 'Active' },
-];
+// Scholarships loaded from localStorage (written by Accounts > Scholarships page)
+const loadScholarsLS = () => {
+  try { return JSON.parse(localStorage.getItem('erp_scholarships') || '[]'); } catch { return []; }
+};
 
 const MOCK_FEES = [
   { id:'CS2021001', name:'John Doe',       dept:'Computer Science',  sem:'Sem 6',
@@ -123,6 +123,16 @@ const FeesManagement = () => {
   // Fee Structure Form
   const [showFeeModal, setShowFeeModal] = useState(false);
 
+  const [scholarships, setScholarships] = useState(loadScholarsLS);
+
+  // Live-sync scholarships from localStorage (updated by Accounts portal)
+  useEffect(() => {
+    const onStorage = (e) => { if (e.key === 'erp_scholarships') setScholarships(loadScholarsLS()); };
+    window.addEventListener('storage', onStorage);
+    const timer = setInterval(() => setScholarships(loadScholarsLS()), 5000);
+    return () => { window.removeEventListener('storage', onStorage); clearInterval(timer); };
+  }, []);
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -137,12 +147,32 @@ const FeesManagement = () => {
         (feesList.length > 0 ? feesList : MOCK_FEES).map(f => [f.studentId || f.id, f])
       );
       
-      const mergedRecords = studentList.map(s => {
+      // Combine students from the DB with any students that only exist in the fee records
+      const combinedStudents = [...studentList];
+      const actualFees = feesList.length > 0 ? feesList : MOCK_FEES;
+      actualFees.forEach(f => {
+        if (!combinedStudents.find(s => s.id === (f.studentId || f.id))) {
+          combinedStudents.push({
+            id: f.studentId || f.id,
+            name: f.studentName || 'Unknown Student',
+            dept: f.department || 'Unknown',
+            sem: f.semester || 'Unknown'
+          });
+        }
+      });
+      
+      const mergedRecords = combinedStudents.map(s => {
         const f = feeMap[s.id] || {};
-        const feeStatus = s.feeStatus || f.status || 'Pending';
-        const semesterFee = f.semesterFee || 75000;
+        let feeStatus = s.feeStatus || f.status || 'Pending';
+        const semesterFee = f.totalFees || f.semesterFee || 75000;
         
-        let paid = f.paid || 0;
+        let paid = f.paidAmount || f.paid || 0;
+
+        // Force 'Paid' status if amount is fully paid, mitigating any backend 'Pending' state bugs
+        if (paid >= semesterFee && semesterFee > 0) {
+            feeStatus = 'Paid';
+        }
+
         if (feeStatus === 'Paid' || feeStatus === 'Waived') paid = semesterFee;
         else if (feeStatus === 'Partial' && paid === 0) paid = semesterFee / 2;
         
@@ -234,7 +264,7 @@ const FeesManagement = () => {
             <div className="sm-summary-card glass-card">
               <Award size={20} className="text-purple-500"/>
               <span className="sm-summary-label">Scholarship Students</span>
-              <span className="sm-summary-value text-purple-500">{MOCK_SCHOLARSHIPS.length}</span>
+              <span className="sm-summary-value text-purple-500">{scholarships.length}</span>
             </div>
             <div className="sm-summary-card glass-card">
               <ShieldAlert size={20} className="text-orange-500"/>
@@ -490,20 +520,30 @@ const FeesManagement = () => {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {MOCK_SCHOLARSHIPS.map(sch => (
-              <div key={sch.id} className="glass-card p-6 flex justify-between items-center border-l-4 border-[#8b5cf6]">
+            {scholarships.length === 0 ? (
+              <div style={{ gridColumn: '1/-1', textAlign: 'center', padding: '2.5rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
+                No scholarships granted yet. Go to <strong>Accounts → Scholarships</strong> to grant one.
+              </div>
+            ) : scholarships.map((sch, i) => (
+              <div key={sch.id || i} className="glass-card p-6 flex justify-between items-center border-l-4 border-[#8b5cf6]">
                 <div>
-                  <h3 className="font-bold text-lg mb-1">{sch.studentName}</h3>
-                  <p className="text-sm text-muted">{sch.regNo}</p>
+                  <h3 className="font-bold text-lg mb-1">{sch.studentName || sch.name}</h3>
+                  <p className="text-sm text-muted">{sch.studentId || sch.regNo}</p>
                   <div className="flex items-center gap-2 mt-3">
                     <span className="badge" style={{background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6'}}>{sch.type}</span>
                     <span className="badge" style={{background: 'rgba(16, 185, 129, 0.1)', color: '#10b981'}}>{sch.status}</span>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-muted text-sm mb-1">Waiver Amount</p>
-                  <p className="text-2xl font-bold text-primary">{fmtCurrency(sch.amount)}</p>
-                  <button className="text-xs text-danger underline mt-4 bg-transparent cursor-pointer">Revoke Scholarship</button>
+                  <p className="text-muted text-sm mb-1">Fee Waiver</p>
+                  <p className="text-2xl font-bold text-primary">{sch.amount}</p>
+                  <p className="text-xs text-muted mt-1">{sch.date || ''}</p>
+                  <button className="text-xs text-danger underline mt-2 bg-transparent cursor-pointer"
+                    onClick={() => {
+                      const updated = scholarships.filter(s => (s.id || s.studentId) !== (sch.id || sch.studentId));
+                      localStorage.setItem('erp_scholarships', JSON.stringify(updated));
+                      setScholarships(updated);
+                    }}>Revoke Scholarship</button>
                 </div>
               </div>
             ))}
