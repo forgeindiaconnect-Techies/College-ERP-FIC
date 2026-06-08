@@ -84,9 +84,7 @@ const ParentAttendance = () => {
     <div className="student-attendance-page animate-fade-in">
       <div className="page-header-student">
         <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/parent/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Child Attendance History</h1>
             <p className="text-muted">Track {parentSession.childName || 'your child'}'s daily roll call sheets and aggregate metrics.</p>

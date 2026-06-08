@@ -189,9 +189,7 @@ const StaffMarks = () => {
     <div className="marks-management-staff animate-fade-in">
       <div className="page-header-staff">
         <div className="header-left">
-          <button className="btn-back" onClick={() => navigate('/staff/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Upload Marks</h1>
             <p className="text-muted">Enter internals and semester scores for all subjects simultaneously.</p>

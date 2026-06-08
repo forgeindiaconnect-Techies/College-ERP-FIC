@@ -119,9 +119,7 @@ const StaffStudents = () => {
     <div className="students-management-staff animate-fade-in">
       <div className="page-header-staff">
         <div className="header-left">
-          <button className="btn-back" onClick={() => navigate('/staff/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Student List</h1>
             <p className="text-muted">Directory of students currently enrolled in subjects you instruct.</p>

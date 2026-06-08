@@ -67,9 +67,7 @@ const StudentSettings = () => {
     <div className="student-settings-page animate-fade-in">
       <div className="page-header-student">
         <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/student/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Profile Settings</h1>
             <p className="text-muted">Update your contact channels, profile handles, and password security.</p>

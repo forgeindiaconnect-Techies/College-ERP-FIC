@@ -96,9 +96,7 @@ const StudentLeaves = () => {
     <div className="student-leaves-page animate-fade-in">
       <div className="page-header-student">
         <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/student/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Leave Applications</h1>
             <p className="text-muted">Apply for medical or casual leave and track HOD approvals.</p>

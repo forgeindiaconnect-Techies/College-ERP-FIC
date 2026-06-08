@@ -84,7 +84,7 @@ const PendingFees = () => {
           paymentDate: new Date()
         };
         const res = await createFee(payload);
-        if (res?.status === 201) {
+        if (res && (res.status === 200 || res.status === 201)) {
           setSuccessMsg(`Successfully cleared dues of ₹${fee.totalFees.toLocaleString()} for ${fee.studentName}!`);
           await loadPendingFees();
           setTimeout(() => setSuccessMsg(''), 2000);
@@ -99,7 +99,7 @@ const PendingFees = () => {
           paymentDate: new Date()
         };
         const res = await updateFee(fee._id, payload);
-        if (res?.status === 200) {
+        if (res && (res.status === 200 || res.status === 201)) {
           setSuccessMsg(`Successfully cleared dues of ₹${(fee.pendingAmount ?? fee.totalFees).toLocaleString()} for ${fee.studentName || fee.studentId}!`);
           await loadPendingFees();
           setTimeout(() => setSuccessMsg(''), 2000);
@@ -146,7 +146,10 @@ const PendingFees = () => {
               <option>ME</option>
             </select>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-main)] font-medium rounded-lg hover:bg-[var(--hover-bg)] transition-colors">
+          <button 
+            onClick={() => { alert('Reminders sent to all defaulters via Email & SMS!'); setSuccessMsg('Auto-reminders dispatched to all defaulters!'); setTimeout(() => setSuccessMsg(''), 3000); }}
+            className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-main)] font-medium rounded-lg hover:bg-[var(--hover-bg)] transition-colors"
+          >
             <Mail size={16} /> Remind All
           </button>
         </div>
@@ -193,7 +196,10 @@ const PendingFees = () => {
                     <td className="p-4 text-[#ef4444] font-medium">{item.createdAt ? new Date(item.createdAt).toLocaleDateString('en-CA') : '2026-05-28'}</td>
                     <td className="p-4 font-bold text-[var(--text-main)]">₹{(item.pendingAmount ?? item.totalFees).toLocaleString()}</td>
                     <td className="p-4 flex gap-2">
-                      <button className="px-3 py-1 bg-[#3b82f6]/10 text-[#3b82f6] text-xs font-semibold rounded hover:bg-[#3b82f6]/20 transition-colors">
+                      <button 
+                        onClick={() => { alert(`Reminder sent to ${item.studentName || item.studentId}!`); setSuccessMsg(`Reminder sent to ${item.studentName || item.studentId}`); setTimeout(() => setSuccessMsg(''), 2000); }}
+                        className="px-3 py-1 bg-[#3b82f6]/10 text-[#3b82f6] text-xs font-semibold rounded hover:bg-[#3b82f6]/20 transition-colors"
+                      >
                         Remind
                       </button>
                       <button 

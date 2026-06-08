@@ -38,9 +38,7 @@ const HodComingSoon = ({ moduleName }) => {
         </div>
 
         <div className="coming-soon-actions">
-          <button className="hod-btn-primary" onClick={() => navigate('/hod')}>
-            <ArrowLeft size={16} /> Back to Overview
-          </button>
+          
         </div>
       </div>
     </div>

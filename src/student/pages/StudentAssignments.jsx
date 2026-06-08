@@ -130,9 +130,7 @@ const StudentAssignments = () => {
     <div className="student-assignments-page animate-fade-in">
       <div className="page-header-student">
         <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/student/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Course Assignments</h1>
             <p className="text-muted">Stay up to date with tasks assigned by your instructors and upload submissions.</p>

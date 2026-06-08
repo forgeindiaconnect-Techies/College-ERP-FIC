@@ -1,0 +1,8 @@
+.driver-layout { display: flex; height: 100vh; padding-left: 260px; box-sizing: border-box; }
+.driver-main-wrapper { flex: 1; display: flex; flex-direction: column; height: 100vh; min-width: 0; overflow-x: hidden; }
+.driver-main-content { flex: 1; padding: 2rem; overflow-y: auto; background-color: #f8fafc; }
+
+@media (max-width: 768px) {
+  .driver-layout { padding-left: 0; }
+  .driver-main-content { padding: 1rem; }
+}

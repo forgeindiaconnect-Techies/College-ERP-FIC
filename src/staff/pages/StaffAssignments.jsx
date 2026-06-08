@@ -208,9 +208,7 @@ const StaffAssignments = () => {
     <div className="assignments-management-staff animate-fade-in">
       <div className="page-header-staff">
         <div className="header-left">
-          <button className="btn-back" onClick={() => navigate('/staff/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Assignments Coordinator</h1>
             <p className="text-muted">Post coursework, set deadlines, and manage student homework folders.</p>

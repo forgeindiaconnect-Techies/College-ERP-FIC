@@ -50,15 +50,7 @@ const AccountsSidebar = () => {
         </div>
       </div>
 
-      {/* Account Badge Card */}
-      <div className="accounts-profile-badge-card">
-        <div className="accounts-dept-code">FN</div>
-        <div>
-          <p className="accounts-sidebar-name">{account.name}</p>
-          <p className="accounts-sidebar-sem">{account.role}</p>
-        </div>
-        <ChevronRight size={14} className="accounts-chevron" />
-      </div>
+      
 
       {/* Nav links */}
       <nav className="accounts-nav">

@@ -120,9 +120,7 @@ const StudentTimetable = () => {
   return (
     <div className="timetable-page-s animate-fade-in">
       <div className="page-header-s">
-        <button className="back-btn-s" onClick={() => navigate('/student')}>
-          <ArrowLeft size={18} /> Back
-        </button>
+        
         <div>
           <h1>Class Timetable</h1>
           <p className="text-muted">View your weekly lecture schedule, timings, and assigned lecture halls.</p>

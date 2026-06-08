@@ -160,9 +160,7 @@ const StudentAttendance = () => {
     <div className="student-attendance-page animate-fade-in">
       <div className="page-header-student">
         <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/student/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Attendance Center</h1>
             <p className="text-muted">Track your subject-wise thresholds, monthly progress, and daily logs.</p>

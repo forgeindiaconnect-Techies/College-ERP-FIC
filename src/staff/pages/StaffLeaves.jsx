@@ -99,9 +99,7 @@ const StaffLeaves = () => {
     <div className="leaves-management-staff animate-fade-in">
       <div className="page-header-staff">
         <div className="header-left">
-          <button className="btn-back" onClick={() => navigate('/staff/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Leave Applications</h1>
             <p className="text-muted">Apply for leaves and track approval responses from your HOD.</p>

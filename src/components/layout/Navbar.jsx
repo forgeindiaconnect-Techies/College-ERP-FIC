@@ -1,5 +1,6 @@
 import React, { useContext, useEffect, useState } from 'react';
-import { Search, Bell, MessageSquare, ChevronDown, Moon, Sun, LayoutGrid, CheckCircle, Menu } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Search, Bell, MessageSquare, ChevronDown, Moon, Sun, LayoutGrid, CheckCircle, Menu, LogOut, Settings, User } from 'lucide-react';
 import { ThemeContext } from '../../App';
 import { NotificationContext } from '../../context/NotificationContext';
 import { getDepartments } from '../../api/index';
@@ -12,6 +13,8 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
   const [userName, setUserName] = useState('User');
   const [userRole, setUserRole] = useState(role);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showProfileDropdown, setShowProfileDropdown] = useState(false);
+  const navigate = useNavigate();
   const [departments, setDepartments] = useState([
     { id: '1', name: 'Computer Science Engineering' },
     { id: '2', name: 'Information Technology' },
@@ -126,13 +129,34 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
           )}
         </div>
         
-        <div className="navbar-profile">
-          <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4f46e5&color=fff`} alt="Profile" className="profile-img" />
-          <div className="profile-info">
-            <span className="profile-name">{userName}</span>
-            <span className="profile-role">{userRole}</span>
+        <div className="navbar-profile-wrapper" style={{ position: 'relative' }}>
+          <div className="navbar-profile" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
+            <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4f46e5&color=fff`} alt="Profile" className="profile-img" />
+            <div className="profile-info">
+              <span className="profile-name">{userName}</span>
+              <span className="profile-role">{userRole}</span>
+            </div>
+            <ChevronDown size={16} className="text-muted" />
           </div>
-          <ChevronDown size={16} className="text-muted" />
+
+          {showProfileDropdown && (
+            <div className="profile-dropdown glass-card animate-fade-in">
+              <div className="dropdown-item" onClick={() => { setShowProfileDropdown(false); navigate(`/${role.toLowerCase().replace(/\s+/g, '')}/settings`); }}>
+                <User size={16} /> My Profile
+              </div>
+              <div className="dropdown-item" onClick={() => { setShowProfileDropdown(false); navigate(`/${role.toLowerCase().replace(/\s+/g, '')}/settings`); }}>
+                <Settings size={16} /> Settings
+              </div>
+              <div className="dropdown-divider"></div>
+              <div className="dropdown-item text-red-500" onClick={() => {
+                setShowProfileDropdown(false);
+                sessionStorage.clear();
+                navigate('/login');
+              }}>
+                <LogOut size={16} /> Logout
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </header>

@@ -161,6 +161,19 @@ import PendingFees from './accounts/pages/PendingFees';
 import Salary from './accounts/pages/Salary';
 import Receipts from './accounts/pages/Receipts';
 import AccountsReports from './accounts/pages/AccountsReports';
+
+// Driver Layout & Pages
+import DriverLayout from './driver/components/DriverLayout';
+import DriverDashboard from './driver/pages/DriverDashboard';
+import DriverRoute from './driver/pages/DriverRoute';
+import DriverStudents from './driver/pages/DriverStudents';
+import DriverTripManagement from './driver/pages/DriverTripManagement';
+import DriverVehicle from './driver/pages/DriverVehicle';
+import DriverTasks from './driver/pages/DriverTasks';
+import DriverPayroll from './driver/pages/DriverPayroll';
+import DriverNotifications from './driver/pages/DriverNotifications';
+import DriverAttendance from './driver/pages/DriverAttendance';
+
 import Unauthorized from './pages/Unauthorized';
 import FloatingChatbot from './components/FloatingChatbot';
 
@@ -221,6 +234,13 @@ const AccountsGuard = ({ children }) => {
   const session = sessionStorage.getItem('accounts_session');
   if (session) return children;
   if (hasAnyOtherSession('accounts_session')) return <Navigate to="/unauthorized" replace />;
+  return <Navigate to="/login" replace />;
+};
+
+const DriverGuard = ({ children }) => {
+  const session = sessionStorage.getItem('driver_session');
+  if (session) return children;
+  if (hasAnyOtherSession('driver_session')) return <Navigate to="/unauthorized" replace />;
   return <Navigate to="/login" replace />;
 };
 
@@ -316,7 +336,7 @@ function App() {
               <Route path="student-welfare" element={<PrincipalStudentWelfare />} />
               <Route path="reports"       element={<PrincipalReports />} />
               <Route path="placement"     element={<PrincipalPlacements />} />
-              <Route path="settings"      element={<PrincipalPlaceholder title="Settings" />} />
+              <Route path="settings"      element={<Settings />} />
             </Route>
 
             {/* ── HOD ROUTES ── */}
@@ -398,6 +418,20 @@ function App() {
               <Route path="expenses" element={<Expenses />} />
               <Route path="reports" element={<AccountsReports />} />
               <Route path="scholarships" element={<Scholarships />} />
+            </Route>
+
+            {/* ── DRIVER ROUTES ── */}
+            <Route path="/driver" element={<DriverGuard><DriverLayout /></DriverGuard>}>
+              <Route index element={<Navigate to="/driver/dashboard" replace />} />
+              <Route path="dashboard" element={<DriverDashboard />} />
+              <Route path="route" element={<DriverRoute />} />
+              <Route path="students" element={<DriverStudents />} />
+              <Route path="trip" element={<DriverTripManagement />} />
+              <Route path="vehicle" element={<DriverVehicle />} />
+              <Route path="tasks" element={<DriverTasks />} />
+              <Route path="payroll" element={<DriverPayroll />} />
+              <Route path="notifications" element={<DriverNotifications />} />
+              <Route path="attendance" element={<DriverAttendance />} />
             </Route>
           </Routes>
         </BrowserRouter>

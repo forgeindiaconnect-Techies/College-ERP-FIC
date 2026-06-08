@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   Bus, Users, Navigation, Plus, Search, Download, 
-  CreditCard, UserCheck, ShieldCheck, FileText
+  CreditCard, UserCheck, ShieldCheck, FileText, BarChart
 } from 'lucide-react';
 import { getTransportRoutes, getTransportDrivers, getTransportStudents } from '../../api/index';
 import {
@@ -158,10 +158,12 @@ const TransportManagement = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {routes.map(route => (
               <div key={route.routeId} className="glass-card route-card relative">
-                <div className="absolute top-4 right-4 text-xs font-bold text-primary bg-primary-light px-2 py-1 rounded">
-                  {route.routeId}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                  <h3 className="font-bold text-lg pr-4">{route.name}</h3>
+                  <div className="text-xs font-bold text-primary bg-primary-light px-2 py-1 rounded" style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)' }}>
+                    {route.routeId}
+                  </div>
                 </div>
-                <h3 className="font-bold text-lg pr-12">{route.name}</h3>
                 <div className="flex flex-col gap-1 text-sm text-muted mb-4">
                   <span className="flex items-center gap-2"><Bus size={14}/> {route.vehicle}</span>
                   <span className="flex items-center gap-2"><ShieldCheck size={14}/> {route.driver}</span>

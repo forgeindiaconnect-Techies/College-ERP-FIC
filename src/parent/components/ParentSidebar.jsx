@@ -47,15 +47,7 @@ const ParentSidebar = () => {
         </div>
       </div>
 
-      {/* Parent Badge Card */}
-      <div className="parent-profile-badge-card">
-        <div className="parent-dept-code">PA</div>
-        <div>
-          <p className="parent-sidebar-name">{parent.name}</p>
-          <p className="parent-sidebar-sem">Child: {parent.childName}</p>
-        </div>
-        <ChevronRight size={14} className="parent-chevron" />
-      </div>
+      
 
       {/* Nav links */}
       <nav className="parent-nav">

@@ -300,9 +300,7 @@ const StaffAttendance = () => {
 
       <div className="page-header-staff" style={{ marginTop: 0 }}>
         <div className="header-left">
-          <button className="btn-back" onClick={() => navigate('/staff/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Take Attendance</h1>
             <p className="text-muted">Record period-wise roll call for your assigned subjects.</p>

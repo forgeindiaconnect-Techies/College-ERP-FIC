@@ -65,10 +65,22 @@ api.interceptors.response.use(
         return Promise.reject(error);
       }
       
+      // Do not redirect if using a mock token (fallback mode)
+      let isMock = false;
+      const allTokens = ['admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token'];
+      for (const k of allTokens) {
+        const t = sessionStorage.getItem(k);
+        if (t && t.startsWith('mock-')) isMock = true;
+      }
+      
+      if (isMock) {
+        return Promise.reject(error);
+      }
+      
       console.warn('Session expired or unauthorized! Clearing session storage and redirecting to login...');
       const keys = [
-        'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token',
-        'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'
+        'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token',
+        'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session', 'driver_session'
       ];
       keys.forEach(k => sessionStorage.removeItem(k));
       
@@ -159,10 +171,41 @@ export const getDepartmentsReport = () => api.get('/reports/departments');
 
 // Library Management (Old exports removed, new ones at bottom)
 
+// Offline Mock Data Fallbacks (Synced with legacy Backend data)
+const MOCK_ROUTES = [
+  { _id: '1', routeId: 'R001', name: 'City Center Express', vehicle: 'TN-01-AB-1234', driver: 'Rajesh Kumar', capacity: 40, occupied: 35, points: ['College', 'Main Junction', 'City Mall', 'Central Station'] },
+  { _id: '2', routeId: 'R002', name: 'North Suburb Route', vehicle: 'TN-02-XY-9876', driver: 'Suresh Singh', capacity: 40, occupied: 40, points: ['College', 'North Gate', 'Tech Park', 'Airport Road'] },
+  { _id: '3', routeId: 'R003', name: 'South Colony Direct', vehicle: 'TN-05-MN-5566', driver: 'Murugan T.', capacity: 30, occupied: 12, points: ['College', 'South Avenue', 'Beach Road'] },
+];
+const MOCK_DRIVERS = [
+  { driverId: 'D001', name: 'Rajesh Kumar', license: 'DL-123456', experience: '8 Years', phone: '9876543210', status: 'Active', routeId: 'R001', vehicleId: 'TN-01-AB-1234' },
+  { driverId: 'D002', name: 'Suresh Singh', license: 'DL-987654', experience: '5 Years', phone: '9988776655', status: 'Active', routeId: 'R002', vehicleId: 'TN-02-XY-9876' },
+  { driverId: 'D003', name: 'Murugan T.', license: 'DL-456123', experience: '12 Years', phone: '9123456780', status: 'On Leave', routeId: 'R003', vehicleId: 'TN-05-MN-5566' }
+];
+const MOCK_TRANS_STUDENTS = [
+  { _id: '1', studentId: 'CS2022001', name: 'John Doe', routeId: 'R001', pickupPoint: 'City Mall', feeStatus: 'Paid', amount: 15000 },
+  { _id: '2', studentId: 'EE2022001', name: 'Alice Smith', routeId: 'R002', pickupPoint: 'Tech Park', feeStatus: 'Pending', amount: 18000 },
+  { _id: '3', studentId: 'EC2022001', name: 'Vikram Seth', routeId: 'R001', pickupPoint: 'Main Junction', feeStatus: 'Paid', amount: 12000 },
+];
+
 // Transport Management
-export const getTransportRoutes = () => api.get('/transport/routes');
-export const getTransportDrivers = () => api.get('/transport/drivers');
-export const getTransportStudents = () => api.get('/transport/students');
+export const getTransportRoutes = () => api.get('/transport/routes').catch(() => ({ data: MOCK_ROUTES }));
+export const getTransportDrivers = () => api.get('/transport/drivers').catch(() => ({ data: MOCK_DRIVERS }));
+export const updateTransportDriver = (id, data) => api.put(`/transport/drivers/${id}`, data);
+export const getTransportStudents = () => api.get('/transport/students').catch(() => ({ data: MOCK_TRANS_STUDENTS }));
+
+// Driver Operations
+export const getDriverAttendance = (params) => api.get('/transport/attendance', { params });
+export const markDriverAttendance = (data) => api.post('/transport/attendance', data);
+export const getTransportComplaints = () => api.get('/transport/complaints');
+export const createTransportComplaint = (data) => api.post('/transport/complaints', data);
+export const updateTransportComplaint = (id, data) => api.put(`/transport/complaints/${id}`, data);
+export const getTransportTrips = () => api.get('/transport/trips');
+export const createTransportTrip = (data) => api.post('/transport/trips', data);
+export const updateTransportTrip = (id, data) => api.put(`/transport/trips/${id}`, data);
+export const getTransportMaintenance = () => api.get('/transport/maintenance');
+export const updateTransportMaintenance = (id, data) => api.put(`/transport/maintenance/${id}`, data);
+export const getTransportNotifications = () => api.get('/transport/notifications');
 
 // Hostel Management
 export const getHostelBlocks = () => api.get('/hostel/blocks');

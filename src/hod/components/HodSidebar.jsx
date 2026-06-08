@@ -82,15 +82,7 @@ const HodSidebar = () => {
         </div>
       </div>
 
-      {/* Dept Badge */}
-      <div className="hod-dept-card">
-        <div className="hod-dept-code">{deptCode}</div>
-        <div>
-          <p className="hod-dept-name">{hodSession.dept}</p>
-          <p className="hod-dept-sub">Department View</p>
-        </div>
-        <ChevronRight size={16} className="hod-chevron" />
-      </div>
+      
 
       {/* Nav */}
       <nav className="hod-nav">

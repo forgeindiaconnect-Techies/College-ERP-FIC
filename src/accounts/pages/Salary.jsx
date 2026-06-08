@@ -267,7 +267,7 @@ const Salary = () => {
                   </td>
                   <td className="p-4">
                     {!salaryRecord ? (
-                      <button onClick={() => openGenerateModal(staff)} className="px-3 py-1.5 text-xs font-bold bg-[#10b981] text-white rounded-lg hover:bg-emerald-600 transition-colors flex items-center gap-1 shadow-md">
+                      <button onClick={() => openGenerateModal(staff)} className="px-3 py-1.5 text-xs font-bold rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-1 shadow-md" style={{ backgroundColor: '#10b981', color: 'white' }}>
                         <Plus size={14} /> Generate Payroll
                       </button>
                     ) : salaryRecord.status === 'Pending' ? (

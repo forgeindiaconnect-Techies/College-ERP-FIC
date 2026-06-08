@@ -145,9 +145,7 @@ const StudentFees = () => {
     <div className="student-fees-page animate-fade-in">
       <div className="page-header-student">
         <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/student/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Tuition & Fees</h1>
             <p className="text-muted">Review current semester statements, payment history, and pay pending dues online.</p>

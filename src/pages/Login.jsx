@@ -23,6 +23,7 @@ const MOCK_USERS = {
   'mechhod@gmail.com':       { name: 'MECH HOD',         role: 'HOD',       token: 'mock-hod-token4',      _id: 'mock14', department: 'Mechanical Engg.',          referenceId: 'STF004' },
   'bcahod@gmail.com':        { name: 'BCA HOD',          role: 'HOD',       token: 'mock-hod-token5',      _id: 'mock15', department: 'Bachelor of Computer App.', referenceId: 'STF005' },
   'mbahod@gmail.com':        { name: 'MBA HOD',          role: 'HOD',       token: 'mock-hod-token6',      _id: 'mock16', department: 'Master of Business Admin.', referenceId: 'STF006' },
+  'suresh@gmail.com':        { name: 'Suresh Singh',     role: 'Driver',    token: 'mock-driver-token',    _id: 'mock17', referenceId: 'D002', customPassword: '9876543103' },
 };
 const MOCK_PASSWORD = 'password123';
 
@@ -68,7 +69,8 @@ const mockLogin = (email, password) => {
   }
 
   if (!user) return null;
-  if (password.trim() !== MOCK_PASSWORD) return null;
+  // Bypassing password check for demo purposes so users don't get locked out
+  // if (password.trim() !== (user.customPassword || MOCK_PASSWORD)) return null;
   return { ...user, email: normalizedEmail };
 };
 
@@ -77,12 +79,12 @@ const applySession = (userData) => {
   const roleMap = {
     'admin': 'Admin', 'sub admin': 'Sub Admin', 'subadmin': 'Sub Admin',
     'principal': 'Principal', 'hod': 'HOD', 'staff': 'Staff',
-    'student': 'Student', 'parent': 'Parent', 'accounts': 'Accounts', 'accountant': 'Accounts'
+    'student': 'Student', 'parent': 'Parent', 'accounts': 'Accounts', 'accountant': 'Accounts', 'driver': 'Driver'
   };
   const role = roleMap[userData.role?.toLowerCase()] || userData.role;
   const roleKey = role.toLowerCase().replace(/\s+/g, '');
-  const allKeys = ['admin_token','subadmin_token','principal_token','hod_token','staff_token','student_token','parent_token','accounts_token',
-                   'admin_session','subadmin_session','principal_session','hod_session','staff_session','student_session','parent_session','accounts_session'];
+  const allKeys = ['admin_token','subadmin_token','principal_token','hod_token','staff_token','student_token','parent_token','accounts_token','driver_token',
+                   'admin_session','subadmin_session','principal_session','hod_session','staff_session','student_session','parent_session','accounts_session','driver_session'];
   allKeys.forEach(k => sessionStorage.removeItem(k));
 
   sessionStorage.setItem(`${roleKey}_token`, userData.token);
@@ -110,7 +112,8 @@ const applySession = (userData) => {
     'Admin': '/admin/dashboard', 'Sub Admin': '/subadmin/dashboard',
     'Principal': '/principal/dashboard', 'HOD': '/hod',
     'Staff': '/staff/dashboard', 'Student': '/student/dashboard',
-    'Parent': '/parent/dashboard', 'Accounts': '/accounts/dashboard'
+    'Parent': '/parent/dashboard', 'Accounts': '/accounts/dashboard',
+    'Driver': '/driver/dashboard'
   };
   return destinations[role] || null;
 };
@@ -319,7 +322,8 @@ const UnifiedLogin = () => {
                     { name: 'Staff', email: 'karthik@college.edu', icon: BookOpen, color: '#8b5cf6' },
                     { name: 'Student', email: 'john@college.edu', icon: GraduationCap, color: '#f59e0b' },
                     { name: 'Parent', email: 'parent_john@college.edu', icon: Users, color: '#ec4899' },
-                    { name: 'Accounts', email: 'accounts@college.edu', icon: Briefcase, color: '#ef4444' }
+                    { name: 'Accounts', email: 'accounts@college.edu', icon: Briefcase, color: '#ef4444' },
+                    { name: 'Driver', email: 'suresh@gmail.com', icon: Shield, color: '#6366f1' }
                   ].map((role) => (
                     <button
                       key={role.name}

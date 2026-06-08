@@ -296,13 +296,7 @@ export default function PrincipalDepartments() {
       {activeTab === 'detail' && (
         <div className="animate-fade-in">
           {/* Back Button */}
-          <button 
-            onClick={() => setActiveTab('overview')} 
-            className="flex items-center gap-2 mb-4" 
-            style={{ background: 'transparent', color: 'var(--primary)', fontWeight: 600, border: 'none', cursor: 'pointer', outline: 'none' }}
-          >
-            <ArrowLeft size={16} /> Back to Departments Grid
-          </button>
+          
 
           {/* Department Selector Header */}
           <div className="glass-card mb-6" style={{ padding: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', borderRadius: '16px' }}>

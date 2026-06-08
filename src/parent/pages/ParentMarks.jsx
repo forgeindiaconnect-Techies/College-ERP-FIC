@@ -139,9 +139,7 @@ const ParentMarks = () => {
     <div className="student-marks-page animate-fade-in">
       <div className="page-header-student">
         <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/parent/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Child Semester Grade Card</h1>
             <p className="text-muted">Review internal assessments, end-semester grades, and CGPA trends for {parentSession.childName || 'your child'}.</p>

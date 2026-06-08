@@ -236,9 +236,7 @@ const DepartmentDashboard = () => {
       {/* Header Banner */}
       <div className="dept-detail-header glass-card">
         <div className="dd-header-top">
-          <button className="btn-back" onClick={() => navigate('/admin/departments')}>
-            <ArrowLeft size={18} /> Back to Departments
-          </button>
+          
           <span className={`status-badge ${dept.status === 'Active' ? 'badge-active' : 'badge-inactive'}`}>
             {dept.status}
           </span>

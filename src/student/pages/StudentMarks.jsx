@@ -146,9 +146,7 @@ const StudentMarks = () => {
     <div className="student-marks-page animate-fade-in">
       <div className="page-header-student">
         <div className="header-left-s">
-          <button className="btn-back-s" onClick={() => navigate('/student/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Semester Grade Card</h1>
             <p className="text-muted">Review internal assessments, end-semester grades, and CGPA trends.</p>

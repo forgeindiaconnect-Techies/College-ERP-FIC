@@ -111,9 +111,7 @@ const StaffTimetable = () => {
     <div className="timetable-management-staff animate-fade-in">
       <div className="page-header-staff">
         <div className="header-left">
-          <button className="btn-back" onClick={() => navigate('/staff/dashboard')}>
-            <ArrowLeft size={16} /> Back
-          </button>
+          
           <div>
             <h1>Department Timetable</h1>
             <p className="text-muted">View the complete weekly schedule for your department.</p>

@@ -56,17 +56,7 @@ const StudentSidebar = () => {
         </div>
       </div>
 
-      {/* Student Badge Card */}
-      <div className="student-profile-badge-card">
-        <div className="student-dept-code">
-          {student.id ? student.id.slice(0, 2) : student._id ? student._id.slice(0, 2) : 'ST'}
-        </div>
-        <div>
-          <p className="student-sidebar-name">{student.name}</p>
-          <p className="student-sidebar-sem">{student.dept || student.department || 'Cyber Security'} · {student.sem || student.semester || 'Sem 3'}</p>
-        </div>
-        <ChevronRight size={14} className="student-chevron" />
-      </div>
+      
 
       {/* Nav links */}
       <nav className="student-nav">

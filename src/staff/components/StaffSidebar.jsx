@@ -54,15 +54,7 @@ const StaffSidebar = () => {
         </div>
       </div>
 
-      {/* Dept Badge */}
-      <div className="staff-dept-card">
-        <div className="staff-dept-code">{staffSession.deptCode}</div>
-        <div>
-          <p className="staff-dept-name">{staffSession.dept}</p>
-          <p className="staff-dept-sub">Faculty View</p>
-        </div>
-        <ChevronRight size={16} className="staff-chevron" />
-      </div>
+      
 
       {/* Nav */}
       <nav className="staff-nav">
