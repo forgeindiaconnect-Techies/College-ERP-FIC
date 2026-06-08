@@ -18,7 +18,7 @@
 
 .btn-submit-leave-application {
   display: flex; align-items: center; justify-content: center; gap: 0.5rem;
-  background: linear-gradient(135deg, #3b82f6, #4f46e5); color: white;
+  background: linear-gradient(135deg, #3b82f6, var(--primary)); color: white;
   padding: 0.75rem; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
   border: none; cursor: pointer; transition: all 0.3s ease;
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);

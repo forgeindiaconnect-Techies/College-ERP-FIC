@@ -80,7 +80,7 @@ const HodLibrary = () => {
       </div>
 
       <div className="hod-stats-grid" style={{ marginBottom: '2rem' }}>
-        <div className="hod-stat-card">
+        <div className="stat-card">
           <div className="hod-stat-icon indigo">
             <Book size={20} />
           </div>
@@ -90,7 +90,7 @@ const HodLibrary = () => {
             <p className="hod-stat-sub text-muted">Library inventory</p>
           </div>
         </div>
-        <div className="hod-stat-card">
+        <div className="stat-card">
           <div className="hod-stat-icon green">
             <BookOpen size={20} />
           </div>
@@ -100,7 +100,7 @@ const HodLibrary = () => {
             <p className="hod-stat-sub text-muted">Books with students</p>
           </div>
         </div>
-        <div className="hod-stat-card">
+        <div className="stat-card">
           <div className="hod-stat-icon orange">
             <Clock size={20} />
           </div>
@@ -110,7 +110,7 @@ const HodLibrary = () => {
             <p className="hod-stat-sub text-muted">Requires action</p>
           </div>
         </div>
-        <div className="hod-stat-card">
+        <div className="stat-card">
           <div className="hod-stat-icon blue">
             <Users size={20} />
           </div>

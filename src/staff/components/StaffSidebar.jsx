@@ -44,14 +44,8 @@ const StaffSidebar = () => {
   return (
     <aside className="staff-sidebar">
       {/* Brand */}
-      <div className="staff-sidebar-header">
-        <div className="staff-logo">
-          <span className="staff-logo-text">ERP</span>
-        </div>
-        <div>
-          <h2 className="staff-brand">Staff Portal</h2>
-          <p className="staff-dept-label">{staffSession.dept}</p>
-        </div>
+      <div className="staff-sidebar-header" >
+        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
       </div>
 
       
@@ -72,20 +66,16 @@ const StaffSidebar = () => {
           ))}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className="staff-sidebar-footer">
-        <button className="staff-nav-link logout-btn w-full" onClick={handleLogout}>
-          <LogOut size={20} className="logout-icon" />
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <button 
+          onClick={handleLogout} 
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+          <LogOut size={18} />
           <span>Logout</span>
         </button>
-        <div className="staff-profile-card">
-          <div className="staff-avatar">{staffSession.name.replace('Dr. ', '').replace('Prof. ', '')[0]}</div>
-          <div>
-            <p className="staff-profile-name">{staffSession.name}</p>
-            <p className="staff-profile-role">Faculty Member</p>
-          </div>
-        </div>
       </div>
     </aside>
   );

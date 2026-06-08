@@ -21,7 +21,7 @@ const MONTHLY_ANALYTICS = [
   { name: 'Apr', CS: 93, EE: 90, ME: 86, CE: 89, IT: 95, average: 91 },
 ];
 
-const AVATAR_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#14b8a6'];
+const AVATAR_COLORS = ['#3b82f6', '#6366F1', '#10b981', '#f59e0b', '#ec4899', '#14b8a6'];
 const getInitials = (name) => name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
 const getTodayDateStr = () => {

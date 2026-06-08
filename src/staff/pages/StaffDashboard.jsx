@@ -268,19 +268,9 @@ const StaffDashboard = () => {
       {/* Welcome Banner */}
       <div className="staff-welcome-banner">
         <div className="staff-welcome-text">
-          <div className="staff-welcome-tag">
-            <Activity size={14} /> Faculty Session Active
-          </div>
+
           <h1>Welcome, <span className="gradient-text-blue">{staffName?.replace('Dr. ', '')?.replace('Prof. ', '') || 'Faculty'}</span></h1>
           <p className="staff-welcome-sub">Department of <strong>{staffDept}</strong> · Classroom Instructor</p>
-        </div>
-        <div className="staff-welcome-actions">
-          <button className="staff-btn-primary" onClick={() => navigate('/staff/attendance')}>
-            <CalendarCheck size={17} /> Take Attendance <ArrowRight size={16} />
-          </button>
-          <button className="staff-btn-ghost" onClick={() => setLeaveModalOpen(true)}>
-            <Plus size={17} /> Apply Leave
-          </button>
         </div>
       </div>
 
@@ -376,7 +366,7 @@ const StaffDashboard = () => {
                   <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <YAxis domain={[60, 100]} stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                   <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)', fontSize: 12 }} />
-                  <Area type="monotone" dataKey="avg" name="Class Average %" stroke="#3b82f6" strokeWidth={2.5} fill="url(#staffPerfGrad)" dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: 'white' }} />
+                  <Area type="monotone" dataKey="Performance" name="Class Average %" stroke="#3b82f6" strokeWidth={2.5} fill="url(#staffPerfGrad)" dot={{ r: 4, fill: '#3b82f6', strokeWidth: 2, stroke: 'white' }} />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

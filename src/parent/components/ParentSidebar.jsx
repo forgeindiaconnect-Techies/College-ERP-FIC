@@ -37,14 +37,8 @@ const ParentSidebar = () => {
   return (
     <aside className="parent-sidebar">
       {/* Brand */}
-      <div className="parent-sidebar-header">
-        <div className="parent-logo">
-          <span className="parent-logo-text">ERP</span>
-        </div>
-        <div>
-          <h2 className="parent-brand">Parent Portal</h2>
-          <p className="parent-role-label">Monitor Progress</p>
-        </div>
+      <div className="parent-sidebar-header" >
+        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
       </div>
 
       
@@ -65,12 +59,15 @@ const ParentSidebar = () => {
           ))}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className="parent-sidebar-footer">
-        <button className="parent-nav-link logout-btn w-full" onClick={handleLogout}>
-          <LogOut size={19} className="logout-icon" />
-          <span>Sign Out</span>
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <button 
+          onClick={handleLogout} 
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+          <LogOut size={18} />
+          <span>Logout</span>
         </button>
       </div>
     </aside>

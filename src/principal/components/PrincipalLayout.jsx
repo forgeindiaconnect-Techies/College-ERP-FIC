@@ -12,7 +12,11 @@ const PrincipalLayout = () => {
   };
 
   return (
-    <div className="layout-container">
+    <div className="layout-container" style={{
+      '--primary': '#2563EB',
+      '--primary-gradient': 'linear-gradient(135deg, #1D4ED8, #3B82F6)',
+      '--shadow-glow': '0 4px 14px 0 rgba(37, 99, 235, 0.25)'
+    }}>
       <PrincipalSidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
       
       {isSidebarOpen && (

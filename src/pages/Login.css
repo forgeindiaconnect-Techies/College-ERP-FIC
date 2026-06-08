@@ -44,7 +44,7 @@
   display: inline-flex;
   padding: 16px;
   border-radius: 16px;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
   border: 1px solid rgba(255, 255, 255, 0.1);
   margin-bottom: 30px;
   box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2);
@@ -94,7 +94,7 @@
 
 .feat-dot.green { background-color: #10b981; box-shadow: 0 0 10px rgba(16, 185, 129, 0.6); }
 .feat-dot.blue { background-color: #3b82f6; box-shadow: 0 0 10px rgba(59, 130, 246, 0.6); }
-.feat-dot.purple { background-color: #8b5cf6; box-shadow: 0 0 10px rgba(139, 92, 246, 0.6); }
+.feat-dot.purple { background-color: #6366F1; box-shadow: 0 0 10px rgba(99, 102, 241, 0.6); }
 
 /* 2. Login Form Section */
 .login-form-section {
@@ -225,7 +225,7 @@
 .login-submit-btn {
   margin-top: 10px;
   padding: 14px;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%);
+  background: linear-gradient(135deg, #6366f1 0%, var(--primary) 100%);
   border: none;
   border-radius: 12px;
   color: #ffffff;

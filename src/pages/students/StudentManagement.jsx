@@ -42,7 +42,7 @@ const EMPTY_FORM = {
   transportFeeAmount: '', transportFeeStatus: ''
 };
 
-const getInitials   = (name) => name.split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
+const getInitials   = (name) => (name || 'S').split(' ').map(n => n[0]).join('').slice(0,2).toUpperCase();
 const AVATAR_COLORS = ['bg-av-blue','bg-av-purple','bg-av-green','bg-av-orange','bg-av-pink','bg-av-teal'];
 
 /* ── helpers ── */
@@ -136,9 +136,9 @@ const StudentManagement = () => {
   /* ── Filter + Sort ── */
   const filtered = students
     .filter(s => {
-      const q = search.toLowerCase();
+      const q = (search || '').toLowerCase();
       return (
-        (s.name.toLowerCase().includes(q) || s.id.toLowerCase().includes(q) || s.email.toLowerCase().includes(q)) &&
+        ((s.name?.toLowerCase() || '').includes(q) || (s.id?.toLowerCase() || '').includes(q) || (s.email?.toLowerCase() || '').includes(q)) &&
         (deptFilter === 'All' || s.dept === deptFilter) &&
         (semFilter  === 'All' || s.sem  === semFilter)  &&
         (feeFilter  === 'All' || s.feeStatus === feeFilter) &&

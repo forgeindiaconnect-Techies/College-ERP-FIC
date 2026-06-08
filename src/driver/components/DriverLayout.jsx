@@ -1,7 +1,8 @@
 import React from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import DriverSidebar from './DriverSidebar';
-import './DriverLayout.css';
+import Navbar from '../../components/layout/Navbar';
+import '../../components/layout/Layout.css';
 
 const DriverGuard = ({ children }) => {
   const session = sessionStorage.getItem('driver_session');
@@ -11,18 +12,15 @@ const DriverGuard = ({ children }) => {
 
 const DriverLayout = () => {
   return (
-    <div className="driver-layout">
+    <div className="layout-container" style={{
+      '--primary': '#06B6D4',
+      '--primary-gradient': 'linear-gradient(135deg, #0891B2, #22D3EE)',
+      '--shadow-glow': '0 4px 14px 0 rgba(6, 182, 212, 0.25)'
+    }}>
       <DriverSidebar />
-      <div className="driver-main-wrapper">
-        {/* Simple top spacer to match Navbar area */}
-        <div style={{ height: '70px', backgroundColor: 'white', borderBottom: '1px solid #e2e8f0', display: 'flex', alignItems: 'center', padding: '0 2rem', justifyContent: 'flex-end' }}>
-           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-              <div style={{ background: '#ccfbf1', color: '#0f766e', padding: '6px 12px', borderRadius: '20px', fontSize: '0.8rem', fontWeight: 600 }}>
-                 • Driver Session
-              </div>
-           </div>
-        </div>
-        <main className="driver-main-content">
+      <div className="main-wrapper">
+        <Navbar role="Driver" onMenuToggle={() => {}} />
+        <main className="main-content">
           <Outlet />
         </main>
       </div>

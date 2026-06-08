@@ -185,7 +185,7 @@ const SubAdminReports = () => {
         {[
           { label:'Total Students', value: cgpaReport ? cgpaReport.totalStudents : '...', sub:'Across all departments',  cls:'rpt-card-blue',   icon:<Users size={16} style={{color:'#3b82f6'}}/> },
           { label:'Avg Attendance',  value: attReport ? attReport.averageAttendance + '%' : '...', sub:'College-wide average',  cls:'rpt-card-green',  icon:<BarChart2 size={16} style={{color:'#10b981'}}/> },
-          { label:'Avg CGPA',        value: cgpaReport ? cgpaReport.averageCgpa : '...', sub:'All departments',       cls:'rpt-card-purple', icon:<TrendingUp size={16} style={{color:'#8b5cf6'}}/> },
+          { label:'Avg CGPA',        value: cgpaReport ? cgpaReport.averageCgpa : '...', sub:'All departments',       cls:'rpt-card-purple', icon:<TrendingUp size={16} style={{color:'#6366F1'}}/> },
           { label:'Fees Collected',  value: feesReport ? fmtCurrency(feesReport.totalCollected) : '...', sub:'Current semester',  cls:'rpt-card-orange', icon:<DollarSign size={16} style={{color:'#f97316'}}/> },
         ].map((c,i)=>(
           <div key={i} className={`rpt-summary-card glass-card ${c.cls}`}>
@@ -221,7 +221,7 @@ const SubAdminReports = () => {
                   <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false}/>
                   <Tooltip contentStyle={{borderRadius:8,border:'none',background:'var(--bg-secondary)',color:'var(--text-main)',fontSize:12}}/>
                   <Legend iconSize={9} wrapperStyle={{fontSize:'0.78rem'}}/>
-                  <Bar dataKey="cgpa"       name="CGPA (×10)" fill="#4f46e5" radius={[4,4,0,0]}/>
+                  <Bar dataKey="cgpa"       name="CGPA (×10)" fill="var(--primary)" radius={[4,4,0,0]}/>
                   <Bar dataKey="attendance" name="Attendance%" fill="#10b981" radius={[4,4,0,0]}/>
                   <Bar dataKey="fees"       name="Fees Paid%" fill="#f59e0b" radius={[4,4,0,0]}/>
                 </BarChart>
@@ -240,7 +240,7 @@ const SubAdminReports = () => {
                   <XAxis dataKey="sem" stroke="var(--text-muted)" fontSize={11} tickLine={false}/>
                   <YAxis domain={[7,10]} stroke="var(--text-muted)" fontSize={11} tickLine={false}/>
                   <Tooltip contentStyle={{borderRadius:8,border:'none',background:'var(--bg-secondary)',color:'var(--text-main)',fontSize:12}}/>
-                  <Line type="monotone" dataKey="avg" name="Avg CGPA" stroke="#8b5cf6" strokeWidth={2.5} dot={{r:4,fill:'#8b5cf6',stroke:'white',strokeWidth:2}} activeDot={{r:7}}/>
+                  <Line type="monotone" dataKey="avg" name="Avg CGPA" stroke="#6366F1" strokeWidth={2.5} dot={{r:4,fill:'#6366F1',stroke:'white',strokeWidth:2}} activeDot={{r:7}}/>
                 </LineChart>
               </ResponsiveContainer>
             </div>

@@ -148,7 +148,7 @@ const Receipts = () => {
                       </button>
                       <button
                         onClick={() => printReceipt(rec)}
-                        className="flex items-center gap-1 px-3 py-1 text-xs font-medium bg-[#8b5cf6]/10 text-[#8b5cf6] rounded-lg hover:bg-[#8b5cf6]/20 transition-colors">
+                        className="flex items-center gap-1 px-3 py-1 text-xs font-medium bg-[#6366F1]/10 text-[#6366F1] rounded-lg hover:bg-[#6366F1]/20 transition-colors">
                         <Download size={13} /> PDF
                       </button>
                     </div>

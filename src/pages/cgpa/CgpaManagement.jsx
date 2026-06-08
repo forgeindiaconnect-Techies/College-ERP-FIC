@@ -137,7 +137,7 @@ const CgpaManagement = () => {
     { range:'< 6',  count: records.filter(r=>r.gpa>0&&r.gpa<6).length,  fill:'#ef4444' },
     { range:'6–7',  count: records.filter(r=>r.gpa>=6&&r.gpa<7).length,  fill:'#f59e0b' },
     { range:'7–8',  count: records.filter(r=>r.gpa>=7&&r.gpa<8).length,  fill:'#3b82f6' },
-    { range:'8–9',  count: records.filter(r=>r.gpa>=8&&r.gpa<9).length,  fill:'#8b5cf6' },
+    { range:'8–9',  count: records.filter(r=>r.gpa>=8&&r.gpa<9).length,  fill:'#6366F1' },
     { range:'9–10', count: records.filter(r=>r.gpa>=9).length,            fill:'#10b981' },
     { range:'Fail', count: records.filter(r=>r.gpa===0&&!r.pass).length,  fill:'#dc2626' },
   ];
@@ -221,8 +221,8 @@ const CgpaManagement = () => {
                 <XAxis dataKey="sem" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                 <YAxis domain={[6,10]} stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                 <Tooltip contentStyle={{borderRadius:8,border:'none',background:'var(--bg-secondary)',color:'var(--text-main)',boxShadow:'var(--shadow-md)',fontSize:12}} />
-                <Line type="monotone" dataKey="avg" name="Avg CGPA" stroke="#4f46e5" strokeWidth={2.5}
-                  dot={{r:4,fill:'#4f46e5',stroke:'white',strokeWidth:2}} activeDot={{r:7}} />
+                <Line type="monotone" dataKey="avg" name="Avg CGPA" stroke="var(--primary)" strokeWidth={2.5}
+                  dot={{r:4,fill:'var(--primary)',stroke:'white',strokeWidth:2}} activeDot={{r:7}} />
               </LineChart>
             </ResponsiveContainer>
           </div>

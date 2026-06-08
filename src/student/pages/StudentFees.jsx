@@ -172,8 +172,8 @@ const StudentFees = () => {
           </div>
 
           {scholarship && (
-            <div style={{ padding: '12px 16px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.3)', borderRadius: '10px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{ background: '#8b5cf6', color: 'white', padding: '8px', borderRadius: '50%' }}>
+            <div style={{ padding: '12px 16px', background: 'rgba(99, 102, 241, 0.1)', border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '10px', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '12px' }}>
+              <div style={{ background: '#6366F1', color: 'white', padding: '8px', borderRadius: '50%' }}>
                 <CheckCircle2 size={18} />
               </div>
               <div>

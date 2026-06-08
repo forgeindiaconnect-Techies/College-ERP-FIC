@@ -88,7 +88,7 @@ export default function PrincipalAttendanceAnalytics() {
           { label: 'Present Today', value: '87%', icon: <Users size={18} />, color: '#6366f1', sub: 'Estimated' },
           { label: 'Absent Today', value: '13%', icon: <AlertCircle size={18} />, color: '#ef4444', sub: 'Estimated' },
           { label: 'Low Attendance', value: alertList.length, icon: <AlertCircle size={18} />, color: '#f59e0b', sub: 'Below 80%' },
-          { label: 'Dept with Highest', value: 'MBA', icon: <TrendingUp size={18} />, color: '#8b5cf6', sub: '96% attendance' },
+          { label: 'Dept with Highest', value: 'MBA', icon: <TrendingUp size={18} />, color: '#6366F1', sub: '96% attendance' },
           { label: 'Dept with Lowest', value: 'MECH', icon: <AlertCircle size={18} />, color: '#ef4444', sub: '68% attendance' },
         ].map((s, i) => (
           <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>

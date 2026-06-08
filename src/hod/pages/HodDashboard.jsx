@@ -137,9 +137,30 @@ const HodDashboard = () => {
   };
 
   // Recharts visual datasets
-  const attendanceWeek = [];
-  const cgpaTrend = [];
-  const performanceKPIs = [];
+  const attendanceWeek = [
+    { day: 'Mon', att: 92 },
+    { day: 'Tue', att: 89 },
+    { day: 'Wed', att: 95 },
+    { day: 'Thu', att: 91 },
+    { day: 'Fri', att: 96 },
+    { day: 'Sat', att: 85 }
+  ];
+  
+  const cgpaTrend = [
+    { sem: 'Sem 1', avg: 7.8 },
+    { sem: 'Sem 2', avg: 8.0 },
+    { sem: 'Sem 3', avg: 7.9 },
+    { sem: 'Sem 4', avg: 8.2 },
+    { sem: 'Sem 5', avg: 8.5 },
+    { sem: 'Sem 6', avg: 8.3 }
+  ];
+
+  const performanceKPIs = [
+    { name: 'Academics', value: 85 },
+    { name: 'Research', value: 65 },
+    { name: 'Placements', value: 78 },
+    { name: 'Activities', value: 90 }
+  ];
 
   const getCgpaColor = (c) => c >= 9 ? 'var(--success)' : c < 7.5 ? 'var(--danger)' : 'var(--warning)';
 
@@ -148,19 +169,9 @@ const HodDashboard = () => {
       {/* Welcome Banner */}
       <div className="hod-welcome-banner">
         <div className="hod-welcome-text">
-          <div className="hod-welcome-tag">
-            <Activity size={14} /> Head of Department View Scoped
-          </div>
+
           <h1>Welcome, <span className="gradient-text-purple">{deptCode} HOD Dashboard</span></h1>
           <p className="hod-welcome-sub">Managing and scoping data for the <strong>{HOD_DEPT}</strong> department.</p>
-        </div>
-        <div className="hod-welcome-actions">
-          <button className="hod-btn-primary" onClick={() => navigate('/hod/students')}>
-            <Users size={17} /> Scoped Students <ArrowRight size={16} />
-          </button>
-          <button className="hod-btn-ghost" onClick={() => navigate('/hod/staff')}>
-            <GraduationCap size={17} /> Scoped Staff
-          </button>
         </div>
       </div>
 

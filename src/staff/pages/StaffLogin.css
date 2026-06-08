@@ -17,7 +17,7 @@
   animation: float 8s ease-in-out infinite;
 }
 .c1 { width: 500px; height: 500px; background: #3b82f6; top: -150px; left: -150px; animation-delay: 0s; }
-.c2 { width: 400px; height: 400px; background: #4f46e5; bottom: -100px; right: -100px; animation-delay: -3s; }
+.c2 { width: 400px; height: 400px; background: var(--primary); bottom: -100px; right: -100px; animation-delay: -3s; }
 .c3 { width: 300px; height: 300px; background: #06b6d4; top: 50%; left: 50%; animation-delay: -6s; }
 @keyframes float {
   0%, 100% { transform: translateY(0) scale(1); }
@@ -44,7 +44,7 @@
 .staff-login-brand { text-align: center; margin-bottom: 1.75rem; }
 .staff-login-logo {
   width: 70px; height: 70px;
-  background: linear-gradient(135deg, #3b82f6, #4f46e5);
+  background: linear-gradient(135deg, #3b82f6, var(--primary));
   border-radius: 20px;
   display: flex; align-items: center; justify-content: center;
   margin: 0 auto 1.25rem;
@@ -62,7 +62,7 @@
   margin-bottom: 1.75rem;
 }
 .demo-badge {
-  background: linear-gradient(135deg, #3b82f6, #4f46e5);
+  background: linear-gradient(135deg, #3b82f6, var(--primary));
   color: white; font-size: 0.65rem; font-weight: 700;
   padding: 0.15rem 0.5rem; border-radius: 4px; letter-spacing: 0.05em;
 }
@@ -89,7 +89,7 @@
 .staff-login-btn {
   display: flex; align-items: center; justify-content: center; gap: 0.6rem;
   padding: 0.9rem; border-radius: 12px; font-size: 1rem; font-weight: 600;
-  background: linear-gradient(135deg, #3b82f6, #4f46e5);
+  background: linear-gradient(135deg, #3b82f6, var(--primary));
   color: white; border: none; cursor: pointer;
   transition: all 0.3s ease; margin-top: 0.5rem; font-family: inherit;
   box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);

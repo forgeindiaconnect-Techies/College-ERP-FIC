@@ -186,7 +186,7 @@ export default function PrincipalPlacements() {
         {[
           { label: 'Overall Placed', value: `${placementRate}%`, icon: <CheckCircle size={18} />, color: '#10b981', sub: 'Placement Rate' },
           { label: 'Highest Package', value: `${highestPackage} LPA`, icon: <DollarSign size={18} />, color: '#6366f1', sub: 'Institution Max' },
-          { label: 'Average Package', value: `${avgPackage} LPA`, icon: <TrendingUp size={18} />, color: '#8b5cf6', sub: 'Institution Avg' },
+          { label: 'Average Package', value: `${avgPackage} LPA`, icon: <TrendingUp size={18} />, color: '#6366F1', sub: 'Institution Avg' },
           { label: 'Total Applications', value: applications.length, icon: <Award size={18} />, color: '#f59e0b', sub: 'Overall applied' },
           { label: 'Students Placed', value: `${selectedStudentsCount} Placed`, icon: <Users size={18} />, color: '#0ea5e9', sub: `Out of ${totalStudents}` },
           { label: 'Active Drives', value: jobs.length, icon: <Calendar size={18} />, color: '#ec4899', sub: 'Total drives' },
@@ -256,7 +256,7 @@ export default function PrincipalPlacements() {
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: 16 }}>
             <h4 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.9rem', marginBottom: '1rem' }}>Quick Metrics Audit</h4>
             <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-              {[['Placement Target', '95%', '#3b82f6'], ['Current Rate', '92%', '#10b981'], ['Salary Average', '6.8 LPA', '#8b5cf6'], ['Max Offer package', '45.0 LPA', '#f59e0b']].map(([k, v, c]) => (
+              {[['Placement Target', '95%', '#3b82f6'], ['Current Rate', '92%', '#10b981'], ['Salary Average', '6.8 LPA', '#6366F1'], ['Max Offer package', '45.0 LPA', '#f59e0b']].map(([k, v, c]) => (
                 <div key={k} style={{ background: 'var(--bg-secondary)', borderRadius: 10, padding: '12px 14px', borderLeft: `3px solid ${c}` }}>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', fontWeight: 600 }}>{k}</div>
                   <div style={{ fontSize: '1.1rem', fontWeight: 800, color: c, marginTop: 2 }}>{v}</div>
@@ -371,7 +371,7 @@ export default function PrincipalPlacements() {
                     <td style={{ fontSize: '0.82rem', fontWeight: 600 }}>{d.date}</td>
                     <td style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{d.eligibility}</td>
                     <td>
-                      <span style={{ background: d.type === 'On-Campus' ? 'rgba(59,130,246,0.1)' : 'rgba(139,92,246,0.1)', color: d.type === 'On-Campus' ? '#3b82f6' : '#8b5cf6', padding: '3px 8px', borderRadius: 5, fontSize: '0.72rem', fontWeight: 700 }}>{d.type}</span>
+                      <span style={{ background: d.type === 'On-Campus' ? 'rgba(59,130,246,0.1)' : 'rgba(99, 102, 241,0.1)', color: d.type === 'On-Campus' ? '#3b82f6' : '#6366F1', padding: '3px 8px', borderRadius: 5, fontSize: '0.72rem', fontWeight: 700 }}>{d.type}</span>
                     </td>
                     <td>
                       <span style={{ background: d.status === 'Active' ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)', color: d.status === 'Active' ? '#10b981' : '#ef4444', padding: '3px 8px', borderRadius: 6, fontSize: '0.72rem', fontWeight: 700 }}>{d.status}</span>

@@ -147,7 +147,7 @@ export default function PrincipalAnnouncements() {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4 animate-fade-in">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <Megaphone className="text-[#4f46e5] animate-pulse" size={28} /> Communication & Notice Board
+            <Megaphone className="text-[var(--primary)] animate-pulse" size={28} /> Communication & Notice Board
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
             Broadcast institutional decisions, syllabus directives, and official announcements to target wings.
@@ -164,7 +164,7 @@ export default function PrincipalAnnouncements() {
             padding: '0.65rem 1.25rem', 
             borderRadius: '10px', 
             fontSize: '0.88rem', 
-            background: 'linear-gradient(135deg, #4f46e5, #7c3aed)',
+            background: 'linear-gradient(135deg, var(--primary), #4F46E5)',
             boxShadow: '0 4px 14px rgba(79, 70, 229, 0.35)',
             border: 'none',
             color: 'white',
@@ -204,7 +204,7 @@ export default function PrincipalAnnouncements() {
       <div className="stats-grid mb-6 animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4f46e5, #3b82f6)' }}><Megaphone size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, var(--primary), #3b82f6)' }}><Megaphone size={18} /></div>
           <div className="stat-details">
             <h3>Active Broadcasts</h3>
             <p className="stat-value">{totalNotices}</p>
@@ -213,7 +213,7 @@ export default function PrincipalAnnouncements() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366f1, #4f46e5)' }}><Building2 size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366f1, var(--primary))' }}><Building2 size={18} /></div>
           <div className="stat-details">
             <h3>HOD Bulletins</h3>
             <p className="stat-value">{targetHODs}</p>
@@ -524,7 +524,7 @@ export default function PrincipalAnnouncements() {
                   style={{ 
                     padding: '0.6rem 1.5rem', 
                     borderRadius: '8px', 
-                    background: 'linear-gradient(135deg, #4f46e5, #3b82f6)', 
+                    background: 'linear-gradient(135deg, var(--primary), #3b82f6)', 
                     border: 'none', 
                     color: 'white', 
                     fontWeight: 700, 

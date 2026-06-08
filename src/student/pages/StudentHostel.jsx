@@ -278,7 +278,7 @@ const StudentHostel = () => {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
               <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   <User size={24} />
                 </div>
                 <div>
@@ -537,7 +537,7 @@ const StudentHostel = () => {
           <div className="glass-card" style={{ padding: '2rem', borderRadius: '24px', marginTop: '2rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h3 style={{ fontSize: '1.4rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 800 }}>
-                <Users size={24} style={{ color: '#8b5cf6' }} /> My Visitors
+                <Users size={24} style={{ color: '#6366F1' }} /> My Visitors
               </h3>
               <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', background: 'var(--bg-secondary)', padding: '6px 12px', borderRadius: '20px', border: '1px solid var(--border-color)' }}>
                 {myVisitors.length} record{myVisitors.length !== 1 ? 's' : ''}
@@ -546,7 +546,7 @@ const StudentHostel = () => {
 
             {myVisitors.length === 0 ? (
               <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
-                <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
+                <div style={{ width: '56px', height: '56px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}>
                   <Users size={28} />
                 </div>
                 <p style={{ color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: 600, margin: 0 }}>No visitor records found</p>
@@ -570,7 +570,7 @@ const StudentHostel = () => {
                       <tr key={vis.id || idx} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }} className="hover:bg-gray-50 dark:hover:bg-gray-800">
                         <td style={{ padding: '1rem', fontWeight: 700, color: 'var(--text-main)' }}>{vis.name}</td>
                         <td style={{ padding: '1rem', color: 'var(--text-muted)' }}>
-                          <span style={{ background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', padding: '3px 10px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>{vis.relation}</span>
+                          <span style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1', padding: '3px 10px', borderRadius: '20px', fontSize: '0.85rem', fontWeight: 600 }}>{vis.relation}</span>
                         </td>
                         <td style={{ padding: '1rem', color: 'var(--text-muted)', fontWeight: 500 }}>{vis.date}</td>
                         <td style={{ padding: '1rem', fontFamily: 'monospace', color: 'var(--text-main)', fontWeight: 600 }}>{vis.inTime}</td>

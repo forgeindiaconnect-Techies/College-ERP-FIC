@@ -208,7 +208,7 @@ const HodTimetable = () => {
           <select 
             value={selectedSem} 
             onChange={e => setSelectedSem(e.target.value)}
-            className="bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] rounded px-4 py-2 outline-none focus:border-[#8b5cf6]"
+            className="bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] rounded px-4 py-2 outline-none focus:border-[#6366F1]"
           >
             <option>Semester 1</option>
             <option>Semester 2</option>

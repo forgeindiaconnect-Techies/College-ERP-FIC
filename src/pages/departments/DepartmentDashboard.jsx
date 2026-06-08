@@ -14,7 +14,7 @@ const ADVANCED_METRICS = [
   { label: 'Total Subjects', value: () => '42', color: 'var(--primary)' },
   { label: 'Today Attendance', value: () => '88%', color: 'var(--success)' },
   { label: 'Pending Leaves', value: () => '5', color: '#f59e0b' },
-  { label: 'Upcoming Exams', value: () => '2', color: '#8b5cf6' },
+  { label: 'Upcoming Exams', value: () => '2', color: '#6366F1' },
   { label: 'Pass Percentage', value: () => '92%', color: 'var(--success)' },
 ];
 

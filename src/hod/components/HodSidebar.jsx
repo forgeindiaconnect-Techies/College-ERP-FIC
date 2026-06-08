@@ -72,14 +72,8 @@ const HodSidebar = () => {
   return (
     <aside className="hod-sidebar">
       {/* Brand */}
-      <div className="hod-sidebar-header">
-        <div className="hod-logo">
-          <span className="hod-logo-text">ERP</span>
-        </div>
-        <div>
-          <h2 className="hod-brand">HOD Portal</h2>
-          <p className="hod-dept-label">{hodSession.dept}</p>
-        </div>
+      <div className="hod-sidebar-header" >
+        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
       </div>
 
       
@@ -101,20 +95,16 @@ const HodSidebar = () => {
           ))}
         </ul>
       </nav>
-
-      {/* Footer */}
-      <div className="hod-sidebar-footer">
-        <button className="hod-nav-link logout-btn w-full" onClick={handleLogout}>
-          <LogOut size={20} className="logout-icon" />
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <button 
+          onClick={handleLogout} 
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+          <LogOut size={18} />
           <span>Logout</span>
         </button>
-        <div className="hod-profile-card">
-          <div className="hod-avatar">{hodSession.name.split(' ').pop()[0]}</div>
-          <div>
-            <p className="hod-profile-name">{hodSession.name}</p>
-            <p className="hod-profile-role">Head of Department</p>
-          </div>
-        </div>
       </div>
     </aside>
   );

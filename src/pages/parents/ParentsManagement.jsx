@@ -142,7 +142,7 @@ const ParentsManagement = () => {
   };
 
   const getInitials = (n) => n.split(' ').map(x => x[0]).join('').slice(0, 2).toUpperCase();
-  const BG_COLORS = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ec4899', '#14b8a6'];
+  const BG_COLORS = ['#3b82f6', '#6366F1', '#10b981', '#f59e0b', '#ec4899', '#14b8a6'];
 
   const filtered = parents.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase()) ||

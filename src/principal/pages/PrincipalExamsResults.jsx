@@ -34,7 +34,7 @@ const trendData = [
 const gradeData = [
   { name: 'O (Outstanding)', value: 15, color: '#10b981' },
   { name: 'A+ (Excellent)', value: 30, color: '#6366f1' },
-  { name: 'A (Very Good)', value: 28, color: '#8b5cf6' },
+  { name: 'A (Very Good)', value: 28, color: '#6366F1' },
   { name: 'B+ (Good)', value: 18, color: '#f59e0b' },
   { name: 'B (Average)', value: 6, color: '#0ea5e9' },
   { name: 'Failed', value: 3, color: '#ef4444' },
@@ -120,7 +120,7 @@ export default function PrincipalExamsResults() {
     <div className="main-content" style={{ padding: '2rem', background: 'var(--bg-primary)', minHeight: 'calc(100vh - 70px)' }}>
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ color: 'var(--text-main)', fontSize: '1.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <FileBarChart style={{ color: '#8b5cf6' }} size={28} /> Exam & Results
+          <FileBarChart style={{ color: '#6366F1' }} size={28} /> Exam & Results
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Upcoming exam schedule, pass/fail analytics, grade distribution, and top performers.</p>
       </div>
@@ -132,7 +132,7 @@ export default function PrincipalExamsResults() {
           { label: 'Overall Pass %', value: `${overall}%`, icon: <CheckCircle size={18} />, color: '#10b981', sub: 'All departments' },
           { label: 'Failed Students', value: arrearList.length, icon: <AlertCircle size={18} />, color: '#ef4444', sub: 'Active arrears' },
           { label: 'Top Department', value: topDept.dept, icon: <Star size={18} />, color: '#f59e0b', sub: `${topDept.passRate}% pass rate` },
-          { label: 'Avg Score', value: `${Math.round(resultData.reduce((a, d) => a + d.avgScore, 0) / resultData.length)}%`, icon: <TrendingUp size={18} />, color: '#8b5cf6', sub: 'Campus-wide' },
+          { label: 'Avg Score', value: `${Math.round(resultData.reduce((a, d) => a + d.avgScore, 0) / resultData.length)}%`, icon: <TrendingUp size={18} />, color: '#6366F1', sub: 'Campus-wide' },
           { label: 'Total Students', value: resultData.reduce((a, d) => a + d.students, 0), icon: <FileBarChart size={18} />, color: '#0ea5e9', sub: 'Appeared for exams' },
         ].map((s, i) => (
           <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>
@@ -149,7 +149,7 @@ export default function PrincipalExamsResults() {
       {/* Tabs */}
       <div className="glass-card" style={{ padding: '0.4rem', borderRadius: 12, display: 'inline-flex', gap: '0.4rem', marginBottom: '1.5rem' }}>
         {[['schedule', '📅 Exam Schedule'], ['results', '📊 Result Analytics'], ['grades', '🏆 Grade Distribution'], ['failed', '⚠️ Failed Students']].map(([key, label]) => (
-          <button key={key} onClick={() => setTab(key)} style={{ padding: '0.55rem 1rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 700, background: tab === key ? '#8b5cf6' : 'transparent', color: tab === key ? 'white' : 'var(--text-muted)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>{label}</button>
+          <button key={key} onClick={() => setTab(key)} style={{ padding: '0.55rem 1rem', borderRadius: 8, fontSize: '0.8rem', fontWeight: 700, background: tab === key ? '#6366F1' : 'transparent', color: tab === key ? 'white' : 'var(--text-muted)', border: 'none', cursor: 'pointer', transition: 'all 0.2s' }}>{label}</button>
         ))}
       </div>
 
@@ -168,9 +168,9 @@ export default function PrincipalExamsResults() {
                   const examType = e.name || e.type || 'Internal';
                   return (
                     <tr key={e._id || e.id || i}>
-                      <td style={{ fontWeight: 700, color: '#8b5cf6', fontSize: '0.82rem' }}>{examCode}</td>
+                      <td style={{ fontWeight: 700, color: '#6366F1', fontSize: '0.82rem' }}>{examCode}</td>
                       <td style={{ fontWeight: 700, color: 'var(--text-main)' }}>{e.subject}</td>
-                      <td><span style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', padding: '2px 7px', borderRadius: 5, fontSize: '0.72rem', fontWeight: 700 }}>{e.dept}</span></td>
+                      <td><span style={{ background: 'rgba(99, 102, 241,0.1)', color: '#6366F1', padding: '2px 7px', borderRadius: 5, fontSize: '0.72rem', fontWeight: 700 }}>{e.dept}</span></td>
                       <td style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>{e.sem || 'Sem 4'}</td>
                       <td>
                         <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.82rem' }}>{e.date}</div>
@@ -218,7 +218,7 @@ export default function PrincipalExamsResults() {
                 <YAxis domain={[70, 100]} tick={{ fontSize: 10 }} />
                 <Tooltip formatter={(v) => `${v}%`} />
                 <Legend iconSize={10} wrapperStyle={{ fontSize: 11 }} />
-                <Line type="monotone" dataKey="passRate" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 4 }} name="Pass Rate %" />
+                <Line type="monotone" dataKey="passRate" stroke="#6366F1" strokeWidth={2.5} dot={{ r: 4 }} name="Pass Rate %" />
                 <Line type="monotone" dataKey="avgScore" stroke="#f59e0b" strokeWidth={2} dot={{ r: 3 }} name="Avg Score %" />
               </LineChart>
             </ResponsiveContainer>

@@ -75,8 +75,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       
       <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-header">
-        <div className="logo-icon">E</div>
-        <h2>ERP<span className="gradient-text">Sys</span></h2>
+        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
         <button className="sidebar-close-btn" onClick={onClose}>
           <X size={20} />
         </button>
@@ -98,19 +97,16 @@ const Sidebar = ({ isOpen, onClose }) => {
           ))}
         </ul>
       </nav>
-      
-      <div className="sidebar-footer">
-        <button className="nav-link logout-btn w-full mb-2 text-left" onClick={handleLogout}>
-          <LogOut size={18} className="text-danger" />
-          <span className="text-danger">Logout</span>
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <button 
+          onClick={handleLogout} 
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+          <LogOut size={18} />
+          <span>Logout</span>
         </button>
-        <div className="admin-badge glass-card">
-          <div className="admin-avatar">A</div>
-          <div className="admin-info">
-            <p className="admin-name">Super Admin</p>
-            <p className="admin-role">System Admin</p>
-          </div>
-        </div>
       </div>
       </aside>
     </>

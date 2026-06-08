@@ -20,15 +20,15 @@
 
 /* Welcome Banner */
 .student-welcome-banner {
-  background: linear-gradient(135deg, #115e59 0%, #075e54 100%);
-  border-radius: 16px;
-  padding: 1.75rem 2rem;
+  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  border-radius: var(--border-radius-lg);
+  padding: 1.25rem 1.5rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
   color: white;
-  box-shadow: 0 10px 25px rgba(20, 184, 166, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-glow);
+  border: none;
 }
 .banner-left h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.4rem; }
 .banner-left p { font-size: 0.88rem; color: #ccfbf1; margin: 0; opacity: 0.9; }

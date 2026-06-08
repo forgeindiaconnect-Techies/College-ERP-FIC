@@ -241,7 +241,7 @@ const PrincipalTransport = () => {
               <XAxis dataKey="name" />
               <YAxis />
               <Tooltip cursor={{fill: 'rgba(0,0,0,0.05)'}} />
-              <Bar dataKey="students" name="Students" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={30} />
+              <Bar dataKey="students" name="Students" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={30} />
               <Bar dataKey="complaints" name="Complaints" fill="#ef4444" radius={[4, 4, 0, 0]} barSize={30} />
             </BarChart>
           </ResponsiveContainer>

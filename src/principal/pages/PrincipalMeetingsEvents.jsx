@@ -631,7 +631,7 @@ export default function PrincipalMeetingsEvents() {
     value: eventTypesCounts[key]
   }));
 
-  const COLORS = ['#4f46e5', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#14b8a6'];
+  const COLORS = ['var(--primary)', '#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#6366F1', '#06b6d4', '#14b8a6'];
 
   // Visual workflow stepper helper
   const getStepperActiveStep = (status, notes, documents) => {
@@ -916,7 +916,7 @@ export default function PrincipalMeetingsEvents() {
         .scanner-viewfinder {
           position: relative;
           background: #111827;
-          border: 2px solid #4f46e5;
+          border: 2px solid var(--primary);
           border-radius: 8px;
           height: 180px;
           overflow: hidden;
@@ -1018,7 +1018,7 @@ export default function PrincipalMeetingsEvents() {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <Calendar className="text-[#4f46e5]" size={28} /> Meetings & Event Management
+            <Calendar className="text-[var(--primary)]" size={28} /> Meetings & Event Management
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
             Schedule administrative forums, authorize departmental academic initiatives, compile attendee metrics, and sync schedules.
@@ -1027,7 +1027,7 @@ export default function PrincipalMeetingsEvents() {
 
         {/* Oversight Access Control Indicator */}
         <div className="glass-card" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '10px', borderLeft: '3px solid var(--primary)' }}>
-          <UserCheck size={18} className="text-[#4f46e5]" />
+          <UserCheck size={18} className="text-[var(--primary)]" />
           <div>
             <span style={{ fontSize: '0.7rem', display: 'block', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Oversight Bounds</span>
             <strong style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>Principal Account - Scheduler Role</strong>
@@ -1100,7 +1100,7 @@ export default function PrincipalMeetingsEvents() {
       {activeView !== 'reports' && (
         <div className="stats-grid mb-6 animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
           <div className="stat-card" style={{ borderBottom: '3px solid var(--primary)' }}>
-            <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4f46e5, #3b82f6)' }}><Clock size={18} /></div>
+            <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, var(--primary), #3b82f6)' }}><Clock size={18} /></div>
             <div className="stat-details">
               <h3>Upcoming Meetings</h3>
               <p className="stat-value">{upcomingMeetingsCount}</p>
@@ -1135,8 +1135,8 @@ export default function PrincipalMeetingsEvents() {
             </div>
           </div>
 
-          <div className="stat-card" style={{ borderBottom: '3px solid #8b5cf6' }}>
-            <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}><Users size={18} /></div>
+          <div className="stat-card" style={{ borderBottom: '3px solid #6366F1' }}>
+            <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><Users size={18} /></div>
             <div className="stat-details">
               <h3>Department Events</h3>
               <p className="stat-value">{departmentEventsCount}</p>
@@ -1152,8 +1152,8 @@ export default function PrincipalMeetingsEvents() {
           
           {/* Analytics Statistics Row */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.5rem' }}>
-            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '1rem', borderLeft: '4px solid #4f46e5' }}>
-              <div style={{ padding: '0.8rem', borderRadius: '12px', background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5' }}>
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', display: 'flex', alignItems: 'center', gap: '1rem', borderLeft: '4px solid var(--primary)' }}>
+              <div style={{ padding: '0.8rem', borderRadius: '12px', background: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)' }}>
                 <Calendar size={28} />
               </div>
               <div>
@@ -1209,7 +1209,7 @@ export default function PrincipalMeetingsEvents() {
                       <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                       <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} domain={[0, 100]} />
                       <Tooltip contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)', color: 'var(--text-main)' }} />
-                      <Bar dataKey="attendanceRate" fill="#4f46e5" radius={[4, 4, 0, 0]} name="Attendance %">
+                      <Bar dataKey="attendanceRate" fill="var(--primary)" radius={[4, 4, 0, 0]} name="Attendance %">
                         {attendanceChartData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.attendanceRate > 75 ? '#10b981' : entry.attendanceRate > 50 ? '#3b82f6' : '#ef4444'} />
                         ))}
@@ -1347,7 +1347,7 @@ export default function PrincipalMeetingsEvents() {
             {/* Calendar Month Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Calendar size={20} className="text-[#4f46e5]" />
+                <Calendar size={20} className="text-[var(--primary)]" />
                 {calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
               </h2>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -1403,8 +1403,8 @@ export default function PrincipalMeetingsEvents() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', overflowY: 'hidden', maxHeight: '55px', marginTop: '4px' }}>
                       {dayEvents.slice(0, 3).map(ev => {
                         let bg = '#3b82f6';
-                        if (ev.type.includes('Meeting')) bg = '#4f46e5';
-                        if (ev.type.includes('Seminar') || ev.type.includes('Workshop')) bg = '#8b5cf6';
+                        if (ev.type.includes('Meeting')) bg = 'var(--primary)';
+                        if (ev.type.includes('Seminar') || ev.type.includes('Workshop')) bg = '#6366F1';
                         if (ev.type.includes('Placement')) bg = '#10b981';
                         if (ev.status === 'Cancelled') bg = '#ef4444';
                         if (ev.status === 'Pending Approval') bg = '#f59e0b';
@@ -1432,8 +1432,8 @@ export default function PrincipalMeetingsEvents() {
             </div>
             
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap', fontSize: '0.72rem', fontWeight: 700 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#4f46e5' }}></span> HOD/Staff Meetings</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#8b5cf6' }}></span> Seminars & Workshops</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: 'var(--primary)' }}></span> HOD/Staff Meetings</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#6366F1' }}></span> Seminars & Workshops</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#10b981' }}></span> Placements</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#f59e0b' }}></span> Pending Approvals</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#ef4444' }}></span> Cancelled</div>
@@ -1530,7 +1530,7 @@ export default function PrincipalMeetingsEvents() {
             </div>
 
             <h2 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <ClipboardList size={18} className="text-[#4f46e5]" /> Scheduled Operations & Forums
+              <ClipboardList size={18} className="text-[var(--primary)]" /> Scheduled Operations & Forums
             </h2>
             
             <div className="table-container">
@@ -1735,7 +1735,7 @@ export default function PrincipalMeetingsEvents() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Plus className="text-[#4f46e5]" size={20} /> Create New Meeting & Event Schedule
+                <Plus className="text-[var(--primary)]" size={20} /> Create New Meeting & Event Schedule
               </h3>
               <button onClick={() => setShowCreateModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
@@ -1920,7 +1920,7 @@ export default function PrincipalMeetingsEvents() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Edit2 className="text-[#4f46e5]" size={20} /> Edit Meeting & Event Schedule
+                <Edit2 className="text-[var(--primary)]" size={20} /> Edit Meeting & Event Schedule
               </h3>
               <button onClick={() => setShowEditModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
@@ -2121,8 +2121,8 @@ export default function PrincipalMeetingsEvents() {
             </div>
             
             {/* VIEW FINDER BOX WITH GREEN LASER ANIMATION */}
-            <div className="scanner-viewfinder" style={{ borderColor: qrScanSuccess ? '#10b981' : '#4f46e5' }}>
-              <div className="scanner-line" style={{ background: qrScanSuccess ? '#10b981' : '#4f46e5', boxShadow: qrScanSuccess ? '0 0 10px #10b981' : '0 0 10px #4f46e5' }} />
+            <div className="scanner-viewfinder" style={{ borderColor: qrScanSuccess ? '#10b981' : 'var(--primary)' }}>
+              <div className="scanner-line" style={{ background: qrScanSuccess ? '#10b981' : 'var(--primary)', boxShadow: qrScanSuccess ? '0 0 10px #10b981' : '0 0 10px var(--primary)' }} />
               {qrScanSuccess ? (
                 <div style={{ color: '#10b981', fontWeight: 700, fontSize: '1.1rem', zIndex: 5, animation: 'fadeIn 0.2s' }}>
                   ✓ Check-in Verified!
@@ -2391,7 +2391,7 @@ export default function PrincipalMeetingsEvents() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '520px', background: 'var(--bg-secondary)' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Mail className="text-[#4f46e5]" size={20} /> Customize Invitation & Reminder Emails
+                <Mail className="text-[var(--primary)]" size={20} /> Customize Invitation & Reminder Emails
               </h3>
               <button onClick={() => setShowReminderModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
@@ -2466,7 +2466,7 @@ export default function PrincipalMeetingsEvents() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '680px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)' }}>
             <div className="flex justify-between items-center mb-4 border-bottom pb-2">
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <FileText className="text-[#4f46e5]" size={20} /> Official Academic Operations Report
+                <FileText className="text-[var(--primary)]" size={20} /> Official Academic Operations Report
               </h3>
               <button onClick={() => setShowReportModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>

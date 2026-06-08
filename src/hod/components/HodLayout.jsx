@@ -1,16 +1,20 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import HodSidebar from './HodSidebar';
-import HodNavbar from './HodNavbar';
-import './HodLayout.css';
+import Navbar from '../../components/layout/Navbar';
+import '../../components/layout/Layout.css';
 
 const HodLayout = () => {
   return (
-    <div className="hod-layout">
+    <div className="layout-container" style={{
+      '--primary': '#9333EA',
+      '--primary-gradient': 'linear-gradient(135deg, #7E22CE, #A855F7)',
+      '--shadow-glow': '0 4px 14px 0 rgba(147, 51, 234, 0.25)'
+    }}>
       <HodSidebar />
-      <div className="hod-main-wrapper">
-        <HodNavbar />
-        <main className="hod-main-content">
+      <div className="main-wrapper">
+        <Navbar role="HOD" onMenuToggle={() => {}} />
+        <main className="main-content">
           <Outlet />
         </main>
       </div>

@@ -11,7 +11,7 @@
 .ai-header h1 {
   font-size: 28px;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--text-main) 0%, #8b5cf6 100%);
+  background: linear-gradient(135deg, var(--text-main) 0%, #6366F1 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   display: flex;
@@ -67,9 +67,9 @@
 }
 
 .chat-message.ai .avatar {
-  background: linear-gradient(135deg, #8b5cf6 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #6366F1 0%, #3b82f6 100%);
   color: white;
-  box-shadow: 0 0 10px rgba(139, 92, 246, 0.4);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
 }
 
 .chat-message.user .avatar {
@@ -118,15 +118,15 @@
 }
 
 .chat-input:focus {
-  border-color: #8b5cf6;
-  box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.2);
+  border-color: #6366F1;
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2);
 }
 
 .send-btn {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #8b5cf6;
+  background: #6366F1;
   color: white;
   display: flex;
   align-items: center;
@@ -137,7 +137,7 @@
 }
 
 .send-btn:hover {
-  background: #7c3aed;
+  background: #4F46E5;
   transform: scale(1.05);
 }
 
@@ -169,8 +169,8 @@
 }
 
 .prompt-chip:hover {
-  border-color: #8b5cf6;
-  background: rgba(139, 92, 246, 0.05);
+  border-color: #6366F1;
+  background: rgba(99, 102, 241, 0.05);
   transform: translateX(4px);
 }
 
@@ -189,7 +189,7 @@
 .typing-dot {
   width: 6px;
   height: 6px;
-  background: #8b5cf6;
+  background: #6366F1;
   border-radius: 50%;
   animation: blink 1.4s infinite both;
 }

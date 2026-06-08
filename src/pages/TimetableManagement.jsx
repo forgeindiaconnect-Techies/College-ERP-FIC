@@ -83,7 +83,7 @@ const TimetableManagement = () => {
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-main)] flex items-center gap-2">
-            <Calendar size={24} className="text-[#8b5cf6]" /> Timetable Management
+            <Calendar size={24} className="text-[#6366F1]" /> Timetable Management
           </h1>
           <p className="text-[var(--text-muted)] mt-1">Configure weekly schedules for all departments and semesters. <strong>Click inside any cell below to type a subject!</strong></p>
         </div>
@@ -108,7 +108,7 @@ const TimetableManagement = () => {
           <span className="text-[var(--text-main)] font-medium">Filter Schedule:</span>
         </div>
         <select 
-          className="bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded px-3 py-1.5 outline-none focus:border-[#8b5cf6]"
+          className="bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded px-3 py-1.5 outline-none focus:border-[#6366F1]"
           value={dept} onChange={e => setDept(e.target.value)}
         >
           <option>Computer Science</option>
@@ -116,7 +116,7 @@ const TimetableManagement = () => {
           <option>Mechanical Engg.</option>
         </select>
         <select 
-          className="bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded px-3 py-1.5 outline-none focus:border-[#8b5cf6]"
+          className="bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded px-3 py-1.5 outline-none focus:border-[#6366F1]"
           value={sem} onChange={e => setSem(e.target.value)}
         >
           <option>Semester 1</option>
@@ -149,7 +149,7 @@ const TimetableManagement = () => {
                         value={grid[dIdx][tIdx]}
                         onChange={(e) => handleCellChange(dIdx, tIdx, e.target.value)}
                         placeholder={grid[dIdx][tIdx] === 'Lunch' ? '' : '+ Add Subject'}
-                        className={`w-full text-center outline-none ${grid[dIdx][tIdx] === 'Lunch' ? 'bg-transparent border-none text-[var(--text-muted)] italic font-medium' : 'bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] font-medium focus:border-[#8b5cf6] focus:ring-1 focus:ring-[#8b5cf6] py-2 rounded transition-colors cursor-text placeholder:text-[var(--text-muted)] placeholder:font-normal placeholder:opacity-50'}`}
+                        className={`w-full text-center outline-none ${grid[dIdx][tIdx] === 'Lunch' ? 'bg-transparent border-none text-[var(--text-muted)] italic font-medium' : 'bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] font-medium focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1] py-2 rounded transition-colors cursor-text placeholder:text-[var(--text-muted)] placeholder:font-normal placeholder:opacity-50'}`}
                         readOnly={grid[dIdx][tIdx] === 'Lunch'}
                       />
                     </td>

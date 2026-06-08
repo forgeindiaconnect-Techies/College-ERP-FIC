@@ -332,7 +332,7 @@ export default function PrincipalApprovals() {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckSquare className="text-[#4f46e5]" size={28} /> Approvals & Decision Center
+            <CheckSquare className="text-[var(--primary)]" size={28} /> Approvals & Decision Center
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
             Executive oversight desk: authorize budgets, leaves, events, placements, and statutory timetables.
@@ -729,7 +729,7 @@ export default function PrincipalApprovals() {
                   onClick={() => handleForwardToAdmin(selectedReq)}
                   disabled={isForwarding}
                   className="btn-primary"
-                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', padding: '0.5rem 1rem', background: '#7c3aed' }}
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem', padding: '0.5rem 1rem', background: '#4F46E5' }}
                 >
                   <Send size={14} /> {isForwarding ? 'Forwarding queue...' : 'Forward to Admin'}
                 </button>
@@ -742,7 +742,7 @@ export default function PrincipalApprovals() {
               )}
 
               {forwardSuccess && (
-                <div style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: 'rgba(124, 58, 237, 0.08)', color: '#7c3aed', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.8rem' }}>
+                <div style={{ padding: '0.5rem 1rem', borderRadius: '8px', background: 'rgba(79, 70, 229, 0.08)', color: '#4F46E5', fontSize: '0.78rem', fontWeight: 600, marginBottom: '0.8rem' }}>
                   ✓ Request successfully forwarded to the Central Super Admin database queue.
                 </div>
               )}

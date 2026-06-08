@@ -344,9 +344,9 @@ export default function PrincipalFacultyPerformance() {
       {/* Embedded Animations CSS style tag */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes pulseGlow {
-          0% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.4); }
-          50% { box-shadow: 0 0 15px rgba(139, 92, 246, 0.8); }
-          100% { box-shadow: 0 0 5px rgba(139, 92, 246, 0.4); }
+          0% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.4); }
+          50% { box-shadow: 0 0 15px rgba(99, 102, 241, 0.8); }
+          100% { box-shadow: 0 0 5px rgba(99, 102, 241, 0.4); }
         }
         .ai-pulse-btn {
           animation: pulseGlow 2.5s infinite ease-in-out;
@@ -376,7 +376,7 @@ export default function PrincipalFacultyPerformance() {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <UserCheck className="text-[#8b5cf6]" size={28} /> Faculty & HOD Performance Center
+            <UserCheck className="text-[#6366F1]" size={28} /> Faculty & HOD Performance Center
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
             Monitor teaching workloads, analyze student feedback sentiment logs, review HOD ratings, and audit faculty efficiency parameters.
@@ -385,7 +385,7 @@ export default function PrincipalFacultyPerformance() {
 
         {/* Oversight Bounds Info */}
         <div className="glass-card" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '10px', borderLeft: '3px solid var(--secondary)' }}>
-          <Users size={18} className="text-[#8b5cf6]" />
+          <Users size={18} className="text-[#6366F1]" />
           <div>
             <span style={{ fontSize: '0.7rem', display: 'block', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Scope clearance</span>
             <strong style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>Principal Account - Academic Monitor</strong>
@@ -451,7 +451,7 @@ export default function PrincipalFacultyPerformance() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid var(--primary)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4f46e5, #3b82f6)' }}><BookOpen size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, var(--primary), #3b82f6)' }}><BookOpen size={18} /></div>
           <div className="stat-details">
             <h3>Subject Completion %</h3>
             <p className="stat-value">{avgSyllabus}%</p>
@@ -469,8 +469,8 @@ export default function PrincipalFacultyPerformance() {
         </div>
 
         {/* Pending review tasks card */}
-        <div className="stat-card" style={{ borderBottom: '3px solid #8b5cf6' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}><FileText size={18} /></div>
+        <div className="stat-card" style={{ borderBottom: '3px solid #6366F1' }}>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><FileText size={18} /></div>
           <div className="stat-details">
             <h3>Pending Appraisal Reviews</h3>
             <p className="stat-value">2</p>
@@ -554,7 +554,7 @@ export default function PrincipalFacultyPerformance() {
                           <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', display: 'block' }}>{staff.role}</span>
                         </td>
                         <td>
-                          <span style={{ backgroundColor: 'rgba(139, 92, 246, 0.08)', color: 'var(--primary)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 600 }}>
+                          <span style={{ backgroundColor: 'rgba(99, 102, 241, 0.08)', color: 'var(--primary)', padding: '2px 6px', borderRadius: '4px', fontSize: '0.72rem', fontWeight: 600 }}>
                             {staff.department.replace(' Department', '')}
                           </span>
                         </td>
@@ -626,7 +626,7 @@ export default function PrincipalFacultyPerformance() {
                 <div className="animate-fade-in">
                   <div className="flex justify-between items-start mb-3">
                     <div>
-                      <span style={{ fontSize: '0.7rem', backgroundColor: 'rgba(139, 92, 246, 0.08)', color: 'var(--primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
+                      <span style={{ fontSize: '0.7rem', backgroundColor: 'rgba(99, 102, 241, 0.08)', color: 'var(--primary)', padding: '2px 6px', borderRadius: '4px', fontWeight: 700 }}>
                         {selectedStaff.role}
                       </span>
                       <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginTop: '4px' }}>
@@ -730,7 +730,7 @@ export default function PrincipalFacultyPerformance() {
           {/* AI Audits & Alerts */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Cpu size={18} className="text-[#8b5cf6]" /> AI Performance Engine
+              <Cpu size={18} className="text-[#6366F1]" /> AI Performance Engine
             </h3>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1.2rem', lineHeight: '1.4' }}>
               Run sentiment analysis audit over student reviews and map teaching workloads against performance benchmarks.
@@ -793,7 +793,7 @@ export default function PrincipalFacultyPerformance() {
                         <XAxis dataKey="name" />
                         <YAxis label={{ value: 'Hours/Wk', angle: -90, position: 'insideLeft' }} />
                         <Tooltip />
-                        <Bar dataKey="workload" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                        <Bar dataKey="workload" fill="#6366F1" radius={[4, 4, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
@@ -843,7 +843,7 @@ export default function PrincipalFacultyPerformance() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '580px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', transition: 'none' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <BarChart2 className="text-[#8b5cf6]" size={20} /> Performance Analytics: {selectedStaff.name}
+                <BarChart2 className="text-[#6366F1]" size={20} /> Performance Analytics: {selectedStaff.name}
               </h3>
               <button onClick={() => setShowPerformanceModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>

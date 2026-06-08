@@ -186,7 +186,7 @@
 
 /* Tab Content */
 .dd-tab-content {
-  padding: 2rem;
+  padding: 1.25rem 1.5rem;
   min-height: 400px;
 }
 
@@ -370,7 +370,7 @@
 .face-outline {
   width: 120px;
   height: 140px;
-  border: 2px solid #8b5cf6;
+  border: 2px solid #6366F1;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -383,7 +383,7 @@
   position: absolute;
   left: 0; right: 0;
   height: 2px;
-  background: linear-gradient(90deg, transparent, #8b5cf6, transparent);
+  background: linear-gradient(90deg, transparent, #6366F1, transparent);
   animation: scan-sweep 1.2s linear infinite;
 }
 

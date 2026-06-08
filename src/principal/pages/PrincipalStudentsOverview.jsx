@@ -130,7 +130,7 @@ export default function PrincipalStudentsOverview() {
           { label: 'Total Students', value: studentList.length, icon: <Users size={18} />, color: '#f59e0b', sub: '6 departments' },
           { label: 'Avg CGPA', value: avgCGPA, icon: <Star size={18} />, color: '#6366f1', sub: 'All students' },
           { label: 'Avg Attendance', value: `${avgAtt}%`, icon: <TrendingUp size={18} />, color: '#10b981', sub: 'This semester' },
-          { label: 'Top Performers', value: topCount, icon: <Star size={18} />, color: '#8b5cf6', sub: 'CGPA ≥ 9.0' },
+          { label: 'Top Performers', value: topCount, icon: <Star size={18} />, color: '#6366F1', sub: 'CGPA ≥ 9.0' },
           { label: 'Low Attendance', value: lowAttCount, icon: <AlertCircle size={18} />, color: '#ef4444', sub: 'Below 80%' },
           { label: 'Active Students', value: studentList.length, icon: <GraduationCap size={18} />, color: '#0ea5e9', sub: 'All enrolled' },
         ].map((s, i) => (

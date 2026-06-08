@@ -13,6 +13,7 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
   const [userName, setUserName] = useState('User');
   const [userRole, setUserRole] = useState(role);
   const [showNotifications, setShowNotifications] = useState(false);
+  const [showMessages, setShowMessages] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
   const navigate = useNavigate();
   const [departments, setDepartments] = useState([
@@ -62,35 +63,70 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
 
   return (
     <header className="navbar glass-card">
-      <div className="navbar-left">
-        <button className="hamburger-btn icon-btn" onClick={onMenuToggle} title="Toggle Menu">
-          <Menu size={22} />
-        </button>
-        <div className="navbar-search">
-          <Search size={20} className="search-icon" />
-          <input type="text" placeholder="Search students, staff, or departments..." />
+      <div className="navbar-left" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        {onMenuToggle && (
+          <button className="icon-btn mobile-menu-btn" onClick={onMenuToggle} style={{ display: 'none' }}>
+            <Menu size={20} />
+          </button>
+        )}
+        <div className="navbar-greeting" style={{ display: 'flex', flexDirection: 'column' }}>
+          <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-main)', letterSpacing: '-0.3px' }}>
+            Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {userName}! 👋
+          </h2>
+          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '2px' }}>
+            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+          </span>
         </div>
       </div>
       
       <div className="navbar-actions">
-        <div className="dept-switch">
-          <LayoutGrid size={18} className="text-muted" />
-          <select className="dept-select">
-            <option>All Departments</option>
-            {departments.map(d => (
-              <option key={d.id || d._id} value={d.name}>{formatDeptWithCourse(d.name)}</option>
-            ))}
-          </select>
-        </div>
+
 
         <button className="icon-btn" onClick={toggleTheme} title="Toggle Theme">
           {theme === 'light' ? <Moon size={20} /> : <Sun size={20} />}
         </button>
 
-        <button className="icon-btn">
-          <MessageSquare size={20} />
-          <span className="badge">3</span>
-        </button>
+        <div className="message-wrapper" style={{ position: 'relative' }}>
+          <button className="icon-btn" onClick={() => setShowMessages(!showMessages)}>
+            <MessageSquare size={20} />
+            <span className="badge">3</span>
+          </button>
+          
+          {showMessages && (
+            <div className="notification-dropdown glass-card animate-fade-in" style={{ right: 0 }}>
+              <div className="dropdown-header">
+                <h3>Messages</h3>
+                <button className="text-xs text-primary font-bold">Mark all read</button>
+              </div>
+              <div className="notification-list">
+                <div className="notification-item unread">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-bold text-sm text-blue-500">System Admin</span>
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  </div>
+                  <p className="text-xs text-muted mb-1">Welcome to the new ERP Portal!</p>
+                  <span className="text-xs text-muted opacity-70">10:00 AM</span>
+                </div>
+                <div className="notification-item unread">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-bold text-sm text-blue-500">IT Support</span>
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  </div>
+                  <p className="text-xs text-muted mb-1">Scheduled maintenance this weekend.</p>
+                  <span className="text-xs text-muted opacity-70">Yesterday</span>
+                </div>
+                <div className="notification-item unread">
+                  <div className="flex justify-between items-start mb-1">
+                    <span className="font-bold text-sm text-blue-500">HR Dept</span>
+                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+                  </div>
+                  <p className="text-xs text-muted mb-1">Please review the updated holiday list.</p>
+                  <span className="text-xs text-muted opacity-70">Mon</span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
         <div className="notification-wrapper">
           <button className="icon-btn" onClick={() => setShowNotifications(!showNotifications)}>
             <Bell size={20} />

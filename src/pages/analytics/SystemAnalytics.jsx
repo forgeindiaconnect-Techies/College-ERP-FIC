@@ -32,7 +32,7 @@ const MOCK_FEES_COLLECTION = [
   { month: 'Apr', collected: 300, pending: 20 },
 ];
 
-const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#6366F1'];
 
 import { getAnalytics } from '../../api';
 

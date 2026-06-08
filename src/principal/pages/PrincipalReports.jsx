@@ -118,7 +118,7 @@ export default function PrincipalReports() {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <FileText className="text-[#4f46e5]" size={28} /> Reports & Analytics Center
+            <FileText className="text-[var(--primary)]" size={28} /> Reports & Analytics Center
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
             Compile cross-institutional metrics, compare semester performance, and export signed reports.
@@ -139,7 +139,7 @@ export default function PrincipalReports() {
       <div className="stats-grid mb-6 animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1rem' }}>
         
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4f46e5, #3b82f6)' }}><Users size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, var(--primary), #3b82f6)' }}><Users size={18} /></div>
           <div className="stat-details">
             <h3>Total Students</h3>
             <p className="stat-value">3,490</p>
@@ -148,7 +148,7 @@ export default function PrincipalReports() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #7c3aed, #6d28d9)' }}><GraduationCap size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4F46E5, #6d28d9)' }}><GraduationCap size={18} /></div>
           <div className="stat-details">
             <h3>Total Staff</h3>
             <p className="stat-value">198</p>
@@ -229,7 +229,7 @@ export default function PrincipalReports() {
               fontSize: '0.85rem', 
               padding: '0.5rem 1.2rem', 
               borderRadius: '8px', 
-              background: 'linear-gradient(135deg, #4f46e5, #3b82f6)',
+              background: 'linear-gradient(135deg, var(--primary), #3b82f6)',
               boxShadow: '0 4px 12px rgba(79, 70, 229, 0.2)',
               cursor: 'pointer',
               border: 'none',
@@ -729,7 +729,7 @@ export default function PrincipalReports() {
                 onClick={handleViewReport}
                 disabled={isCompilingReport}
                 className="btn-primary w-full"
-                style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontSize: '0.85rem', padding: '0.55rem', background: 'linear-gradient(135deg, #4f46e5, #3b82f6)', border: 'none', color: 'white', fontWeight: 600, cursor: 'pointer' }}
+                style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: '6px', fontSize: '0.85rem', padding: '0.55rem', background: 'linear-gradient(135deg, var(--primary), #3b82f6)', border: 'none', color: 'white', fontWeight: 600, cursor: 'pointer' }}
               >
                 <Eye size={15} /> {isCompilingReport ? 'Compiling Live View...' : 'View Report'}
               </button>
@@ -765,7 +765,7 @@ export default function PrincipalReports() {
                 onClick={() => handleTriggerAction('Share')}
                 disabled={isCompiling}
                 className="btn-primary w-full"
-                style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: '4px', fontSize: '0.85rem', padding: '0.55rem', background: '#7c3aed' }}
+                style={{ display: 'inline-flex', justifyContent: 'center', alignItems: 'center', gap: '4px', fontSize: '0.85rem', padding: '0.55rem', background: '#4F46E5' }}
               >
                 <Send size={15} /> {isCompiling ? 'Routing channels...' : 'Share Report to Admin'}
               </button>

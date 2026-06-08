@@ -27,7 +27,7 @@
 .rpt-summary-card::after { content:''; position:absolute; right:-15px; top:-15px; width:70px; height:70px; border-radius:50%; opacity:0.06; }
 .rpt-card-blue::after   { background: #3b82f6; }
 .rpt-card-green::after  { background: #10b981; }
-.rpt-card-purple::after { background: #8b5cf6; }
+.rpt-card-purple::after { background: #6366F1; }
 .rpt-card-orange::after { background: #f97316; }
 .rpt-summary-label { font-size: 0.82rem; color: var(--text-muted); font-weight: 500; }
 .rpt-summary-value { font-size: 1.65rem; font-weight: 700; color: var(--text-main); line-height: 1.2; }
@@ -51,7 +51,7 @@
 .report-icon { width: 44px; height: 44px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
 .report-icon.blue   { background: rgba(59,130,246,0.12);  color: #3b82f6; }
 .report-icon.green  { background: rgba(16,185,129,0.12);  color: #10b981; }
-.report-icon.purple { background: rgba(139,92,246,0.12);  color: #8b5cf6; }
+.report-icon.purple { background: rgba(99, 102, 241,0.12);  color: #6366F1; }
 .report-icon.orange { background: rgba(249,115,22,0.12);  color: #f97316; }
 .report-icon.red    { background: rgba(239,68,68,0.1);   color: #ef4444; }
 .report-icon.teal   { background: rgba(20,184,166,0.12);  color: #14b8a6; }

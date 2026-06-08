@@ -194,7 +194,7 @@ const Salary = () => {
 
       {/* Metrics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="glass-card p-6 flex flex-col gap-2 border-l-4 border-[#8b5cf6]">
+        <div className="glass-card p-6 flex flex-col gap-2 border-l-4 border-[#6366F1]">
           <span className="text-[var(--text-muted)] text-sm">Total Employees</span>
           <span className="text-3xl font-bold text-[var(--text-main)]">{staffList.length}</span>
           <span className="text-xs text-[var(--text-muted)]">Active staff & HODs in system</span>

@@ -133,7 +133,7 @@ const ParentTransport = () => {
   if (loading || !childDetails) {
     return (
       <div className="parent-loading-container" style={{ display: 'flex', justifyContent: 'center', padding: '5rem' }}>
-        <span className="spinner-large" style={{ width: '40px', height: '40px', border: '4px solid rgba(79, 70, 229, 0.2)', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span>
+        <span className="spinner-large" style={{ width: '40px', height: '40px', border: '4px solid rgba(79, 70, 229, 0.2)', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite' }}></span>
       </div>
     );
   }
@@ -144,7 +144,7 @@ const ParentTransport = () => {
     <>
       <div className="parent-dashboard animate-fade-in" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
         {/* Premium Header Banner */}
-        <div style={{ background: 'linear-gradient(135deg, #4f46e5 0%, #3730a3 100%)', borderRadius: '24px', padding: '3rem', color: 'white', marginBottom: '2.5rem', boxShadow: '0 20px 40px -15px rgba(79, 70, 229, 0.5)', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ background: 'linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%)', borderRadius: '24px', padding: '3rem', color: 'white', marginBottom: '2.5rem', boxShadow: '0 20px 40px -15px rgba(79, 70, 229, 0.5)', position: 'relative', overflow: 'hidden' }}>
           <div style={{ position: 'absolute', right: '-10%', top: '-50%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%' }}></div>
           <div style={{ position: 'relative', zIndex: 1 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
@@ -199,7 +199,7 @@ const ParentTransport = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.5rem' }}>
                 <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
+                  <div style={{ width: '40px', height: '40px', borderRadius: '12px', background: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
                     <Bus size={20} />
                   </div>
                   <div style={{ color: 'var(--text-muted)', fontSize: '0.85rem', fontWeight: 700, textTransform: 'uppercase', marginBottom: '8px', letterSpacing: '0.5px' }}>Route</div>
@@ -235,7 +235,7 @@ const ParentTransport = () => {
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginTop: '1.5rem' }}>
                 <div style={{ background: 'var(--bg-secondary)', padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <div style={{ width: '50px', height: '50px', borderRadius: '50%', background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                     <User size={24} />
                   </div>
                   <div>
@@ -291,12 +291,12 @@ const ParentTransport = () => {
                   ].map((s, idx) => (
                     <div key={idx} style={{ position: 'relative', zIndex: 1, display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
                       <div style={{ 
-                        width: '14px', height: '14px', borderRadius: '50%', background: s.current ? '#4f46e5' : 'var(--bg-secondary)', 
-                        border: `2px solid ${s.current ? '#4f46e5' : 'var(--border-color)'}`, marginTop: '4px',
+                        width: '14px', height: '14px', borderRadius: '50%', background: s.current ? 'var(--primary)' : 'var(--bg-secondary)', 
+                        border: `2px solid ${s.current ? 'var(--primary)' : 'var(--border-color)'}`, marginTop: '4px',
                         boxShadow: s.current ? '0 0 0 4px rgba(79, 70, 229, 0.2)' : 'none'
                       }}></div>
                       <div>
-                        <div style={{ fontWeight: 700, color: s.current ? '#4f46e5' : 'var(--text-main)' }}>{s.stop}</div>
+                        <div style={{ fontWeight: 700, color: s.current ? 'var(--primary)' : 'var(--text-main)' }}>{s.stop}</div>
                         <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>{s.time}</div>
                       </div>
                     </div>
@@ -343,7 +343,7 @@ const ParentTransport = () => {
                       <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', flexWrap: 'wrap', gap: '10px' }}>
                         <div>
                           <span style={{ fontSize: '0.8rem', background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '4px 10px', borderRadius: '20px', fontWeight: 700 }}>{comp.complaintType || comp.category}</span>
-                          <span style={{ marginLeft: '10px', fontSize: '0.75rem', background: 'rgba(79, 70, 229, 0.1)', color: '#4f46e5', padding: '4px 8px', borderRadius: '12px', fontWeight: 600 }}>By: {comp.reporterType || comp.reporter}</span>
+                          <span style={{ marginLeft: '10px', fontSize: '0.75rem', background: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', padding: '4px 8px', borderRadius: '12px', fontWeight: 600 }}>By: {comp.reporterType || comp.reporter}</span>
                           <h4 style={{ margin: '10px 0 0', fontSize: '1.1rem', color: 'var(--text-main)', fontWeight: 600 }}>{comp.description}</h4>
                           <span style={{ display: 'block', marginTop: '6px', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
                             Logged on {new Date(comp.createdAt || comp.date).toLocaleDateString()}

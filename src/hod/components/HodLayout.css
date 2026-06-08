@@ -1,3 +1,0 @@
-.hod-layout { display: flex; min-height: 100vh; }
-.hod-main-wrapper { flex: 1; margin-left: 260px; display: flex; flex-direction: column; min-height: 100vh; }
-.hod-main-content { flex: 1; padding: 2rem; overflow-y: auto; }

@@ -103,7 +103,7 @@ export default function StaffPlacements() {
           { label: 'Total Students', value: totalStudents, icon: <Users size={16}/>, color: '#3b82f6', sub: 'In Dept' },
           { label: 'Eligible Students', value: eligibleStudents.length, icon: <CheckCircle size={16}/>, color: '#10b981', sub: 'Criteria met' },
           { label: 'Applied Students', value: appliedStudentsCount, icon: <FileText size={16}/>, color: '#f59e0b', sub: 'Participating' },
-          { label: 'Selected Students', value: selectedStudentsCount, icon: <Award size={16}/>, color: '#8b5cf6', sub: 'Got offers' },
+          { label: 'Selected Students', value: selectedStudentsCount, icon: <Award size={16}/>, color: '#6366F1', sub: 'Got offers' },
           { label: 'Placement Rate', value: `${placementPercentage}%`, icon: <TrendingUp size={16}/>, color: '#ec4899', sub: 'Dept avg' },
         ].map((s, i) => (
           <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>
@@ -234,7 +234,7 @@ export default function StaffPlacements() {
               {filtered.map(a => (
                 <tr key={a._id || a.applicationId}>
                   <td style={{ fontWeight: 600 }}>{a.student}</td>
-                  <td style={{ fontWeight: 700, color: '#8b5cf6' }}>{a.company}</td>
+                  <td style={{ fontWeight: 700, color: '#6366F1' }}>{a.company}</td>
                   <td>{a.role}</td>
                   <td>
                     <select 

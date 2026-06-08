@@ -197,7 +197,7 @@ const HodMarks = () => {
                 <XAxis dataKey="sem" stroke="var(--text-muted)" />
                 <YAxis domain={[6, 10]} stroke="var(--text-muted)" />
                 <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)' }} />
-                <Line type="monotone" dataKey="avg" name="Avg CGPA" stroke="#4f46e5" strokeWidth={3} dot={{ r: 5, fill: '#4f46e5', strokeWidth: 2, stroke: 'white' }} activeDot={{ r: 8 }} />
+                <Line type="monotone" dataKey="avg" name="Avg CGPA" stroke="var(--primary)" strokeWidth={3} dot={{ r: 5, fill: 'var(--primary)', strokeWidth: 2, stroke: 'white' }} activeDot={{ r: 8 }} />
               </LineChart>
             </ResponsiveContainer>
           </div>

@@ -105,15 +105,15 @@ const TransportManagement = () => {
                 <AreaChart data={CHART_DATA}>
                   <defs>
                     <linearGradient id="colorRiders" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                      <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                      <stop offset="5%" stopColor="#6366F1" stopOpacity={0.8}/>
+                      <stop offset="95%" stopColor="#6366F1" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#333" opacity={0.2} />
                   <XAxis dataKey="month" stroke="var(--text-muted)" />
                   <YAxis stroke="var(--text-muted)" />
                   <Tooltip contentStyle={{background:'var(--bg-secondary)', border:'none', borderRadius:'8px'}}/>
-                  <Area type="monotone" dataKey="riders" stroke="#8b5cf6" fillOpacity={1} fill="url(#colorRiders)" />
+                  <Area type="monotone" dataKey="riders" stroke="#6366F1" fillOpacity={1} fill="url(#colorRiders)" />
                 </AreaChart>
               </ResponsiveContainer>
             </div>

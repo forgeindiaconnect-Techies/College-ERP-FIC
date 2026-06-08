@@ -458,8 +458,8 @@ export default function PrincipalStudentWelfare() {
           </div>
         </div>
 
-        <div className="stat-card" style={{ borderBottom: '3px solid #8b5cf6' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}><UserCheck size={18} /></div>
+        <div className="stat-card" style={{ borderBottom: '3px solid #6366F1' }}>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><UserCheck size={18} /></div>
           <div className="stat-details">
             <h3>Counseling Sessions</h3>
             <p className="stat-value">{activeCounselingCount}</p>
@@ -562,7 +562,7 @@ export default function PrincipalStudentWelfare() {
                         <td>{c.department.replace(' Department', '')}</td>
                         <td>
                           <span style={{
-                            backgroundColor: c.issueType === 'Disciplinary' || c.issueType === 'Anti-Ragging' ? 'rgba(239, 68, 68, 0.08)' : c.issueType === 'Scholarship' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(139, 92, 246, 0.08)',
+                            backgroundColor: c.issueType === 'Disciplinary' || c.issueType === 'Anti-Ragging' ? 'rgba(239, 68, 68, 0.08)' : c.issueType === 'Scholarship' ? 'rgba(16, 185, 129, 0.08)' : 'rgba(99, 102, 241, 0.08)',
                             color: c.issueType === 'Disciplinary' || c.issueType === 'Anti-Ragging' ? 'var(--danger)' : c.issueType === 'Scholarship' ? 'var(--success)' : 'var(--primary)',
                             padding: '3px 7px', borderRadius: '5px', fontSize: '0.75rem', fontWeight: 600
                           }}>
@@ -648,7 +648,7 @@ export default function PrincipalStudentWelfare() {
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
                         <button
                           onClick={() => handleOpenCounselor(selectedCase)}
-                          style={{ padding: '0.5rem', background: '#8b5cf6', border: 'none', color: 'white', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
+                          style={{ padding: '0.5rem', background: '#6366F1', border: 'none', color: 'white', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
                         >
                           <Users size={12} /> Assign Counselor
                         </button>
@@ -804,7 +804,7 @@ export default function PrincipalStudentWelfare() {
                     <Legend />
                     <Bar dataKey="Disciplinary" fill="#ef4444" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="Complaints" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                    <Bar dataKey="AntiRagging" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="AntiRagging" fill="#6366F1" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
@@ -921,7 +921,7 @@ export default function PrincipalStudentWelfare() {
           {/* Quick instructions card */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
             <h3 style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.8rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <HelpCircle size={16} className="text-[#8b5cf6]" /> Anonymous Complaints System
+              <HelpCircle size={16} className="text-[#6366F1]" /> Anonymous Complaints System
             </h3>
             <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: '1.4' }}>
               Students can report campus infrastructure issues, mess hygiene concerns, or lab terminal malfunctions completely anonymously.
@@ -943,7 +943,7 @@ export default function PrincipalStudentWelfare() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '500px', background: 'var(--bg-secondary)', transition: 'none' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <ClipboardList className="text-[#8b5cf6]" size={20} /> Incident Timeline: {selectedCase.studentName}
+                <ClipboardList className="text-[#6366F1]" size={20} /> Incident Timeline: {selectedCase.studentName}
               </h3>
               <button onClick={() => setShowCaseModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
@@ -999,7 +999,7 @@ export default function PrincipalStudentWelfare() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '480px', background: 'var(--bg-secondary)', transition: 'none' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <UserCheck className="text-[#8b5cf6]" size={20} /> Assign Welfare Counselor
+                <UserCheck className="text-[#6366F1]" size={20} /> Assign Welfare Counselor
               </h3>
               <button onClick={() => setShowCounselorModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>

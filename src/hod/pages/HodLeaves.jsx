@@ -14,7 +14,7 @@ const DEFAULT_LEAVES = [
 
 const TABS = ['Pending', 'Approved', 'Rejected', 'My Leaves'];
 
-const ROLE_COLORS = { Student:'#3b82f6', Staff:'#8b5cf6' };
+const ROLE_COLORS = { Student:'#3b82f6', Staff:'#6366F1' };
 
 const HodLeaves = () => {
   const hod = getHodSession();

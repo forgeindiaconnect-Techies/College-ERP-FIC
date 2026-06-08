@@ -319,7 +319,7 @@ const UnifiedLogin = () => {
                     { name: 'Principal', email: 'principal@college.edu', icon: Award, color: '#0284c7' },
 
                     { name: 'HODs (6 Depts)', email: 'csehod@gmail.com', icon: Award, color: '#10b981', isSelector: true },
-                    { name: 'Staff', email: 'karthik@college.edu', icon: BookOpen, color: '#8b5cf6' },
+                    { name: 'Staff', email: 'karthik@college.edu', icon: BookOpen, color: '#6366F1' },
                     { name: 'Student', email: 'john@college.edu', icon: GraduationCap, color: '#f59e0b' },
                     { name: 'Parent', email: 'parent_john@college.edu', icon: Users, color: '#ec4899' },
                     { name: 'Accounts', email: 'accounts@college.edu', icon: Briefcase, color: '#ef4444' },

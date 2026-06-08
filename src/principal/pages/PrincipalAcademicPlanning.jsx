@@ -631,7 +631,7 @@ export default function PrincipalAcademicPlanning() {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <CalendarCheck className="text-[#4f46e5]" size={28} /> Academic Calendar & Planning Center
+            <CalendarCheck className="text-[var(--primary)]" size={28} /> Academic Calendar & Planning Center
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
             Manage the master calendar, schedule semesters and exams, set institutional holidays, and coordinate with departments.
@@ -640,7 +640,7 @@ export default function PrincipalAcademicPlanning() {
 
         {/* Oversight Bounds Clearance Info */}
         <div className="glass-card" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', borderRadius: '10px', borderLeft: '3px solid var(--primary)', transition: 'none' }}>
-          <Users size={18} className="text-[#4f46e5]" />
+          <Users size={18} className="text-[var(--primary)]" />
           <div>
             <span style={{ fontSize: '0.7rem', display: 'block', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>Oversight Bounds</span>
             <strong style={{ fontSize: '0.8rem', color: 'var(--text-main)' }}>Principal Account - Master Planner</strong>
@@ -651,7 +651,7 @@ export default function PrincipalAcademicPlanning() {
       {/* REAL WORKFLOW STATUS STEPPER */}
       <div className="workflow-box">
         <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Clock size={14} className="text-[#4f46e5]" /> Planning Workflow:
+          <Clock size={14} className="text-[var(--primary)]" /> Planning Workflow:
         </span>
         {[
           { num: 1, label: 'Semester Plan Created' },
@@ -708,7 +708,7 @@ export default function PrincipalAcademicPlanning() {
       <div className="stats-grid mb-6 animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         
         <div className="stat-card" style={{ borderBottom: '3px solid var(--primary)', transition: 'none' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4f46e5, #3b82f6)' }}><BookOpen size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, var(--primary), #3b82f6)' }}><BookOpen size={18} /></div>
           <div className="stat-details">
             <h3>Upcoming Exams</h3>
             <p className="stat-value">{upcomingExams}</p>
@@ -734,8 +734,8 @@ export default function PrincipalAcademicPlanning() {
           </div>
         </div>
 
-        <div className="stat-card" style={{ borderBottom: '3px solid #8b5cf6', transition: 'none' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}><Users size={18} /></div>
+        <div className="stat-card" style={{ borderBottom: '3px solid #6366F1', transition: 'none' }}>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><Users size={18} /></div>
           <div className="stat-details">
             <h3>Dept Schedules</h3>
             <p className="stat-value">{activeDeptSchedules}</p>
@@ -1072,7 +1072,7 @@ export default function PrincipalAcademicPlanning() {
             {/* Header controls */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
               <h2 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <CalendarCheck size={20} className="text-[#4f46e5]" />
+                <CalendarCheck size={20} className="text-[var(--primary)]" />
                 {calendarDate.toLocaleString('default', { month: 'long', year: 'numeric' })}
               </h2>
               <div style={{ display: 'flex', gap: '0.5rem' }}>
@@ -1114,10 +1114,10 @@ export default function PrincipalAcademicPlanning() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', overflowY: 'hidden', maxHeight: '55px' }}>
                       {dayEvents.slice(0, 3).map(ev => {
                         let bg = '#3b82f6';
-                        if (ev.type === 'Semester Planning') bg = '#4f46e5';
+                        if (ev.type === 'Semester Planning') bg = 'var(--primary)';
                         if (ev.type === 'Holiday Management') bg = '#10b981';
                         if (ev.type === 'Exam Calendar') bg = '#ef4444';
-                        if (ev.type === 'Department Schedule') bg = '#8b5cf6';
+                        if (ev.type === 'Department Schedule') bg = '#6366F1';
 
                         return (
                           <div
@@ -1144,10 +1144,10 @@ export default function PrincipalAcademicPlanning() {
 
             {/* Colors legend */}
             <div style={{ display: 'flex', gap: '1rem', marginTop: '1.5rem', flexWrap: 'wrap', fontSize: '0.72rem', fontWeight: 700 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#4f46e5' }}></span> Semester Planning</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: 'var(--primary)' }}></span> Semester Planning</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#10b981' }}></span> Holidays</div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#ef4444' }}></span> Exam Calendar</div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#8b5cf6' }}></span> Department Workloads</div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '10px', height: '10px', borderRadius: '2px', backgroundColor: '#6366F1' }}></span> Department Workloads</div>
             </div>
 
           </div>
@@ -1198,7 +1198,7 @@ export default function PrincipalAcademicPlanning() {
           {/* Planner inputs */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', transition: 'none' }}>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <Cpu size={18} className="text-[#4f46e5]" /> AI Schedule Parameters
+              <Cpu size={18} className="text-[var(--primary)]" /> AI Schedule Parameters
             </h3>
             <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1.2rem', lineHeight: '1.4' }}>
               Define structural bounds, and the LIT optimization model will automatically map dates, balancing syllabus distribution and holiday gaps.
@@ -1346,7 +1346,7 @@ export default function PrincipalAcademicPlanning() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '540px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', transition: 'none' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Plus className="text-[#4f46e5]" size={20} /> Create Master Schedule Block
+                <Plus className="text-[var(--primary)]" size={20} /> Create Master Schedule Block
               </h3>
               <button onClick={() => setShowCreateModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
@@ -1505,7 +1505,7 @@ export default function PrincipalAcademicPlanning() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '540px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--bg-secondary)', transition: 'none' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Edit2 className="text-[#4f46e5]" size={20} /> Edit Schedule Details
+                <Edit2 className="text-[var(--primary)]" size={20} /> Edit Schedule Details
               </h3>
               <button onClick={() => setShowEditModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
@@ -1723,7 +1723,7 @@ export default function PrincipalAcademicPlanning() {
           <div className="glass-card animate-fade-in" style={{ padding: '2rem', borderRadius: '16px', width: '100%', maxWidth: '520px', background: 'var(--bg-secondary)', transition: 'none' }}>
             <div className="flex justify-between items-center mb-4">
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                <Mail className="text-[#4f46e5]" size={20} /> Dispatch Academic Reminder Mail
+                <Mail className="text-[var(--primary)]" size={20} /> Dispatch Academic Reminder Mail
               </h3>
               <button onClick={() => setShowReminderModal(false)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>

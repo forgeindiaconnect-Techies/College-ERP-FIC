@@ -44,7 +44,7 @@ const AccountsReports = () => {
             { name: 'Tuition Fee', value: tuitionTotal, color: '#3b82f6' },
             { name: 'Exam Fee', value: examTotal, color: '#10b981' },
             { name: 'Hostel Fee', value: hostelTotal, color: '#f59e0b' },
-            { name: 'Transport Fee', value: transportTotal, color: '#8b5cf6' },
+            { name: 'Transport Fee', value: transportTotal, color: '#6366F1' },
           ]);
 
           const liveLakhs = Math.max(1, Number(((tuitionTotal + examTotal + hostelTotal + transportTotal) / 100000).toFixed(2)));
@@ -71,11 +71,11 @@ const AccountsReports = () => {
       <div className="mb-6 flex justify-between items-center">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-main)] flex items-center gap-2">
-            <TrendingUp size={24} className="text-[#8b5cf6]" /> Financial Reports
+            <TrendingUp size={24} className="text-[#6366F1]" /> Financial Reports
           </h1>
           <p className="text-[var(--text-muted)] mt-1">Analytics and summaries of the institution's finances.</p>
         </div>
-        <button style={{ background: 'linear-gradient(to right, #8b5cf6, #9333ea)' }} className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all">
+        <button style={{ background: 'linear-gradient(to right, #6366F1, #9333ea)' }} className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all">
           <FileBarChart size={18} /> Generate Master Report
         </button>
       </div>

@@ -158,13 +158,13 @@ const Scholarships = () => {
       <div className="mb-6 flex justify-between items-center flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-bold text-[var(--text-main)] flex items-center gap-2">
-            <Award size={24} className="text-[#8b5cf6]" /> Scholarships & Financial Aid
+            <Award size={24} className="text-[#6366F1]" /> Scholarships & Financial Aid
           </h1>
           <p className="text-[var(--text-muted)] mt-1">Manage student financial aid distributions and grants.</p>
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          style={{ background: 'linear-gradient(to right, #8b5cf6, #9333ea)' }}
+          style={{ background: 'linear-gradient(to right, #6366F1, #9333ea)' }}
           className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all"
         >
           <Plus size={18} /> Grant Scholarship
@@ -172,7 +172,7 @@ const Scholarships = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div className="glass-card p-6 border-l-4 border-[#8b5cf6] flex flex-col justify-center">
+        <div className="glass-card p-6 border-l-4 border-[#6366F1] flex flex-col justify-center">
           <span className="text-[var(--text-muted)] text-sm font-medium">Total Active Scholars</span>
           <h2 className="text-3xl font-bold text-[var(--text-main)] mt-1">{scholars.length}</h2>
         </div>
@@ -191,13 +191,13 @@ const Scholarships = () => {
               placeholder="Search scholar name or ID..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded-lg pl-10 pr-4 py-2 outline-none focus:border-[#8b5cf6]"
+              className="w-full bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded-lg pl-10 pr-4 py-2 outline-none focus:border-[#6366F1]"
             />
           </div>
           <select 
             value={typeFilter} 
             onChange={(e) => setTypeFilter(e.target.value)}
-            className="bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded-lg px-4 py-2 outline-none focus:border-[#8b5cf6]"
+            className="bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded-lg px-4 py-2 outline-none focus:border-[#6366F1]"
           >
             <option>All Types</option>
             {TYPES.map(t => <option key={t}>{t}</option>)}
@@ -225,7 +225,7 @@ const Scholarships = () => {
                   <td className="p-4 font-mono text-sm text-[var(--text-muted)]">{s.id}</td>
                   <td className="p-4">
                     <div className="flex items-center gap-2 text-[var(--text-main)] font-medium">
-                      <User size={14} className="text-[#8b5cf6]" /> {s.studentName}
+                      <User size={14} className="text-[#6366F1]" /> {s.studentName}
                     </div>
                     <div className="text-xs text-[var(--text-muted)] mt-0.5 ml-5">{s.studentId}</div>
                   </td>
@@ -274,7 +274,7 @@ const Scholarships = () => {
               <div className="p-4 border border-[var(--border-color)] bg-[var(--bg-primary)] rounded-lg">
                 <label className="block text-sm font-medium text-[var(--text-main)] mb-2">
                   Student Verification
-                  {loadingStudents && <span style={{ color: '#8b5cf6', fontSize: '0.75rem', marginLeft: 8 }}>⏳ Loading students...</span>}
+                  {loadingStudents && <span style={{ color: '#6366F1', fontSize: '0.75rem', marginLeft: 8 }}>⏳ Loading students...</span>}
                   {!loadingStudents && allStudents.length > 0 && <span style={{ color: '#10b981', fontSize: '0.75rem', marginLeft: 8 }}>✓ {allStudents.length} students loaded</span>}
                 </label>
                 <form onSubmit={lookupStudent} className="flex gap-2 mb-2" style={{ position: 'relative' }}>
@@ -295,7 +295,7 @@ const Scholarships = () => {
                             key={s.id || i}
                             onClick={() => selectSuggestion(s)}
                             style={{ padding: '10px 14px', cursor: 'pointer', borderBottom: i < suggestions.length - 1 ? '1px solid var(--border-color)' : 'none', transition: 'background 0.15s' }}
-                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(139,92,246,0.12)'}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(99, 102, 241,0.12)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
                           >
                             <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.88rem' }}>{s.name}</div>
@@ -307,13 +307,13 @@ const Scholarships = () => {
                       </div>
                     )}
                   </div>
-                  <button type="submit" style={{ padding: '7px 14px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>Find</button>
+                  <button type="submit" style={{ padding: '7px 14px', background: '#6366F1', color: 'white', border: 'none', borderRadius: 8, fontSize: '0.85rem', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}>Find</button>
                 </form>
                 {searchError && <p style={{ fontSize: '0.78rem', color: '#ef4444', marginTop: 4 }}>{searchError}</p>}
                 {foundStudent && (
-                  <div style={{ marginTop: 10, padding: '10px 12px', background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 8, fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                  <div style={{ marginTop: 10, padding: '10px 12px', background: 'rgba(99, 102, 241,0.1)', border: '1px solid rgba(99, 102, 241,0.3)', borderRadius: 8, fontSize: '0.85rem', color: 'var(--text-main)' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 4 }}>
-                      <CheckCircle2 size={14} style={{ color: '#8b5cf6', flexShrink: 0 }} />
+                      <CheckCircle2 size={14} style={{ color: '#6366F1', flexShrink: 0 }} />
                       <strong>Verified: {foundStudent.name}</strong>
                     </div>
                     <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', paddingLeft: 20 }}>
@@ -352,7 +352,7 @@ const Scholarships = () => {
                 </div>
                 <div className="pt-4 flex justify-end gap-3">
                   <button type="button" onClick={() => setIsModalOpen(false)} className="px-4 py-2 rounded-lg text-[var(--text-main)] font-medium hover:bg-[var(--bg-primary)] transition-colors">Cancel</button>
-                  <button type="submit" disabled={!foundStudent} className={`px-4 py-2 rounded-lg font-medium transition-colors ${foundStudent ? 'bg-[#8b5cf6] text-white hover:bg-purple-600' : 'bg-[var(--border-color)] text-[var(--text-muted)] cursor-not-allowed'}`}>Issue Grant</button>
+                  <button type="submit" disabled={!foundStudent} className={`px-4 py-2 rounded-lg font-medium transition-colors ${foundStudent ? 'bg-[#6366F1] text-white hover:bg-purple-600' : 'bg-[var(--border-color)] text-[var(--text-muted)] cursor-not-allowed'}`}>Issue Grant</button>
                 </div>
               </form>
             </div>

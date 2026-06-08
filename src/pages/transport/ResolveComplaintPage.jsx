@@ -236,7 +236,7 @@ const ResolveComplaintPage = () => {
                   
                   return (
                     <div key={idx} style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-                      <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', color: 'white', backgroundColor: isAdminOrStaff ? '#8b5cf6' : '#22c55e', flexShrink: 0 }}>
+                      <div style={{ width: '2rem', height: '2rem', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 'bold', color: 'white', backgroundColor: isAdminOrStaff ? '#6366F1' : '#22c55e', flexShrink: 0 }}>
                         {reply.sender.charAt(0).toUpperCase()}
                       </div>
                       

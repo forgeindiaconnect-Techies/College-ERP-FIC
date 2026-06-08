@@ -182,7 +182,7 @@ export default function PrincipalStaffOverview() {
       {/* Header */}
       <div style={{ marginBottom: '1.5rem' }}>
         <h1 style={{ color: 'var(--text-main)', fontSize: '1.6rem', fontWeight: 800, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <BookOpen style={{ color: '#8b5cf6' }} size={28} /> Staff Performance & Overview
+          <BookOpen style={{ color: '#6366F1' }} size={28} /> Staff Performance & Overview
         </h1>
         <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>Real-time faculty auditing, rating distributions, and custom notification systems.</p>
       </div>
@@ -210,7 +210,7 @@ export default function PrincipalStaffOverview() {
       {/* Advanced Filters & Search System */}
       <div className="glass-card" style={{ padding: '1.2rem', borderRadius: 16, marginBottom: '1.5rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: '0.8rem', fontSize: '0.88rem', fontWeight: 700, color: 'var(--text-main)' }}>
-          <SlidersHorizontal size={14} style={{ color: '#8b5cf6' }} /> Filters & Institutional Auditing
+          <SlidersHorizontal size={14} style={{ color: '#6366F1' }} /> Filters & Institutional Auditing
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '0.8rem' }}>
           {/* Search Box */}
@@ -282,7 +282,7 @@ export default function PrincipalStaffOverview() {
               <YAxis tick={{ fontSize: 9 }} />
               <Tooltip />
               <Legend iconSize={9} wrapperStyle={{ fontSize: 10 }} />
-              <Bar dataKey="avgPerf" fill="#8b5cf6" name="Performance Score" radius={[3, 3, 0, 0]} />
+              <Bar dataKey="avgPerf" fill="#6366F1" name="Performance Score" radius={[3, 3, 0, 0]} />
               <Bar dataKey="avgAtt" fill="#10b981" name="Attendance %" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -312,7 +312,7 @@ export default function PrincipalStaffOverview() {
               <YAxis domain={[80, 100]} tick={{ fontSize: 9 }} />
               <Tooltip />
               <Legend iconSize={9} wrapperStyle={{ fontSize: 10 }} />
-              <Line type="monotone" dataKey="performance" stroke="#8b5cf6" strokeWidth={2.5} dot={{ r: 4 }} name="Performance" />
+              <Line type="monotone" dataKey="performance" stroke="#6366F1" strokeWidth={2.5} dot={{ r: 4 }} name="Performance" />
               <Line type="monotone" dataKey="attendance" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="Attendance" />
             </LineChart>
           </ResponsiveContainer>
@@ -355,7 +355,7 @@ export default function PrincipalStaffOverview() {
                   <td>
                     <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                       {s.subjects.map(sub => (
-                        <span key={sub} style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', padding: '2px 6px', borderRadius: 5, fontSize: '0.7rem', fontWeight: 600 }}>{sub}</span>
+                        <span key={sub} style={{ background: 'rgba(99, 102, 241,0.1)', color: '#6366F1', padding: '2px 6px', borderRadius: 5, fontSize: '0.7rem', fontWeight: 600 }}>{sub}</span>
                       ))}
                     </div>
                   </td>
@@ -377,9 +377,9 @@ export default function PrincipalStaffOverview() {
                   <td>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                       <div style={{ width: 60, height: 6, background: 'var(--bg-secondary)', borderRadius: 3 }}>
-                        <div style={{ width: `${s.performance}%`, height: '100%', background: s.performance >= 90 ? '#8b5cf6' : s.performance >= 85 ? '#6366f1' : '#f59e0b', borderRadius: 3 }} />
+                        <div style={{ width: `${s.performance}%`, height: '100%', background: s.performance >= 90 ? '#6366F1' : s.performance >= 85 ? '#6366f1' : '#f59e0b', borderRadius: 3 }} />
                       </div>
-                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#8b5cf6' }}>{s.performance}%</span>
+                      <span style={{ fontSize: '0.78rem', fontWeight: 800, color: '#6366F1' }}>{s.performance}%</span>
                     </div>
                   </td>
 
@@ -459,29 +459,29 @@ export default function PrincipalStaffOverview() {
             {modalType === 'profile' && (
               <div>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: '1.2rem' }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg,#8b5cf6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '1.3rem' }}>{selectedStaff.name.charAt(0)}</div>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg,#6366F1,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '1.3rem' }}>{selectedStaff.name.charAt(0)}</div>
                   <div>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>{selectedStaff.name}</h3>
-                    <p style={{ fontSize: '0.8rem', color: '#8b5cf6', fontWeight: 700, margin: 0 }}>{selectedStaff.designation} · {selectedStaff.dept}</p>
+                    <p style={{ fontSize: '0.8rem', color: '#6366F1', fontWeight: 700, margin: 0 }}>{selectedStaff.designation} · {selectedStaff.dept}</p>
                   </div>
                 </div>
                 <p style={{ fontSize: '0.84rem', color: 'var(--text-muted)', lineHeight: '1.45', marginBottom: '1.2rem' }}>{selectedStaff.bio}</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10, background: 'var(--bg-primary)', padding: '1rem', borderRadius: 10, marginBottom: '1.2rem' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    <Mail size={14} style={{ color: '#8b5cf6' }} /> {selectedStaff.email}
+                    <Mail size={14} style={{ color: '#6366F1' }} /> {selectedStaff.email}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    <Phone size={14} style={{ color: '#8b5cf6' }} /> {selectedStaff.phone}
+                    <Phone size={14} style={{ color: '#6366F1' }} /> {selectedStaff.phone}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                    <BookOpen size={14} style={{ color: '#8b5cf6' }} /> Experience: {selectedStaff.experience} Years
+                    <BookOpen size={14} style={{ color: '#6366F1' }} /> Experience: {selectedStaff.experience} Years
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                     <Star size={14} style={{ color: '#f59e0b' }} /> Rating: {selectedStaff.rating} / 5.0
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <button onClick={() => setModalType('notify')} style={{ flex: 1, padding: '0.6rem', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Send Alert</button>
+                  <button onClick={() => setModalType('notify')} style={{ flex: 1, padding: '0.6rem', background: '#6366F1', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Send Alert</button>
                   <button onClick={() => setModalType('meeting')} style={{ flex: 1, padding: '0.6rem', background: '#10b981', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, fontSize: '0.82rem', cursor: 'pointer' }}>Schedule Meeting</button>
                 </div>
               </div>
@@ -516,7 +516,7 @@ export default function PrincipalStaffOverview() {
                 <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>Detailed competencies derived from student feedback, attendance, and administrative audits.</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {[
-                    { label: 'Teaching Quality', score: selectedStaff.performance, color: '#8b5cf6' },
+                    { label: 'Teaching Quality', score: selectedStaff.performance, color: '#6366F1' },
                     { label: 'Punctuality & Attendance', score: selectedStaff.attendance, color: '#10b981' },
                     { label: 'Research & Publications', score: Math.min(100, selectedStaff.publications * 8), color: '#6366f1' },
                     { label: 'Syllabus Coverage', score: 98, color: '#0ea5e9' },

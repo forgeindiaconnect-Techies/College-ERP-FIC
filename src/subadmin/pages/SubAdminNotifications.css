@@ -21,7 +21,7 @@
 .notif-summary-card.yellow { border-left-color: #f59e0b; }
 .notif-summary-card.red { border-left-color: #ef4444; }
 .notif-summary-card.green { border-left-color: #10b981; }
-.notif-summary-card.purple { border-left-color: #8b5cf6; }
+.notif-summary-card.purple { border-left-color: #6366F1; }
 
 .notif-label {
   font-size: 0.85rem;
@@ -65,7 +65,7 @@
 }
 .delivery-icon.active-email { background: rgba(59, 130, 246, 0.1); color: #3b82f6; border-color: rgba(59, 130, 246, 0.3); }
 .delivery-icon.active-sms { background: rgba(16, 185, 129, 0.1); color: #10b981; border-color: rgba(16, 185, 129, 0.3); }
-.delivery-icon.active-app { background: rgba(139, 92, 246, 0.1); color: #8b5cf6; border-color: rgba(139, 92, 246, 0.3); }
+.delivery-icon.active-app { background: rgba(99, 102, 241, 0.1); color: #6366F1; border-color: rgba(99, 102, 241, 0.3); }
 
 .status-dot {
   width: 8px;

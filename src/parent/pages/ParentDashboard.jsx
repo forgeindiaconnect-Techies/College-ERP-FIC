@@ -311,8 +311,8 @@ const ParentDashboard = () => {
         {/* Dynamic Exams Timetable Card */}
         <div className="glass-card p-announcements-card" style={{ marginTop: 0 }}>
           <div className="p-announcements-header">
-            <h3><Calendar size={18} style={{ color: '#8b5cf6' }} /> Child's Examination Timetable</h3>
-            <span className="p-notif-pill" style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6' }}>
+            <h3><Calendar size={18} style={{ color: '#6366F1' }} /> Child's Examination Timetable</h3>
+            <span className="p-notif-pill" style={{ background: 'rgba(99, 102, 241,0.1)', color: '#6366F1' }}>
               {childExams.length} ACTIVE
             </span>
           </div>
@@ -321,8 +321,8 @@ const ParentDashboard = () => {
               <p className="text-muted text-center" style={{ padding: '2rem' }}>No examinations scheduled currently.</p>
             ) : (
               childExams.map((ex, i) => (
-                <div key={ex._id || ex.id || i} className="p-announcement-item" style={{ borderLeft: '3px solid #8b5cf6', paddingLeft: '0.75rem' }}>
-                  <span className="p-ann-date" style={{ color: '#8b5cf6', fontWeight: 700 }}>{ex.name} ({ex.sem || 'Sem 3'})</span>
+                <div key={ex._id || ex.id || i} className="p-announcement-item" style={{ borderLeft: '3px solid #6366F1', paddingLeft: '0.75rem' }}>
+                  <span className="p-ann-date" style={{ color: '#6366F1', fontWeight: 700 }}>{ex.name} ({ex.sem || 'Sem 3'})</span>
                   <h4 className="p-ann-title" style={{ fontSize: '0.9rem', marginTop: '2px' }}>{ex.subject}</h4>
                   <p className="p-ann-desc" style={{ fontSize: '0.78rem', marginTop: '4px', color: 'var(--text-muted)' }}>
                     📅 Date: <strong>{ex.date}</strong> · ⏱ Time: <strong>{ex.time}</strong> <br />

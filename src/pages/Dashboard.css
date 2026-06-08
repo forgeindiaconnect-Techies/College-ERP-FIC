@@ -21,38 +21,35 @@
 
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 1.25rem;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 1024px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 640px) {
   .stats-grid { grid-template-columns: 1fr; }
 }
 
 .stat-card {
-  padding: 1rem; display: flex; flex-direction: row; align-items: center; gap: 1rem;
-  background: var(--bg-card); backdrop-filter: blur(8px);
-  border: 1px solid var(--border-color); border-radius: 14px;
-  transition: all 0.3s ease; overflow: hidden;
+  display: flex; flex-direction: row; align-items: center; gap: 1rem;
+  overflow: hidden;
 }
-.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); border-color: var(--primary); }
 
 .stat-icon-wrapper {
   width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
+.stat-icon-wrapper svg { color: inherit !important; }
 
-.bg-gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%); }
-.bg-gradient-purple { background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%); }
-.bg-gradient-orange { background: linear-gradient(135deg, #f97316 0%, #ea580c 100%); }
-.bg-gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
-.bg-gradient-pink { background: linear-gradient(135deg, #ec4899 0%, #be185d 100%); }
-.bg-gradient-teal { background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%); }
-.text-white { color: white !important; }
+.bg-gradient-blue { background: rgba(37, 99, 235, 0.1) !important; color: #2563EB !important; }
+.bg-gradient-purple { background: rgba(124, 58, 237, 0.1) !important; color: #7C3AED !important; }
+.bg-gradient-orange { background: rgba(249, 115, 22, 0.1) !important; color: #F97316 !important; }
+.bg-gradient-green { background: rgba(16, 185, 129, 0.1) !important; color: #10B981 !important; }
+.bg-gradient-pink { background: rgba(236, 72, 153, 0.1) !important; color: #EC4899 !important; }
+.bg-gradient-teal { background: rgba(20, 184, 166, 0.1) !important; color: #14B8A6 !important; }
 
 .stat-details { display: flex; flex-direction: column; flex: 1; }
 .stat-details h3 { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin: 0 0 0.15rem 0; line-height: 1.2; }
@@ -163,7 +160,7 @@
 .modal-card {
   width: 100%;
   border-radius: 16px;
-  padding: 2rem;
+  padding: 1.25rem 1.5rem;
   position: relative;
   max-height: 90vh;
   overflow-y: auto;

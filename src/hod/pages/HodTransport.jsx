@@ -168,7 +168,7 @@ const HodTransport = () => {
                 <XAxis dataKey="name" tick={{fontSize: 12}} />
                 <YAxis allowDecimals={false} />
                 <Tooltip cursor={{fill: 'rgba(79, 70, 229, 0.1)'}} contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)'}} />
-                <Bar dataKey="students" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={40} />
+                <Bar dataKey="students" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={40} />
               </BarChart>
             </ResponsiveContainer>
           ) : (

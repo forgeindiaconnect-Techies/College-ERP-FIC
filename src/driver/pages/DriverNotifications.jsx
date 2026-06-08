@@ -104,7 +104,7 @@ const DriverNotifications = () => {
                   fontWeight: 'bold',
                   cursor: 'pointer',
                   border: filterType === type ? 'none' : '1px solid #d1d5db',
-                  backgroundColor: filterType === type ? '#4f46e5' : 'white',
+                  backgroundColor: filterType === type ? 'var(--primary)' : 'white',
                   color: filterType === type ? 'white' : '#4b5563',
                   transition: 'all 0.2s',
                   boxShadow: filterType === type ? '0 4px 6px -1px rgba(79, 70, 229, 0.3)' : 'none'
@@ -132,7 +132,7 @@ const DriverNotifications = () => {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {loading ? (
           <div style={{ padding: '4rem 0', textAlign: 'center', color: '#6b7280' }}>
-            <div style={{ width: '2.5rem', height: '2.5rem', border: '3px solid #e5e7eb', borderTopColor: '#4f46e5', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem auto' }}></div>
+            <div style={{ width: '2.5rem', height: '2.5rem', border: '3px solid #e5e7eb', borderTopColor: 'var(--primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1rem auto' }}></div>
             <p style={{ fontWeight: 500 }}>Fetching notifications...</p>
           </div>
         ) : filteredNotifications.length === 0 ? (

@@ -274,7 +274,7 @@ export default function PrincipalCommunicationCenter() {
     switch (status) {
       case 'Sent': return { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981' };
       case 'Delivering': return { bg: 'rgba(6, 182, 212, 0.1)', color: '#06b6d4', class: 'animate-pulse' };
-      case 'Scheduled': return { bg: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6' };
+      case 'Scheduled': return { bg: 'rgba(99, 102, 241, 0.1)', color: '#6366F1' };
       case 'Draft': return { bg: 'rgba(107, 114, 128, 0.1)', color: '#6b7280' };
       default: return { bg: 'rgba(16, 185, 129, 0.1)', color: '#10b981' };
     }
@@ -311,7 +311,7 @@ export default function PrincipalCommunicationCenter() {
       <div className="flex justify-between items-center mb-6 flex-wrap gap-4 animate-fade-in">
         <div>
           <h1 className="text-2xl font-bold" style={{ color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <Megaphone className="text-[#4f46e5]" size={28} /> Communication & Announcements Center
+            <Megaphone className="text-[var(--primary)]" size={28} /> Communication & Announcements Center
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginTop: '0.2rem' }}>
             Broadcasting circulars, critical SMS alerts, event schedules, and syllabus revisions across institutional divisions.
@@ -336,7 +336,7 @@ export default function PrincipalCommunicationCenter() {
           className="glass-card flex justify-center items-center gap-2 p-4 cursor-pointer hover-scale"
           style={{ borderLeft: '4px solid var(--primary)', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderLeft: '4px solid var(--primary)', borderRadius: '12px', transition: 'all 0.3s ease' }}
         >
-          <Megaphone className="text-[#4f46e5]" size={20} />
+          <Megaphone className="text-[var(--primary)]" size={20} />
           <div style={{ textAlign: 'left' }}>
             <strong style={{ display: 'block', fontSize: '0.88rem', color: 'var(--text-main)' }}>Create Announcement</strong>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Rich text notice feeds</span>
@@ -346,9 +346,9 @@ export default function PrincipalCommunicationCenter() {
         <button 
           onClick={() => setIsScheduleOpen(true)}
           className="glass-card flex justify-center items-center gap-2 p-4 cursor-pointer hover-scale"
-          style={{ borderLeft: '4px solid #8b5cf6', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderLeft: '4px solid #8b5cf6', borderRadius: '12px', transition: 'all 0.3s ease' }}
+          style={{ borderLeft: '4px solid #6366F1', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderLeft: '4px solid #6366F1', borderRadius: '12px', transition: 'all 0.3s ease' }}
         >
-          <Clock className="text-[#8b5cf6]" size={20} />
+          <Clock className="text-[#6366F1]" size={20} />
           <div style={{ textAlign: 'left' }}>
             <strong style={{ display: 'block', fontSize: '0.88rem', color: 'var(--text-main)' }}>Schedule Notification</strong>
             <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>Set future calendar dates</span>
@@ -385,7 +385,7 @@ export default function PrincipalCommunicationCenter() {
       <div className="stats-grid mb-6 animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4f46e5, #3b82f6)' }}><Megaphone size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, var(--primary), #3b82f6)' }}><Megaphone size={18} /></div>
           <div className="stat-details">
             <h3>Total Announcements</h3>
             <p className="stat-value">{totalAnnouncements}</p>
@@ -421,11 +421,11 @@ export default function PrincipalCommunicationCenter() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)' }}><Clock size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><Clock size={18} /></div>
           <div className="stat-details">
             <h3>Unread / Scheduled</h3>
             <p className="stat-value">{unreadCount}</p>
-            <span style={{ fontSize: '0.72rem', color: '#8b5cf6', fontWeight: 600 }}>Active delivering pipeline</span>
+            <span style={{ fontSize: '0.72rem', color: '#6366F1', fontWeight: 600 }}>Active delivering pipeline</span>
           </div>
         </div>
 
@@ -528,7 +528,7 @@ export default function PrincipalCommunicationCenter() {
                             {log.category === 'Emergency Alerts' ? <AlertTriangle size={15} style={{ color: '#ef4444' }} /> :
                              log.category === 'Circulars' ? <FileText size={15} style={{ color: '#10b981' }} /> :
                              log.category === 'Meeting Notifications' ? <Users size={15} style={{ color: '#3b82f6' }} /> :
-                             <Megaphone size={15} style={{ color: '#4f46e5' }} />}
+                             <Megaphone size={15} style={{ color: 'var(--primary)' }} />}
                             <div>
                               <strong style={{ color: 'var(--text-main)', fontSize: '0.88rem' }}>{log.title}</strong>
                               {log.attachment && (
@@ -609,13 +609,13 @@ export default function PrincipalCommunicationCenter() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
                 {logs.filter(l => l.status === 'Scheduled').map(s => (
-                  <div key={s.id} style={{ background: 'var(--bg-secondary)', padding: '0.65rem', borderRadius: '8px', borderLeft: '3px solid #8b5cf6' }}>
+                  <div key={s.id} style={{ background: 'var(--bg-secondary)', padding: '0.65rem', borderRadius: '8px', borderLeft: '3px solid #6366F1' }}>
                     <h4 style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--text-main)', margin: '0 0 0.2rem 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {s.title.replace('[Scheduled] ', '')}
                     </h4>
                     <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.68rem', color: 'var(--text-muted)' }}>
                       <span>Audience: <strong>{s.audience}</strong></span>
-                      <span style={{ color: '#8b5cf6', fontWeight: 600 }}>On: {s.date}</span>
+                      <span style={{ color: '#6366F1', fontWeight: 600 }}>On: {s.date}</span>
                     </div>
                   </div>
                 ))}
@@ -780,7 +780,7 @@ export default function PrincipalCommunicationCenter() {
                         const next = e.target.checked ? [...announcementForm.channels, 'Push'] : announcementForm.channels.filter(c => c !== 'Push');
                         setAnnouncementForm({ ...announcementForm, channels: next });
                       }}
-                    /> <Bell size={13} style={{ color: '#8b5cf6' }} /> Push Notice
+                    /> <Bell size={13} style={{ color: '#6366F1' }} /> Push Notice
                   </label>
                 </div>
               </div>
@@ -810,7 +810,7 @@ export default function PrincipalCommunicationCenter() {
 
               <div className="modal-actions" style={{ marginTop: '1.25rem' }}>
                 <button type="button" className="btn-ghost" onClick={() => setIsCreateOpen(false)}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ background: 'linear-gradient(135deg, #4f46e5, #3b82f6)' }}>
+                <button type="submit" className="btn-primary" style={{ background: 'linear-gradient(135deg, var(--primary), #3b82f6)' }}>
                   {editTarget ? 'Publish Updates' : 'Broadcast Announcement'}
                 </button>
               </div>
@@ -898,7 +898,7 @@ export default function PrincipalCommunicationCenter() {
 
               <div className="modal-actions" style={{ marginTop: '1.5rem' }}>
                 <button type="button" className="btn-ghost" onClick={() => setIsScheduleOpen(false)}>Cancel</button>
-                <button type="submit" className="btn-primary" style={{ background: '#8b5cf6' }}>Save & Schedule Notice</button>
+                <button type="submit" className="btn-primary" style={{ background: '#6366F1' }}>Save & Schedule Notice</button>
               </div>
 
             </form>
@@ -1131,11 +1131,11 @@ export default function PrincipalCommunicationCenter() {
                   {activeLog.channels.includes('Push') && (
                     <div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.78rem', color: 'var(--text-main)', marginBottom: '0.2rem' }}>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Bell size={13} className="text-[#8b5cf6]" /> Web Push Notification Dispatch</span>
+                        <span style={{ display: 'flex', alignItems: 'center', gap: '3px' }}><Bell size={13} className="text-[#6366F1]" /> Web Push Notification Dispatch</span>
                         <strong>{activeLog.delivery.push}%</strong>
                       </div>
                       <div style={{ width: '100%', height: '8px', background: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${activeLog.delivery.push}%`, height: '100%', background: 'linear-gradient(90deg, #8b5cf6, #a78bfa)', borderRadius: '4px' }}></div>
+                        <div style={{ width: `${activeLog.delivery.push}%`, height: '100%', background: 'linear-gradient(90deg, #6366F1, #a78bfa)', borderRadius: '4px' }}></div>
                       </div>
                     </div>
                   )}

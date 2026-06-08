@@ -19,7 +19,7 @@ const DEPARTMENTS = [
 
 const FEATURES = [
   { icon: <Users size={28} />,      title: 'Student Management',      desc: 'Complete student lifecycle from admission to alumni.', color: '#3b82f6' },
-  { icon: <BarChart2 size={28} />,  title: 'Smart Analytics',         desc: 'AI-powered institutional performance insights.', color: '#8b5cf6' },
+  { icon: <BarChart2 size={28} />,  title: 'Smart Analytics',         desc: 'AI-powered institutional performance insights.', color: '#6366F1' },
   { icon: <Bus size={28} />,        title: 'Live Bus Tracking',        desc: 'Real-time GPS tracking of all college buses.', color: '#f59e0b' },
   { icon: <Building size={28} />,   title: 'Hostel Management',        desc: 'Room allocation, mess, complaints in one place.', color: '#10b981' },
   { icon: <BookOpen size={28} />,   title: 'Library System',           desc: 'Digital catalog, issue tracking, fine management.', color: '#ec4899' },
@@ -36,8 +36,8 @@ const STATS = [
 ];
 
 const LOGIN_PORTALS = [
-  { role: 'Admin',      path: '/login', icon: '🔑', color: '#4f46e5', desc: 'Full system access' },
-  { role: 'HOD',        path: '/login', icon: '👨‍🏫', color: '#7c3aed', desc: 'Department control' },
+  { role: 'Admin',      path: '/login', icon: '🔑', color: 'var(--primary)', desc: 'Full system access' },
+  { role: 'HOD',        path: '/login', icon: '👨‍🏫', color: '#4F46E5', desc: 'Department control' },
   { role: 'Staff',      path: '/login', icon: '📚', color: '#2563eb', desc: 'Class management' },
   { role: 'Student',    path: '/login', icon: '🎓', color: '#059669', desc: 'Academic portal' },
   { role: 'Parent',     path: '/login', icon: '👨‍👩‍👧', color: '#d97706', desc: 'Track ward progress' },
@@ -213,7 +213,7 @@ const LandingPage = () => {
               <span className="preview-title">ERP Dashboard</span>
             </div>
             <div className="preview-kpis">
-              {[{l:'Students',v:'3,240',c:'#3b82f6'},{l:'Staff',v:'180',c:'#8b5cf6'},{l:'Attendance',v:'94%',c:'#10b981'},{l:'Revenue',v:'₹4.2Cr',c:'#f59e0b'}].map(k => (
+              {[{l:'Students',v:'3,240',c:'#3b82f6'},{l:'Staff',v:'180',c:'#6366F1'},{l:'Attendance',v:'94%',c:'#10b981'},{l:'Revenue',v:'₹4.2Cr',c:'#f59e0b'}].map(k => (
                 <div key={k.l} className="preview-kpi" style={{borderTopColor:k.c}}>
                   <span className="preview-kpi-val" style={{color:k.c}}>{k.v}</span>
                   <span className="preview-kpi-lbl">{k.l}</span>

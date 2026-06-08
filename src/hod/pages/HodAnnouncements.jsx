@@ -62,7 +62,7 @@ const HodAnnouncements = () => {
 
   const handleDelete = (id) => { if(window.confirm('Delete this notice?')) saveAll(notices.filter(a=>a.id!==id)); };
 
-  const TARGET_COLORS = { Students:'#3b82f6', Staff:'#8b5cf6', All:'#10b981' };
+  const TARGET_COLORS = { Students:'#3b82f6', Staff:'#6366F1', All:'#10b981' };
 
   // Normalize: admin uses 'targetAudience', hod uses 'target'
   const getTarget = (a) => a.target || a.targetAudience || 'All';

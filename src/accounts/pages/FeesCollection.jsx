@@ -767,10 +767,10 @@ const FeesCollection = () => {
                       <div style={{ display:'flex', borderRadius:'6px', overflow:'hidden', border:'1px solid var(--border-color)' }}>
                         <div 
                           onClick={() => setRegForm({...regForm, status: 'ACTIVE'})}
-                          style={{ flex:1, padding:'12px', textAlign:'center', background: regForm.status === 'ACTIVE' ? 'rgba(79,70,229,0.1)' : 'transparent', color: regForm.status === 'ACTIVE' ? '#4f46e5' : 'var(--text-muted)', fontWeight: regForm.status === 'ACTIVE' ? 700 : 600, borderRight:'1px solid var(--border-color)', cursor:'pointer', fontSize:'0.9rem' }}>ACTIVE</div>
+                          style={{ flex:1, padding:'12px', textAlign:'center', background: regForm.status === 'ACTIVE' ? 'rgba(79,70,229,0.1)' : 'transparent', color: regForm.status === 'ACTIVE' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: regForm.status === 'ACTIVE' ? 700 : 600, borderRight:'1px solid var(--border-color)', cursor:'pointer', fontSize:'0.9rem' }}>ACTIVE</div>
                         <div 
                           onClick={() => setRegForm({...regForm, status: 'INACTIVE'})}
-                          style={{ flex:1, padding:'12px', textAlign:'center', background: regForm.status === 'INACTIVE' ? 'rgba(79,70,229,0.1)' : 'transparent', color: regForm.status === 'INACTIVE' ? '#4f46e5' : 'var(--text-muted)', fontWeight: regForm.status === 'INACTIVE' ? 700 : 600, cursor:'pointer', fontSize:'0.9rem' }}>INACTIVE</div>
+                          style={{ flex:1, padding:'12px', textAlign:'center', background: regForm.status === 'INACTIVE' ? 'rgba(79,70,229,0.1)' : 'transparent', color: regForm.status === 'INACTIVE' ? 'var(--primary)' : 'var(--text-muted)', fontWeight: regForm.status === 'INACTIVE' ? 700 : 600, cursor:'pointer', fontSize:'0.9rem' }}>INACTIVE</div>
                       </div>
                     </div>
                   </div>
@@ -908,7 +908,7 @@ const FeesCollection = () => {
                     Cancel
                   </button>
                   <button type="submit"
-                    style={{ padding:'12px 32px', borderRadius:'8px', border:'none', background:'#4f46e5', color:'white', fontWeight:700, cursor:'pointer', fontSize:'0.95rem', boxShadow:'0 4px 12px rgba(79,70,229,0.3)' }}>
+                    style={{ padding:'12px 32px', borderRadius:'8px', border:'none', background:'var(--primary)', color:'white', fontWeight:700, cursor:'pointer', fontSize:'0.95rem', boxShadow:'0 4px 12px rgba(79,70,229,0.3)' }}>
                     Save
                   </button>
                 </div>

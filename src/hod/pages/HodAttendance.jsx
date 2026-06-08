@@ -200,7 +200,7 @@ const HodAttendance = () => {
                 <XAxis dataKey="day" stroke="var(--text-muted)" />
                 <YAxis stroke="var(--text-muted)" domain={[0, 100]} />
                 <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', background: 'var(--bg-secondary)', color: 'var(--text-main)', boxShadow: 'var(--shadow-md)' }} />
-                <Bar dataKey="present" name="Present %" radius={[4, 4, 0, 0]} fill="#4f46e5">
+                <Bar dataKey="present" name="Present %" radius={[4, 4, 0, 0]} fill="var(--primary)">
                   {WEEKLY_DATA.map((entry, index) => (
                     <Cell key={index} fill={entry.present >= 90 ? '#10b981' : entry.present >= 80 ? '#f59e0b' : '#ef4444'} />
                   ))}

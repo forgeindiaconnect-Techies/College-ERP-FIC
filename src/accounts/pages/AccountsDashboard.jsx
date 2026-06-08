@@ -121,7 +121,7 @@ const AccountsDashboard = () => {
   }
 
   // Department-wise collected (pie)
-  const DEPT_COLORS = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ef4444','#06b6d4'];
+  const DEPT_COLORS = ['#3b82f6','#10b981','#f59e0b','#6366F1','#ef4444','#06b6d4'];
   const deptCollectedMap = {};
   fees.filter(f => f.status === 'Paid').forEach(f => {
     const d = (f.department || 'Other').split(' ')[0];
@@ -143,7 +143,7 @@ const AccountsDashboard = () => {
     const cat = e.category || 'Other';
     expenseDeptMap[cat] = (expenseDeptMap[cat] || 0) + (e.amount || 0);
   });
-  const EXP_COLORS = ['#ef4444','#f97316','#eab308','#8b5cf6','#06b6d4'];
+  const EXP_COLORS = ['#ef4444','#f97316','#eab308','#6366F1','#06b6d4'];
   const expenseData = Object.entries(expenseDeptMap).map(([name, value], i) => ({
     name, value, color: EXP_COLORS[i % EXP_COLORS.length]
   })).filter(x => x.value > 0);

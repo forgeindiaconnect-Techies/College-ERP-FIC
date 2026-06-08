@@ -23,7 +23,7 @@ const SubAdminDashboard = () => {
   const moduleCards = [
     { module: 'view_departments', title: 'Departments', icon: <Building2 size={24} />, path: '/subadmin/departments', color: '#f59e0b' },
     { module: 'manage_students', title: 'Students', icon: <Users size={24} />, path: '/subadmin/students', color: '#3b82f6' },
-    { module: 'manage_staff', title: 'Staff', icon: <GraduationCap size={24} />, path: '/subadmin/staff', color: '#8b5cf6' },
+    { module: 'manage_staff', title: 'Staff', icon: <GraduationCap size={24} />, path: '/subadmin/staff', color: '#6366F1' },
     { module: 'view_attendance', title: 'Attendance', icon: <CalendarCheck size={24} />, path: '/subadmin/attendance', color: '#10b981' },
     { module: 'view_reports', title: 'Reports', icon: <FileBarChart size={24} />, path: '/subadmin/reports', color: '#ec4899' },
     { module: 'create_announcements', title: 'Announcements', icon: <Megaphone size={24} />, path: '/subadmin/announcements', color: '#ef4444' }

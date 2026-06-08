@@ -170,7 +170,7 @@ const StudentPlacements = () => {
            <h3 style={{ margin: '0 0 1rem', color: 'var(--text-main)' }}>Placement Analytics</h3>
            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
              <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>
-               <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#8b5cf6' }}>{isEligible ? eligibleDrives.length : '0'}</div>
+               <div style={{ fontSize: '1.5rem', fontWeight: 800, color: '#6366F1' }}>{isEligible ? eligibleDrives.length : '0'}</div>
                <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500 }}>Eligible Drives</div>
              </div>
              <div style={{ background: 'var(--bg-secondary)', padding: '1rem', borderRadius: '8px', textAlign: 'center' }}>

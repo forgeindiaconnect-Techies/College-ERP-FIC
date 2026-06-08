@@ -1,99 +1,139 @@
+/* =============================================
+   Staff Sidebar — Matches Admin Sidebar Style
+   ============================================= */
 .staff-sidebar {
-  width: 260px;
-  background: linear-gradient(180deg, #090d16 0%, #1e1b4b 100%);
-  color: white;
+  width: 280px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
   height: 100vh;
   position: fixed;
-  left: 0; top: 0;
+  left: 0;
+  top: 0;
   z-index: 100;
-  border-right: 1px solid rgba(79, 70, 229, 0.15);
+  transition: var(--transition);
+  border-right: 1px solid var(--border-color);
 }
 
-/* Header */
 .staff-sidebar-header {
-  padding: 1rem 1.25rem;
+  height: 70px;
+  padding: 0 1.2rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .staff-logo {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, #3b82f6, #4f46e5);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 12px rgba(59,130,246,0.4);
-}
-.staff-logo-text { font-weight: 800; font-size: 0.8rem; color: white; letter-spacing: 0.05em; }
-.staff-brand { font-size: 1rem; font-weight: 700; color: white; margin: 0; }
-.staff-dept-label { font-size: 0.7rem; color: #818cf8; margin: 1px 0 0; font-weight: 500; }
-
-/* Dept Card */
-.staff-dept-card {
-  margin: 0.75rem;
-  padding: 0.75rem 0.85rem;
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  width: 40px;
+  height: 40px;
+  background: var(--primary-gradient);
   border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: white;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
 }
-.staff-dept-card:hover { background: rgba(59, 130, 246, 0.2); }
-.staff-dept-code {
-  width: 32px; height: 32px;
-  background: linear-gradient(135deg, #3b82f6, #4f46e5);
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 0.72rem; color: white; letter-spacing: 0.04em;
-  flex-shrink: 0;
-}
-.staff-dept-name { font-size: 0.8rem; font-weight: 600; color: white; }
-.staff-dept-sub { font-size: 0.68rem; color: #818cf8; }
-.staff-chevron { color: #818cf8; margin-left: auto; }
 
-/* Nav */
-.staff-nav { flex: 1; overflow-y: auto; padding: 0.25rem 0.75rem; }
-.staff-nav::-webkit-scrollbar { width: 4px; }
-.staff-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-.staff-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; padding: 0; }
+.staff-logo-text {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: white;
+  letter-spacing: 0.05em;
+}
+
+.staff-brand {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.staff-dept-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.staff-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.staff-nav::-webkit-scrollbar {
+  width: 5px;
+}
+.staff-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+}
+
+.staff-nav ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0;
+}
+
 .staff-nav-link {
-  display: flex; align-items: center; gap: 0.75rem;
-  padding: 0.6rem 0.8rem; border-radius: 8px;
-  color: #94a3b8; transition: all 0.25s ease;
-  font-weight: 500; font-size: 0.88rem;
-  background: transparent; border: none; width: 100%; cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  color: var(--sidebar-text);
+  transition: var(--transition);
+  font-weight: 500;
+  font-size: 0.9rem;
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
   text-decoration: none;
 }
-.staff-nav-link:hover { background: rgba(255,255,255,0.06); color: white; transform: translateX(3px); }
+
+.dark .staff-nav-link {
+  color: #9ca3af;
+}
+
+.staff-nav-link:hover {
+  background-color: var(--sidebar-hover);
+  color: #ffffff;
+}
+
+.dark .staff-nav-link:hover {
+  color: white;
+}
+
 .staff-nav-link.active {
-  background: rgba(59, 130, 246, 0.2);
-  color: #93c5fd;
-  border-left: 3px solid #3b82f6;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  border-left: none;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+  border-radius: 12px;
 }
 
-/* Footer */
-.staff-sidebar-footer { padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 0.6rem; }
-.logout-btn { }
-.logout-icon { color: #f87171; }
-.logout-btn span { color: #f87171; }
-.logout-btn:hover { background: rgba(248,113,113,0.1) !important; }
-.w-full { width: 100%; text-align: left; }
+.dark .staff-nav-link.active {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+  border-radius: 12px;
+}
 
-.staff-profile-card {
-  display: flex; align-items: center; gap: 0.6rem;
-  padding: 0.65rem; background: rgba(255,255,255,0.04);
-  border-radius: 10px; border: 1px solid rgba(255,255,255,0.06);
+.staff-nav-link.active svg {
+  color: white;
 }
-.staff-avatar {
-  width: 32px; height: 32px; border-radius: 50%;
-  background: linear-gradient(135deg, #3b82f6, #4f46e5);
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 700; font-size: 0.85rem; color: white;
+
+.staff-sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
-.staff-profile-name { font-size: 0.8rem; font-weight: 600; color: white; margin: 0; }
-.staff-profile-role { font-size: 0.68rem; color: #818cf8; margin: 0; }
+
+.w-full { width: 100%; }
+.text-left { text-align: left; }

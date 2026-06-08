@@ -281,7 +281,7 @@ const FeesManagement = () => {
                   <BarChart data={MONTHLY_COLLECTION} barSize={40}>
                     <defs>
                       <linearGradient id="feesBarGrad" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#4f46e5"/><stop offset="100%" stopColor="#7c3aed"/>
+                        <stop offset="0%" stopColor="var(--primary)"/><stop offset="100%" stopColor="#4F46E5"/>
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)"/>
@@ -525,12 +525,12 @@ const FeesManagement = () => {
                 No scholarships granted yet. Go to <strong>Accounts → Scholarships</strong> to grant one.
               </div>
             ) : scholarships.map((sch, i) => (
-              <div key={sch.id || i} className="glass-card p-6 flex justify-between items-center border-l-4 border-[#8b5cf6]">
+              <div key={sch.id || i} className="glass-card p-6 flex justify-between items-center border-l-4 border-[#6366F1]">
                 <div>
                   <h3 className="font-bold text-lg mb-1">{sch.studentName || sch.name}</h3>
                   <p className="text-sm text-muted">{sch.studentId || sch.regNo}</p>
                   <div className="flex items-center gap-2 mt-3">
-                    <span className="badge" style={{background: 'rgba(139, 92, 246, 0.1)', color: '#8b5cf6'}}>{sch.type}</span>
+                    <span className="badge" style={{background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1'}}>{sch.type}</span>
                     <span className="badge" style={{background: 'rgba(16, 185, 129, 0.1)', color: '#10b981'}}>{sch.status}</span>
                   </div>
                 </div>

@@ -121,7 +121,7 @@ export default function PrincipalHodManagement() {
           { label: 'Total HODs', value: hodList.length, icon: <Users size={18} />, color: '#6366f1', sub: 'Active departments' },
           { label: 'Active HODs', value: hodList.filter(h => h.status === 'Active').length, icon: <CheckCircle size={18} />, color: '#10b981', sub: 'Currently present' },
           { label: 'Avg Attendance', value: hodList.length ? `${(hodList.reduce((a,b) => a + b.attendance, 0) / hodList.length).toFixed(1)}%` : '0%', icon: <TrendingUp size={18} />, color: '#f59e0b', sub: 'This semester' },
-          { label: 'Avg Pass Rate', value: hodList.length ? `${(hodList.reduce((a,b) => a + b.passRate, 0) / hodList.length).toFixed(1)}%` : '0%', icon: <Star size={18} />, color: '#8b5cf6', sub: 'All departments' },
+          { label: 'Avg Pass Rate', value: hodList.length ? `${(hodList.reduce((a,b) => a + b.passRate, 0) / hodList.length).toFixed(1)}%` : '0%', icon: <Star size={18} />, color: '#6366F1', sub: 'All departments' },
           { label: 'Pending Reviews', value: 0, icon: <AlertCircle size={18} />, color: '#ef4444', sub: 'Action needed' },
         ].map((s, i) => (
           <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>
@@ -194,7 +194,7 @@ export default function PrincipalHodManagement() {
             <div className="glass-card animate-fade-in" style={{ padding: '1.5rem', borderRadius: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                 <div>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '1.2rem', marginBottom: 8 }}>{selected.name.charAt(0)}</div>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '1.2rem', marginBottom: 8 }}>{selected.name.charAt(0)}</div>
                   <h3 style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1rem' }}>{selected.name}</h3>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{selected.dept}</p>
                 </div>
@@ -312,7 +312,7 @@ export default function PrincipalHodManagement() {
               <button onClick={() => setModal(null)} style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}><X size={20} /></button>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, marginBottom: '1.2rem' }}>
-              {[['Pass Rate', `${selected.passRate}%`, '#10b981'], ['Attendance', `${selected.attendance}%`, '#6366f1'], ['Rating', `${selected.rating}/5`, '#f59e0b'], ['Faculty', selected.faculty, '#8b5cf6'], ['Students', selected.students, '#3b82f6'], ['Publications', selected.publications, '#ef4444']].map(([k, v, c]) => (
+              {[['Pass Rate', `${selected.passRate}%`, '#10b981'], ['Attendance', `${selected.attendance}%`, '#6366f1'], ['Rating', `${selected.rating}/5`, '#f59e0b'], ['Faculty', selected.faculty, '#6366F1'], ['Students', selected.students, '#3b82f6'], ['Publications', selected.publications, '#ef4444']].map(([k, v, c]) => (
                 <div key={k} style={{ background: 'var(--bg-primary)', padding: '12px', borderRadius: 10, borderTop: `3px solid ${c}`, textAlign: 'center' }}>
                   <div style={{ fontSize: '1.2rem', fontWeight: 800, color: c }}>{v}</div>
                   <div style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: 2 }}>{k}</div>

@@ -83,7 +83,7 @@ export default function PrincipalDashboard() {
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: 'calc(100vh - 70px)', background: 'var(--bg-primary)' }}>
         <div style={{ textAlign: 'center', color: 'var(--text-muted)' }}>
-          <Sparkles size={40} className="animate-spin" style={{ color: '#8b5cf6', marginBottom: 12, opacity: 0.8 }} />
+          <Sparkles size={40} className="animate-spin" style={{ color: '#6366F1', marginBottom: 12, opacity: 0.8 }} />
           <p style={{ fontWeight: 600, fontSize: '0.9rem' }}>Loading Institutional Roster...</p>
         </div>
       </div>
@@ -97,58 +97,90 @@ export default function PrincipalDashboard() {
 
   return (
     <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', background: 'var(--bg-primary)', minHeight: '100vh' }}>
-      {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: 12 }}>
-        <div>
-          <h1 style={{ color: 'var(--text-main)', fontSize: '1.8rem', fontWeight: 800, margin: 0 }}>Institution Roster</h1>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem', margin: '6px 0 0 0' }}>Welcome back, {userName}. Monitor all registered HODs, Staff, and Students across departments.</p>
+      {/* Welcome Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, var(--primary), #a855f7)',
+        borderRadius: '20px',
+        padding: '2rem 2.5rem',
+        marginBottom: '2.5rem',
+        color: '#fff',
+        boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.3)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: '1.5rem',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Background decorative blob */}
+        <div style={{ position: 'absolute', top: '-50%', right: '-5%', width: '300px', height: '300px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(40px)' }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            Institution Roster
+          </h1>
+          <p style={{ margin: 0, opacity: 0.9, fontSize: '0.95rem', fontWeight: 500 }}>
+            Welcome back, {userName}. Monitor all registered HODs, Staff, and Students across departments.
+          </p>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 14px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 20, fontSize: '0.8rem', fontWeight: 700, color: '#10b981' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block', animation: 'pulse 2s infinite' }} />
+
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 20, fontSize: '0.85rem', fontWeight: 700, color: '#fff', backdropFilter: 'blur(10px)' }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981', animation: 'pulse 2s infinite' }} />
             Live DB Sync
           </div>
         </div>
       </div>
 
       {/* Global Stats Grid */}
-      <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(200px,1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
-        {[
-          { label: 'Total HODs', value: metrics.hods, icon: <UserCheck size={22} />, color: '#f59e0b', sub: 'Department Heads' },
-          { label: 'Total Staff', value: metrics.staff, icon: <Briefcase size={22} />, color: '#6366f1', sub: 'Active Faculty' },
-          { label: 'Total Students', value: metrics.students, icon: <Users size={22} />, color: '#10b981', sub: 'Registered Scholars' },
-          { label: 'Departments', value: metrics.depts, icon: <Building2 size={22} />, color: '#8b5cf6', sub: 'Academic Divisions' },
-        ].map((s, i) => (
-          <div key={i} className="stat-card" style={{ borderBottom: `4px solid ${s.color}`, padding: '1.5rem', background: 'var(--bg-secondary)', borderRadius: '16px', border: '1px solid var(--border-color)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-              <div className="stat-details">
-                <h3 style={{ color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 8px 0' }}>{s.label}</h3>
-                <p style={{ color: 'var(--text-main)', fontSize: '2.5rem', fontWeight: 900, margin: 0, lineHeight: 1 }}>{s.value}</p>
-                <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', display: 'block', marginTop: '8px', fontWeight: 500 }}>{s.sub}</span>
-              </div>
-              <div style={{ background: `${s.color}20`, color: s.color, padding: '12px', borderRadius: '12px' }}>
-                {s.icon}
-              </div>
-            </div>
+      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(4, 1fr)', marginBottom: '2rem' }}>
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-icon-purple">
+            <UserCheck size={24} />
           </div>
-        ))}
+          <div className="stat-details">
+            <h3>Total HODs</h3>
+            <p className="stat-value">{metrics.hods}</p>
+            <p className="stat-change text-muted">Department Heads</p>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-icon-violet">
+            <Briefcase size={24} />
+          </div>
+          <div className="stat-details">
+            <h3>Total Staff</h3>
+            <p className="stat-value">{metrics.staff}</p>
+            <p className="stat-change text-muted">Active Faculty</p>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-icon-blue">
+            <Users size={24} />
+          </div>
+          <div className="stat-details">
+            <h3>Total Students</h3>
+            <p className="stat-value">{metrics.students}</p>
+            <p className="stat-change text-muted">Registered Scholars</p>
+          </div>
+        </div>
+
+        <div className="stat-card glass-card">
+          <div className="stat-icon-wrapper bg-icon-orange">
+            <Building2 size={24} />
+          </div>
+          <div className="stat-details">
+            <h3>Departments</h3>
+            <p className="stat-value">{metrics.depts}</p>
+            <p className="stat-change text-muted">Academic Divisions</p>
+          </div>
+        </div>
       </div>
 
-      {/* Department Filter */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem', background: 'var(--bg-secondary)', padding: '1rem 1.5rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
-        <Filter size={20} className="text-muted" />
-        <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>Filter Roster by Department:</span>
-        <select 
-          value={selectedDept}
-          onChange={(e) => setSelectedDept(e.target.value)}
-          style={{ padding: '8px 16px', borderRadius: '10px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-main)', fontWeight: 600, outline: 'none' }}
-        >
-          <option value="All">All Departments</option>
-          {deptKeys.map(dept => (
-            <option key={dept} value={dept}>{dept}</option>
-          ))}
-        </select>
-      </div>
+
 
       {/* Department-wise Lists */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
@@ -161,18 +193,18 @@ export default function PrincipalDashboard() {
         ) : (
           Object.entries(currentDeptData).map(([dept, data]) => (
             <div key={dept} className="glass-card" style={{ borderRadius: '20px', overflow: 'hidden', border: '1px solid var(--border-color)' }}>
-              <div style={{ background: 'linear-gradient(to right, rgba(139,92,246,0.1), transparent)', padding: '1.5rem 2rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ background: 'linear-gradient(to right, rgba(99, 102, 241,0.1), transparent)', padding: '1.5rem 2rem', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2 style={{ margin: 0, fontSize: '1.4rem', fontWeight: 800, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <Building2 size={24} style={{ color: '#8b5cf6' }} /> {dept} Division
+                  <Building2 size={24} style={{ color: '#6366F1' }} /> {dept} Division
                 </h2>
                 <div style={{ display: 'flex', gap: '1rem' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, background: 'rgba(245,158,11,0.1)', color: '#f59e0b', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, background: 'rgba(124, 58, 237, 0.1)', color: '#7C3AED', padding: '6px 12px', borderRadius: '8px' }}>
                     {data.HOD.length} HOD
                   </span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, background: 'rgba(99,102,241,0.1)', color: '#6366f1', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, background: 'rgba(139, 92, 246, 0.1)', color: '#8B5CF6', padding: '6px 12px', borderRadius: '8px' }}>
                     {data.Staff.length} Staff
                   </span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 700, background: 'rgba(16,185,129,0.1)', color: '#10b981', padding: '6px 12px', borderRadius: '8px' }}>
+                  <span style={{ fontSize: '0.85rem', fontWeight: 700, background: 'rgba(37, 99, 235, 0.1)', color: '#2563EB', padding: '6px 12px', borderRadius: '8px' }}>
                     {data.Student.length} Students
                   </span>
                 </div>
@@ -185,7 +217,7 @@ export default function PrincipalDashboard() {
                   {data.HOD.length === 0 ? <p className="text-muted text-sm">No HOD assigned.</p> : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {data.HOD.map(user => (
-                        <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(245,158,11,0.3)', borderLeft: '4px solid #f59e0b' }}>
+                        <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(124, 58, 237, 0.3)', borderLeft: '4px solid #7C3AED' }}>
                           <p style={{ margin: 0, fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>{user.name}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {user.referenceId || 'N/A'}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)' }}>✉ {user.email}</p>
@@ -201,7 +233,7 @@ export default function PrincipalDashboard() {
                   {data.Staff.length === 0 ? <p className="text-muted text-sm">No staff registered.</p> : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {data.Staff.map(user => (
-                        <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(99,102,241,0.2)', borderLeft: '4px solid #6366f1' }}>
+                        <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)', borderLeft: '4px solid #8B5CF6' }}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>{user.name}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {user.referenceId || 'N/A'}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)' }}>✉ {user.email}</p>
@@ -217,7 +249,7 @@ export default function PrincipalDashboard() {
                   {data.Student.length === 0 ? <p className="text-muted text-sm">No students registered.</p> : (
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                       {data.Student.map(user => (
-                        <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(16,185,129,0.2)', borderLeft: '4px solid #10b981' }}>
+                        <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.2)', borderLeft: '4px solid #2563EB' }}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>{user.name}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {user.referenceId || user.studentId || 'N/A'}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)' }}>✉ {user.email}</p>

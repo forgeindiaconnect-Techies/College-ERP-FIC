@@ -26,7 +26,7 @@ const feeTypePie = [
   { name: 'Tuition Fees', value: 68, color: '#6366f1' },
   { name: 'Hostel Fees', value: 18, color: '#10b981' },
   { name: 'Transport', value: 8, color: '#f59e0b' },
-  { name: 'Lab / Other', value: 6, color: '#8b5cf6' },
+  { name: 'Lab / Other', value: 6, color: '#6366F1' },
 ];
 
 const studentFees = [
@@ -123,7 +123,7 @@ export default function PrincipalFeesOverview() {
           { label: 'Total Collected', value: fmt(totalCollected), icon: <CheckCircle size={18} />, color: '#10b981', sub: 'This academic year' },
           { label: 'Pending Amount', value: fmt(totalPending), icon: <AlertCircle size={18} />, color: '#ef4444', sub: `${feeList.filter(s => s.status !== 'Paid').length} students` },
           { label: 'Collection Rate', value: `${collectionRate}%`, icon: <TrendingUp size={18} />, color: '#6366f1', sub: 'of total expected' },
-          { label: 'Total Revenue', value: fmt(totalRevenue), icon: <DollarSign size={18} />, color: '#8b5cf6', sub: 'Expected total' },
+          { label: 'Total Revenue', value: fmt(totalRevenue), icon: <DollarSign size={18} />, color: '#6366F1', sub: 'Expected total' },
           { label: 'Scholarships', value: scholarships.length, icon: <Award size={18} />, color: '#f59e0b', sub: `${scholarships.filter(s => s.status === 'Disbursed').length} disbursed` },
           { label: 'Paid Students', value: feeList.filter(s => s.status === 'Paid').length, icon: <Users size={18} />, color: '#0ea5e9', sub: `of ${feeList.length} total` },
         ].map((s, i) => (

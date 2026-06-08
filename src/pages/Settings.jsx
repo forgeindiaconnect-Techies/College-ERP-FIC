@@ -221,7 +221,7 @@ const Settings = () => {
           {activeTab === 'security' && (
             <div className="animate-fade-in">
               <div className="settings-panel-header">
-                <div className="settings-panel-icon" style={{ background: 'rgba(139,92,246,0.1)', color: '#8b5cf6' }}>
+                <div className="settings-panel-icon" style={{ background: 'rgba(99, 102, 241,0.1)', color: '#6366F1' }}>
                   <Shield size={18} />
                 </div>
                 <div>
@@ -315,19 +315,19 @@ const Settings = () => {
                 </div>
 
                 <div className="settings-stat-row">
-                  <div className="settings-stat-card">
+                  <div className="stat-card">
                     <span className="stat-label">Last Successful Backup</span>
                     <span className="stat-value green">May 23, 2026 · 02:00 AM</span>
                   </div>
-                  <div className="settings-stat-card">
+                  <div className="stat-card">
                     <span className="stat-label">Stored Snapshots</span>
                     <span className="stat-value blue">14 Retained</span>
                   </div>
-                  <div className="settings-stat-card">
+                  <div className="stat-card">
                     <span className="stat-label">Database Size</span>
                     <span className="stat-value">48.7 MB</span>
                   </div>
-                  <div className="settings-stat-card">
+                  <div className="stat-card">
                     <span className="stat-label">Next Backup</span>
                     <span className="stat-value">May 24, 2026 · 02:00 AM</span>
                   </div>

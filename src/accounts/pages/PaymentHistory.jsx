@@ -192,7 +192,7 @@ const PaymentHistory = () => {
                       <div className="font-medium text-[var(--text-main)]">{txn.studentName}</div>
                       <div className="text-xs text-[var(--text-muted)] mt-0.5">{txn.studentId} • {txn.department}</div>
                       {scholarship && (
-                        <div style={{ marginTop: 4, fontSize: '0.7rem', background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', padding: '2px 7px', borderRadius: 5, display: 'inline-block', fontWeight: 700 }}>
+                        <div style={{ marginTop: 4, fontSize: '0.7rem', background: 'rgba(99, 102, 241,0.12)', color: '#6366F1', padding: '2px 7px', borderRadius: 5, display: 'inline-block', fontWeight: 700 }}>
                           🎓 {scholarship.type} ({scholarship.amount} off)
                         </div>
                       )}
@@ -228,7 +228,7 @@ const PaymentHistory = () => {
                       {scholarship && !credited ? (
                         <button
                           onClick={() => openAdjustModal(txn)}
-                          style={{ padding: '5px 12px', background: 'rgba(139,92,246,0.12)', color: '#8b5cf6', border: '1px solid rgba(139,92,246,0.3)', borderRadius: 7, fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
+                          style={{ padding: '5px 12px', background: 'rgba(99, 102, 241,0.12)', color: '#6366F1', border: '1px solid rgba(99, 102, 241,0.3)', borderRadius: 7, fontSize: '0.75rem', fontWeight: 700, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: 4 }}
                         >
                           <RotateCcw size={12} /> Adjust
                         </button>
@@ -251,7 +251,7 @@ const PaymentHistory = () => {
         <div className="glass-card mt-6 overflow-hidden">
           <div style={{ padding: '14px 20px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
             <h3 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.95rem', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <RotateCcw size={16} style={{ color: '#8b5cf6' }} /> Credit Adjustment Records
+              <RotateCcw size={16} style={{ color: '#6366F1' }} /> Credit Adjustment Records
             </h3>
           </div>
           <div className="overflow-x-auto">
@@ -270,13 +270,13 @@ const PaymentHistory = () => {
               <tbody>
                 {credits.map((c, i) => (
                   <tr key={c.id} style={{ borderBottom: i < credits.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
-                    <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: '0.8rem', color: '#8b5cf6', fontWeight: 700 }}>{c.id}</td>
+                    <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: '0.8rem', color: '#6366F1', fontWeight: 700 }}>{c.id}</td>
                     <td style={{ padding: '10px 12px' }}>
                       <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '0.85rem' }}>{c.studentName}</div>
                       <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>{c.studentId} • {c.semester}</div>
                     </td>
                     <td style={{ padding: '10px 12px' }}>
-                      <span style={{ fontSize: '0.75rem', background: 'rgba(139,92,246,0.1)', color: '#8b5cf6', padding: '2px 8px', borderRadius: 5, fontWeight: 700 }}>
+                      <span style={{ fontSize: '0.75rem', background: 'rgba(99, 102, 241,0.1)', color: '#6366F1', padding: '2px 8px', borderRadius: 5, fontWeight: 700 }}>
                         🎓 {c.scholarshipType} — {c.waiver}
                       </span>
                     </td>
@@ -304,7 +304,7 @@ const PaymentHistory = () => {
               {/* Header */}
               <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <RotateCcw size={18} style={{ color: '#8b5cf6' }} />
+                  <RotateCcw size={18} style={{ color: '#6366F1' }} />
                   <h3 style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem' }}>Credit / Refund Adjustment</h3>
                 </div>
                 <button onClick={() => setAdjustModal(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1.2rem' }}>✕</button>
@@ -316,7 +316,7 @@ const PaymentHistory = () => {
                     <div style={{ fontSize: '3rem', marginBottom: 8 }}>✅</div>
                     <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '1rem', marginBottom: 6 }}>{adjustSuccess}</div>
                     <div style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginBottom: 20 }}>Net payable amount: ₹{net.toLocaleString()}</div>
-                    <button onClick={() => setAdjustModal(null)} style={{ padding: '8px 24px', background: '#8b5cf6', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>Close</button>
+                    <button onClick={() => setAdjustModal(null)} style={{ padding: '8px 24px', background: '#6366F1', color: 'white', border: 'none', borderRadius: 8, fontWeight: 700, cursor: 'pointer' }}>Close</button>
                   </div>
                 ) : (
                   <>
@@ -328,8 +328,8 @@ const PaymentHistory = () => {
 
                     {/* Scholarship Info */}
                     {scholarship ? (
-                      <div style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.25)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
-                        <div style={{ fontSize: '0.78rem', color: '#8b5cf6', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Scholarship Found</div>
+                      <div style={{ background: 'rgba(99, 102, 241,0.08)', border: '1px solid rgba(99, 102, 241,0.25)', borderRadius: 10, padding: '12px 14px', marginBottom: 16 }}>
+                        <div style={{ fontSize: '0.78rem', color: '#6366F1', fontWeight: 700, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 }}>Scholarship Found</div>
                         <div style={{ fontWeight: 700, color: 'var(--text-main)', fontSize: '0.9rem' }}>🎓 {scholarship.type}</div>
                         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: 2 }}>Waiver: {scholarship.amount} • Status: {scholarship.status}</div>
                       </div>
@@ -379,7 +379,7 @@ const PaymentHistory = () => {
                       <button
                         onClick={applyCredit}
                         disabled={!scholarship || refund === 0}
-                        style={{ padding: '8px 20px', background: scholarship && refund > 0 ? '#8b5cf6' : 'var(--border-color)', color: scholarship && refund > 0 ? 'white' : 'var(--text-muted)', border: 'none', borderRadius: 8, fontWeight: 700, cursor: scholarship && refund > 0 ? 'pointer' : 'not-allowed', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6 }}
+                        style={{ padding: '8px 20px', background: scholarship && refund > 0 ? '#6366F1' : 'var(--border-color)', color: scholarship && refund > 0 ? 'white' : 'var(--text-muted)', border: 'none', borderRadius: 8, fontWeight: 700, cursor: scholarship && refund > 0 ? 'pointer' : 'not-allowed', fontSize: '0.88rem', display: 'flex', alignItems: 'center', gap: 6 }}
                       >
                         <CheckCircle size={15} /> Issue Credit ₹{refund.toLocaleString()}
                       </button>

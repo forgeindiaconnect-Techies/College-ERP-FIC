@@ -1,85 +1,139 @@
+/* =============================================
+   Student Sidebar — Matches Admin Sidebar Style
+   ============================================= */
 .student-sidebar {
-  width: 260px;
-  background: linear-gradient(180deg, #070a13 0%, #115e59 100%);
-  color: white;
+  width: 280px;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
   display: flex;
   flex-direction: column;
   height: 100vh;
   position: fixed;
-  left: 0; top: 0;
+  left: 0;
+  top: 0;
   z-index: 100;
-  border-right: 1px solid rgba(20, 184, 166, 0.15);
+  transition: var(--transition);
+  border-right: 1px solid var(--border-color);
 }
 
-/* Header */
 .student-sidebar-header {
-  padding: 1rem 1.25rem;
+  height: 70px;
+  padding: 0 1.2rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  gap: 1rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
+
 .student-logo {
-  width: 36px; height: 36px;
-  background: linear-gradient(135deg, #14b8a6, #0d9488);
-  border-radius: 10px;
-  display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 4px 12px rgba(20,184,166,0.4);
-}
-.student-logo-text { font-weight: 800; font-size: 0.8rem; color: white; letter-spacing: 0.05em; }
-.student-brand { font-size: 1rem; font-weight: 700; color: white; margin: 0; }
-.student-role-label { font-size: 0.7rem; color: #a5f3fc; margin: 1px 0 0; font-weight: 500; }
-
-/* Student Badge Card */
-.student-profile-badge-card {
-  margin: 0.75rem;
-  padding: 0.75rem 0.85rem;
-  background: rgba(20, 184, 166, 0.12);
-  border: 1px solid rgba(20, 184, 166, 0.25);
+  width: 40px;
+  height: 40px;
+  background: var(--primary-gradient);
   border-radius: 10px;
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-  cursor: pointer;
-  transition: all 0.3s ease;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.2rem;
+  color: white;
+  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
 }
-.student-profile-badge-card:hover { background: rgba(20, 184, 166, 0.2); }
-.student-dept-code {
-  width: 32px; height: 32px;
-  background: linear-gradient(135deg, #14b8a6, #0d9488);
-  border-radius: 6px;
-  display: flex; align-items: center; justify-content: center;
-  font-weight: 800; font-size: 0.72rem; color: white; letter-spacing: 0.04em;
-  flex-shrink: 0;
-}
-.student-sidebar-name { font-size: 0.8rem; font-weight: 600; color: white; margin: 0; }
-.student-sidebar-sem { font-size: 0.68rem; color: #a5f3fc; margin: 2px 0 0; }
-.student-chevron { color: #a5f3fc; margin-left: auto; }
 
-/* Nav */
-.student-nav { flex: 1; overflow-y: auto; padding: 0.25rem 0.75rem; }
-.student-nav::-webkit-scrollbar { width: 4px; }
-.student-nav::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.1); border-radius: 4px; }
-.student-nav ul { list-style: none; display: flex; flex-direction: column; gap: 0.25rem; padding: 0; }
+.student-logo-text {
+  font-weight: 800;
+  font-size: 0.9rem;
+  color: white;
+  letter-spacing: 0.05em;
+}
+
+.student-brand {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: white;
+  margin: 0;
+}
+
+.student-role-label {
+  font-size: 0.75rem;
+  color: #9ca3af;
+  margin: 0;
+}
+
+.student-nav {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.student-nav::-webkit-scrollbar {
+  width: 5px;
+}
+.student-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+}
+
+.student-nav ul {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0;
+}
+
 .student-nav-link {
-  display: flex; align-items: center; gap: 0.75rem;
-  padding: 0.6rem 0.8rem; border-radius: 8px;
-  color: #94a3b8; transition: all 0.25s ease;
-  font-weight: 500; font-size: 0.88rem;
-  background: transparent; border: none; width: 100%; cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  color: var(--sidebar-text);
+  transition: var(--transition);
+  font-weight: 500;
+  font-size: 0.9rem;
+  background: transparent;
+  border: none;
+  width: 100%;
+  cursor: pointer;
   text-decoration: none;
 }
-.student-nav-link:hover { background: rgba(255,255,255,0.06); color: white; transform: translateX(3px); }
-.student-nav-link.active {
-  background: rgba(20, 184, 166, 0.2);
-  color: #ccfbf1;
-  border-left: 3px solid #14b8a6;
+
+.dark .student-nav-link {
+  color: #9ca3af;
 }
 
-/* Footer */
-.student-sidebar-footer { padding: 0.75rem; border-top: 1px solid rgba(255,255,255,0.06); display: flex; flex-direction: column; gap: 0.6rem; }
+.student-nav-link:hover {
+  background-color: var(--sidebar-hover);
+  color: #ffffff;
+}
 
-.logout-icon { color: #fca5a5; }
-.logout-btn span { color: #fca5a5; }
-.logout-btn:hover { background: rgba(239, 68, 68, 0.1) !important; }
-.w-full { width: 100%; text-align: left; }
+.dark .student-nav-link:hover {
+  color: white;
+}
+
+.student-nav-link.active {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  border-left: none;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+  border-radius: 12px;
+}
+
+.dark .student-nav-link.active {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #ffffff;
+  box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
+  border-radius: 12px;
+}
+
+.student-nav-link.active svg {
+  color: white;
+}
+
+.student-sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.w-full { width: 100%; }
+.text-left { text-align: left; }
