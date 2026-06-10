@@ -144,6 +144,7 @@ export const deleteMark = (id) => api.delete(`/marks/${id}`);
 // Fees Endpoints
 export const getAllFees = () => api.get('/fees');
 export const getFeesByStudent = (studentId) => api.get(`/fees/student/${studentId}`);
+export const getStudentFeeStructure = (studentId) => api.get(`/fees/structure/${studentId}`);
 export const createFee = (feeData) => api.post('/fees', feeData);
 export const updateFee = (id, feeData) => api.put(`/fees/${id}`, feeData);
 export const deleteFee = (id) => api.delete(`/fees/${id}`);
@@ -166,6 +167,14 @@ export const getAttendanceReport = () => api.get('/reports/attendance');
 export const getLowAttendanceReport = () => api.get('/reports/low-attendance');
 export const getCgpaReport = () => api.get('/reports/cgpa');
 export const getFeesReport = () => api.get('/reports/fees');
+
+// Welfare & Discipline APIs
+export const getWelfareRecords = () => api.get('/welfare');
+export const createWelfareRecord = (data) => api.post('/welfare', data);
+export const updateWelfareRecord = (id, data) => api.put(`/welfare/${id}`, data);
+export const deleteWelfareRecord = (id) => api.delete(`/welfare/${id}`);
+export const approveScholarship = (id, data) => api.put(`/welfare/${id}/approve-scholarship`, data);
+
 export const getPendingFeesReport = () => api.get('/reports/pending-fees');
 export const getDepartmentsReport = () => api.get('/reports/departments');
 
@@ -248,10 +257,39 @@ export const updateSettings = (data) => api.put('/settings', data);
 export const getLoginLogs = () => api.get('/settings/logs');
 
 // Notifications
-export const getNotifications = () => api.get('/notifications');
+export const getNotifications = () => api.get('/notifications').catch(() => ({ data: [] })).then(res => {
+  try {
+    const rawEvents = localStorage.getItem('principal_meetings_events');
+    if (rawEvents) {
+      const events = JSON.parse(rawEvents);
+      const activeEvents = events.filter(e => e.status !== 'Cancelled').map(e => ({
+        _id: 'prin_' + e.id,
+        title: `📢 ${e.type}: ${e.name}`,
+        message: `Scheduled: ${new Date(e.dateTime).toLocaleString()} | Venue: ${e.venue}. ${e.agenda || ''}`,
+        type: e.type.includes('Meeting') ? 'Warning' : 'Success',
+        createdAt: e.dateTime || new Date().toISOString()
+      }));
+      if (!res.data) res.data = [];
+      res.data = [...activeEvents, ...res.data];
+    }
+  } catch(e) { console.error(e); }
+  return res;
+});
 export const createNotification = (data) => api.post('/notifications', data);
 export const markNotificationAsRead = (id) => api.put(`/notifications/${id}/read`);
 export const markAllNotificationsAsRead = () => api.put('/notifications/read-all');
+
+// Staff Support
+export const getStaffSupportRequests = () => api.get('/staff-support');
+export const createStaffSupportRequest = (data) => api.post('/staff-support', data);
+export const updateStaffSupportRequest = (id, data) => api.put(`/staff-support/${id}`, data);
+export const deleteStaffSupportRequest = (id) => api.delete(`/staff-support/${id}`);
+
+// HOD Support
+export const getHodSupportRequests = () => api.get('/hod-support');
+export const createHodSupportRequest = (data) => api.post('/hod-support', data);
+export const updateHodSupportRequest = (id, data) => api.put(`/hod-support/${id}`, data);
+export const deleteHodSupportRequest = (id) => api.delete(`/hod-support/${id}`);
 
 // Analytics
 export const getAnalytics = () => api.get('/analytics');

@@ -11,9 +11,9 @@
   grid-template-columns: repeat(5, 1fr);
   gap: 0.875rem;
 }
-.sm-summary-card { padding: 0.9rem 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; overflow: hidden; }
-.sm-summary-label { font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-.sm-summary-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+.sm-summary-card { padding: 0.6rem 0.8rem; display: flex; flex-direction: column; gap: 0.2rem; overflow: hidden; }
+.sm-summary-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
+.sm-summary-value { font-size: 1.2rem; font-weight: 700; color: var(--text-main); }
 .text-success    { color: var(--success); }
 .text-danger     { color: var(--danger); }
 .text-warning-c  { color: var(--warning); }

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { CreditCard, DollarSign, CheckCircle2, AlertTriangle, ArrowLeft, RefreshCw, X } from 'lucide-react';
-import { getFeesByStudent, updateFee, createFee } from '../../api/index';
+import { getFeesByStudent, updateFee, createFee, getStudentFeeStructure } from '../../api/index';
 import './StudentFees.css';
 
 // Fallbacks
@@ -59,22 +59,17 @@ const StudentFees = () => {
         setLoading(false);
       }
 
-      // Check for Scholarships
+      // Check for Scholarships via Fee Structure API
       try {
-        const scholarships = JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
-        const safeLower = str => (str || '').toString().trim().toLowerCase();
-        
-        const myScholarship = scholarships.find(s => {
-          const idMatch = safeLower(s.studentId) === safeLower(activeStud.id) || safeLower(s.studentId) === safeLower(activeStud.referenceId);
-          const nameMatch = safeLower(s.studentName) === safeLower(activeStud.name);
-          return idMatch || nameMatch;
-        });
-
-        if (myScholarship && myScholarship.status === 'Active') {
-          setScholarship(myScholarship);
+        const structureRes = await getStudentFeeStructure(activeStud.id || activeStud.referenceId || activeStud._id);
+        if (structureRes?.data && structureRes.data.scholarshipAmount > 0) {
+          setScholarship({
+            type: structureRes.data.scholarshipName || 'Merit Scholarship',
+            amount: `₹${structureRes.data.scholarshipAmount.toLocaleString()}`
+          });
         }
       } catch (e) {
-        console.error('Failed to parse scholarships', e);
+        console.error('Failed to fetch fee structure for scholarships', e);
       }
     };
 

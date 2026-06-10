@@ -20,7 +20,9 @@ import {
   BarChart2,
   Sparkles,
   ShieldAlert,
-  Calendar
+  Calendar,
+  Layers,
+  ChevronDown
 } from 'lucide-react';
 import {
   BarChart,
@@ -482,7 +484,7 @@ export default function PrincipalFacultyPerformance() {
 
       {/* --- RENDER VIEW: FACULTY & HOD TRACKING TAB --- */}
       {(activeTab === 'tracking' || activeTab === 'hod-review') && (
-        <div style={{ display: 'grid', gridTemplateColumns: '7.5fr 2.5fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 7.5fr) minmax(0, 2.5fr)', gap: '1.5rem' }}>
           
           {/* Main Datagrid */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
@@ -490,21 +492,47 @@ export default function PrincipalFacultyPerformance() {
             {/* Header filters */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
               <div className="flex gap-2">
-                {['All', 'CSE Department', 'ECE Department', 'MECH Department', 'EEE Department'].map(dept => (
-                  <button
-                    key={dept}
-                    onClick={() => setSelectedDept(dept)}
+                <div style={{ position: 'relative', display: 'inline-block' }}>
+                  <select
+                    value={selectedDept}
+                    onChange={(e) => setSelectedDept(e.target.value)}
                     style={{
-                      padding: '0.5rem 1rem', borderRadius: '8px', fontSize: '0.82rem', fontWeight: 600,
-                      backgroundColor: selectedDept === dept ? 'var(--primary)' : 'transparent',
-                      color: selectedDept === dept ? 'white' : 'var(--text-muted)',
-                      border: selectedDept === dept ? 'none' : '1px solid var(--border-color)',
-                      transition: 'all 0.2s ease'
+                      padding: '0.55rem 2rem 0.55rem 2.6rem',
+                      borderRadius: '8px',
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      border: '1px solid var(--border-color)',
+                      background: 'var(--bg-secondary)',
+                      color: 'var(--text-main)',
+                      appearance: 'none',
+                      cursor: 'pointer',
+                      minWidth: '240px'
                     }}
                   >
-                    {dept.replace(' Department', '')}
-                  </button>
-                ))}
+                    {[
+                      'All Departments',
+                      'Computer Science Engineering',
+                      'Information Technology',
+                      'Electronics & Communication Engineering',
+                      'Electrical & Electronics Engineering',
+                      'Mechanical Engineering',
+                      'Civil Engineering',
+                      'Artificial Intelligence & Data Science',
+                      'Artificial Intelligence & Machine Learning',
+                      'Cyber Security',
+                      'Biomedical Engineering',
+                      'Aeronautical Engineering',
+                      'Automobile Engineering',
+                      'Robotics Engineering',
+                      'Chemical Engineering',
+                      'Biotechnology Engineering'
+                    ].map(dept => (
+                      <option key={dept} value={dept === 'All Departments' ? 'All' : dept}>{dept}</option>
+                    ))}
+                  </select>
+                  <Layers size={16} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }} />
+                  <ChevronDown size={14} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none', color: 'var(--text-muted)' }} />
+                </div>
               </div>
 
               {/* Search */}

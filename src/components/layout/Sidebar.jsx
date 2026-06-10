@@ -26,7 +26,8 @@ import { X,
   Bus,
   Building,
   Briefcase,
-  Bot
+  Bot,
+  Layers
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -46,6 +47,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Staff', path: '/admin/staff', icon: <GraduationCap size={18} /> },
     { name: 'Students', path: '/admin/students', icon: <Users size={18} /> },
     { name: 'Parents', path: '/admin/parents', icon: <Heart size={18} /> },
+    { name: 'Academic', path: '/admin/academic', icon: <Layers size={18} /> },
     { name: 'Subjects', path: '/admin/subjects', icon: <BookOpen size={18} /> },
     { name: 'Timetable', path: '/admin/timetable', icon: <Calendar size={18} /> },
     { name: 'Attendance', path: '/admin/attendance', icon: <CalendarCheck size={18} /> },

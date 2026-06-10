@@ -61,12 +61,15 @@ const HodDashboard = () => {
   const [hodSession, setHodSession] = useState(DEFAULT_SESSION);
   const [students, setStudents] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [notifications, setNotifications] = useState([]);
 
   const fetchLiveData = useCallback(async () => {
     try {
-      const [studRes, staffRes] = await Promise.all([
+      const { getNotifications } = await import('../../api/index');
+      const [studRes, staffRes, notifRes] = await Promise.all([
         getStudents().catch(() => null),
         getStaff().catch(() => null),
+        getNotifications().catch(() => ({ data: [] }))
       ]);
       if (studRes?.data) setStudents(studRes.data);
       else {
@@ -78,6 +81,7 @@ const HodDashboard = () => {
         const staffRaw = localStorage.getItem('erp_staff');
         if (staffRaw) setStaff(JSON.parse(staffRaw));
       }
+      if (notifRes?.data) setNotifications(notifRes.data);
     } catch (err) {
       console.warn('Dashboard API load failed:', err.message);
     }
@@ -286,8 +290,19 @@ const HodDashboard = () => {
           <h3>📋 Recent Scoped Activities</h3>
           <div style={{ marginTop: '0.75rem', maxHeight: '180px', overflowY: 'auto' }}>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-              {/* No mock activities */}
-              {myStudents.length === 0 ? <li style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No recent activities found</li> : null}
+              {notifications.length === 0 ? (
+                <li style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>No recent activities found</li>
+              ) : (
+                notifications.map((n, i) => (
+                  <li key={n._id || i} style={{ borderLeft: `3px solid ${n.type === 'Warning' ? '#ef4444' : n.type === 'Success' ? '#10b981' : '#f59e0b'}`, paddingLeft: '0.75rem', marginBottom: '0.5rem', background: 'var(--bg-primary)', padding: '0.75rem', borderRadius: '8px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                      <strong style={{ fontSize: '0.85rem', color: 'var(--text-main)' }}>{n.title}</strong>
+                      <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(n.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', margin: 0 }}>{n.message}</p>
+                  </li>
+                ))
+              )}
             </ul>
           </div>
         </div>

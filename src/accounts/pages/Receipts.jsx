@@ -34,7 +34,7 @@ const printReceipt = (rec) => {
       <div class="row"><span class="label">Student Name</span><span class="value">${rec.studentName || rec.studentId}</span></div>
       <div class="row"><span class="label">Department</span><span class="value">${rec.department || 'N/A'}</span></div>
       <div class="row"><span class="label">Semester</span><span class="value">${rec.semester || 'N/A'}</span></div>
-      <div class="row"><span class="label">Fee Type</span><span class="value">${rec.semester ? rec.semester + ' Tuition Fee' : 'Tuition Fee'}</span></div>
+      <div class="row"><span class="label">Fee Type</span><span class="value">${rec.feeType || 'Tuition Fee'}</span></div>
       <div class="row"><span class="label">Payment Mode</span><span class="value">${rec.paymentMode || 'Online'}</span></div>
       <div class="row"><span class="label">Payment Date</span><span class="value">${rec.paymentDate ? new Date(rec.paymentDate).toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }) : 'N/A'}</span></div>
       <div class="row"><span class="label">Status</span><span class="value" style="color:${rec.status==='Paid'?'#10b981':'#f59e0b'}">${rec.status}</span></div>
@@ -107,6 +107,7 @@ const Receipts = () => {
                 <th className="p-4 font-medium">Receipt No.</th>
                 <th className="p-4 font-medium">Student</th>
                 <th className="p-4 font-medium">Dept / Sem</th>
+                <th className="p-4 font-medium">Fee Type</th>
                 <th className="p-4 font-medium">Payment Date</th>
                 <th className="p-4 font-medium">Mode</th>
                 <th className="p-4 font-medium">Amount</th>
@@ -127,6 +128,9 @@ const Receipts = () => {
                     <div className="text-xs text-[var(--text-muted)]">{rec.studentId}</div>
                   </td>
                   <td className="p-4 text-[var(--text-muted)] text-sm">{rec.department} / {rec.semester}</td>
+                  <td className="p-4 font-medium text-[#8b5cf6] text-sm bg-purple-500/5 rounded">
+                    {rec.feeType || 'Tuition Fee'}
+                  </td>
                   <td className="p-4 text-[var(--text-main)]">
                     {rec.paymentDate ? new Date(rec.paymentDate).toLocaleDateString('en-GB') : '—'}
                   </td>

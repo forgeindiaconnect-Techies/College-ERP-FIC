@@ -114,7 +114,23 @@ const SystemAnalytics = () => {
             <Filter size={14} className="text-muted" />
             <select value={deptFilter} onChange={e => setDeptFilter(e.target.value)} disabled={isHOD}>
               <option value="All Departments">All Departments</option>
-              {['CSE', 'ECE', 'MECH', 'EEE', 'IT'].map(d => <option key={d} value={d}>{d}</option>)}
+              {[
+                'Computer Science Engineering',
+                'Information Technology',
+                'Electronics & Communication Engineering',
+                'Electrical & Electronics Engineering',
+                'Mechanical Engineering',
+                'Civil Engineering',
+                'Artificial Intelligence & Data Science',
+                'Artificial Intelligence & Machine Learning',
+                'Cyber Security',
+                'Biomedical Engineering',
+                'Aeronautical Engineering',
+                'Automobile Engineering',
+                'Robotics Engineering',
+                'Chemical Engineering',
+                'Biotechnology Engineering'
+              ].map(d => <option key={d} value={d}>{d}</option>)}
             </select>
           </div>
           <div className="filter-item">
@@ -191,21 +207,21 @@ const SystemAnalytics = () => {
                 <div className="insight-icon bg-warning-light text-warning"><AlertTriangle size={14}/></div>
                 <div>
                   <p className="insight-title">Low Attendance Prediction</p>
-                  <p className="text-muted text-sm">45 students in MECH are likely to fall below 75% by mid-term based on current trends.</p>
+                  <p className="text-muted text-sm">45 students in Mechanical Engineering are likely to fall below 75% by mid-term based on current trends.</p>
                 </div>
               </li>
               <li>
                 <div className="insight-icon bg-success-light text-success"><TrendingUp size={14}/></div>
                 <div>
                   <p className="insight-title">Predict Student Performance</p>
-                  <p className="text-muted text-sm">CSE 3rd Year batch shows a projected average CGPA increase to 8.6 for the upcoming semester.</p>
+                  <p className="text-muted text-sm">Computer Science Engineering 3rd Year batch shows a projected average CGPA increase to 8.6 for the upcoming semester.</p>
                 </div>
               </li>
               <li>
                 <div className="insight-icon bg-primary-light text-primary"><Building2 size={14}/></div>
                 <div>
                   <p className="insight-title">Department Ranking</p>
-                  <p className="text-muted text-sm">IT Department currently ranks #1 in combined attendance and exam performance.</p>
+                  <p className="text-muted text-sm">Information Technology Department currently ranks #1 in combined attendance and exam performance.</p>
                 </div>
               </li>
             </ul>

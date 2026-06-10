@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, CalendarCheck, BookOpenCheck,
-  ClipboardList, Calendar, LogOut, ChevronRight, FileText, Megaphone, GraduationCap, IndianRupee, Briefcase, Library
+  ClipboardList, Calendar, LogOut, ChevronRight, FileText, Megaphone, GraduationCap, IndianRupee, Briefcase, Library, LifeBuoy
 } from 'lucide-react';
 import './StaffSidebar.css';
 
@@ -33,6 +33,7 @@ const StaffSidebar = () => {
     { name: 'Payroll', path: '/staff/payroll', icon: <IndianRupee size={20} /> },
     { name: 'Placement', path: '/staff/placement', icon: <Briefcase size={20} /> },
     { name: 'Library', path: '/staff/library', icon: <Library size={20} /> },
+    { name: 'Support Center', path: '/staff/support', icon: <LifeBuoy size={20} /> },
   ];
 
   const handleLogout = () => {

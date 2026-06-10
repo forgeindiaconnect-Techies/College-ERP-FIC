@@ -33,6 +33,8 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import { io } from 'socket.io-client';
+import { getWelfareRecords, updateWelfareRecord, approveScholarship } from '../../api/index.js';
 import '../../pages/Dashboard.css';
 
 // Seed data representing active student discipline, complaints & welfare cases
@@ -154,10 +156,7 @@ const departmentIncidentData = [
 ];
 
 export default function PrincipalStudentWelfare() {
-  const [cases, setCases] = useState(() => {
-    const saved = localStorage.getItem('principal_student_welfare_cases');
-    return saved ? JSON.parse(saved) : initialCases;
-  });
+  const [cases, setCases] = useState([]);
 
   const [anonymousComplaints, setAnonymousComplaints] = useState(() => {
     const saved = localStorage.getItem('principal_anonymous_complaints');
@@ -165,8 +164,22 @@ export default function PrincipalStudentWelfare() {
   });
 
   useEffect(() => {
-    localStorage.setItem('principal_student_welfare_cases', JSON.stringify(cases));
-  }, [cases]);
+    const fetchCases = async () => {
+      try {
+        const res = await getWelfareRecords();
+        setCases(res.data.map(item => ({...item, id: item._id})));
+      } catch (err) {
+        console.warn('Failed to fetch welfare records', err);
+        setCases(initialCases); // fallback
+      }
+    };
+    
+    fetchCases();
+    
+    const socket = io('http://localhost:5000');
+    socket.on('welfareUpdated', fetchCases);
+    return () => socket.disconnect();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('principal_anonymous_complaints', JSON.stringify(anonymousComplaints));
@@ -184,6 +197,8 @@ export default function PrincipalStudentWelfare() {
   const [showMeetingModal, setShowMeetingModal] = useState(false);
   const [showWarningModal, setShowWarningModal] = useState(false);
   const [showRestrictionModal, setShowRestrictionModal] = useState(false);
+  const [showScholarshipModal, setShowScholarshipModal] = useState(false);
+  const [showReplyModal, setShowReplyModal] = useState(false);
 
   // Forms inputs
   const [counselorData, setCounselorData] = useState({
@@ -203,6 +218,13 @@ export default function PrincipalStudentWelfare() {
     parentEmail: '',
     warningText: ''
   });
+
+  const [scholarshipData, setScholarshipData] = useState({
+    name: 'Merit Scholarship',
+    amount: 20000
+  });
+
+  const [replyText, setReplyText] = useState('');
 
   const [emergencyAlertText, setEmergencyAlertText] = useState('');
   const [restrictedAction, setRestrictedAction] = useState('');
@@ -253,21 +275,22 @@ export default function PrincipalStudentWelfare() {
     setShowCounselorModal(true);
   };
 
-  const assignCounselorAction = (e) => {
+  const assignCounselorAction = async (e) => {
     e.preventDefault();
-    setCases(prev => prev.map(c => {
-      if (c.id === selectedCase.id) {
-        return {
-          ...c,
-          status: 'Counselor Assigned',
-          timeline: [...c.timeline, { date: '2026-05-27', text: `Assigned counselor ${counselorData.counselorName} (Urgency: ${counselorData.urgency})` }]
-        };
-      }
-      return c;
-    }));
-    addLog(`Principal allocated counselor ${counselorData.counselorName} for student ${selectedCase.studentName}.`);
-    setShowCounselorModal(false);
-    triggerToast(`🧑‍⚕️ Counselor assigned to ${selectedCase.studentName} successfully!`);
+    const newTimelineEntry = { date: new Date().toISOString().split('T')[0], text: `Assigned counselor ${counselorData.counselorName} (Urgency: ${counselorData.urgency})` };
+    const updatedTimeline = [...(selectedCase.timeline || []), newTimelineEntry];
+    
+    try {
+      await updateWelfareRecord(selectedCase.id, {
+        status: 'Counselor Assigned',
+        timeline: updatedTimeline
+      });
+      addLog(`Principal allocated counselor ${counselorData.counselorName} for student ${selectedCase.studentName}.`);
+      setShowCounselorModal(false);
+      triggerToast(`🧑‍⚕️ Counselor assigned to ${selectedCase.studentName} successfully!`);
+    } catch (err) {
+      triggerToast('❌ Failed to update record');
+    }
   };
 
   const handleOpenParentMeeting = (c) => {
@@ -281,21 +304,22 @@ export default function PrincipalStudentWelfare() {
     setShowMeetingModal(true);
   };
 
-  const scheduleParentMeetingAction = (e) => {
+  const scheduleParentMeetingAction = async (e) => {
     e.preventDefault();
-    setCases(prev => prev.map(c => {
-      if (c.id === selectedCase.id) {
-        return {
-          ...c,
-          status: 'Scheduled',
-          timeline: [...c.timeline, { date: '2026-05-27', text: `Parent meeting scheduled at ${meetingData.venue} on ${meetingData.date}` }]
-        };
-      }
-      return c;
-    }));
-    addLog(`Principal scheduled parent-disciplinary board meeting for student ${selectedCase.studentName}.`);
-    setShowMeetingModal(false);
-    triggerToast(`📅 Parent meeting scheduled. Invitation sent to parents!`);
+    const newTimelineEntry = { date: new Date().toISOString().split('T')[0], text: `Parent meeting scheduled at ${meetingData.venue} on ${meetingData.date}` };
+    const updatedTimeline = [...(selectedCase.timeline || []), newTimelineEntry];
+    
+    try {
+      await updateWelfareRecord(selectedCase.id, {
+        status: 'Scheduled',
+        timeline: updatedTimeline
+      });
+      addLog(`Principal scheduled parent-disciplinary board meeting for student ${selectedCase.studentName}.`);
+      setShowMeetingModal(false);
+      triggerToast(`📅 Parent meeting scheduled. Invitation sent to parents!`);
+    } catch (err) {
+      triggerToast('❌ Failed to schedule meeting');
+    }
   };
 
   const handleOpenWarning = (c) => {
@@ -307,35 +331,103 @@ export default function PrincipalStudentWelfare() {
     setShowWarningModal(true);
   };
 
-  const sendWarningAction = (e) => {
+  const sendWarningAction = async (e) => {
     e.preventDefault();
-    setCases(prev => prev.map(c => {
-      if (c.id === selectedCase.id) {
-        return {
-          ...c,
-          timeline: [...c.timeline, { date: '2026-05-27', text: `Official warning dispatch sent to parent (${warningData.parentEmail})` }]
-        };
-      }
-      return c;
-    }));
-    addLog(`Principal sent parental warning notice for student ${selectedCase.studentName}.`);
-    setShowWarningModal(false);
-    triggerToast(`✉️ Disciplinary Warning dispatched to parent mailbox!`);
+    const newTimelineEntry = { date: new Date().toISOString().split('T')[0], text: `Official warning dispatch sent to parent (${warningData.parentEmail})` };
+    const updatedTimeline = [...(selectedCase.timeline || []), newTimelineEntry];
+    
+    try {
+      await updateWelfareRecord(selectedCase.id, { timeline: updatedTimeline });
+      addLog(`Principal sent parental warning notice for student ${selectedCase.studentName}.`);
+      setShowWarningModal(false);
+      triggerToast(`✉️ Disciplinary Warning dispatched to parent mailbox!`);
+    } catch (err) {
+      triggerToast('❌ Failed to dispatch warning');
+    }
   };
 
-  const resolveCaseAction = (c) => {
-    setCases(prev => prev.map(item => {
-      if (item.id === c.id) {
-        return {
-          ...item,
-          status: 'Resolved',
-          timeline: [...item.timeline, { date: '2026-05-27', text: 'Case marked as RESOLVED by the Principal' }]
-        };
-      }
-      return item;
-    }));
-    addLog(`Principal marked welfare/disciplinary case of ${c.studentName} as Resolved.`);
-    triggerToast(`✅ Case resolved for student ${c.studentName}!`);
+  const resolveCaseAction = async (c) => {
+    const newTimelineEntry = { date: new Date().toISOString().split('T')[0], text: 'Case marked as RESOLVED by the Principal' };
+    const updatedTimeline = [...(c.timeline || []), newTimelineEntry];
+    
+    try {
+      await updateWelfareRecord(c.id, {
+        status: 'Resolved',
+        timeline: updatedTimeline
+      });
+      addLog(`Principal marked welfare/disciplinary case of ${c.studentName} as Resolved.`);
+      triggerToast(`✅ Case resolved for student ${c.studentName}!`);
+    } catch (err) {
+      triggerToast('❌ Failed to resolve case');
+    }
+  };
+
+  const handleOpenScholarship = (c) => {
+    setSelectedCase(c);
+    setScholarshipData({ name: 'Merit Scholarship', amount: 20000 });
+    setShowScholarshipModal(true);
+  };
+
+  const approveScholarshipAction = async (e) => {
+    e.preventDefault();
+    try {
+      await approveScholarship(selectedCase.id, {
+        studentId: 'CS2022001', // Fallback
+        name: scholarshipData.name,
+        amount: Number(scholarshipData.amount)
+      });
+      addLog(`Principal approved ${scholarshipData.name} of ₹${scholarshipData.amount} for ${selectedCase.studentName}.`);
+      setShowScholarshipModal(false);
+      triggerToast(`🎉 Scholarship approved! Fee recalculated in Accounts.`);
+    } catch (err) {
+      triggerToast('❌ Failed to approve scholarship');
+    }
+  };
+
+  const rejectScholarshipAction = async (c) => {
+    const newTimelineEntry = { date: new Date().toISOString().split('T')[0], text: 'Scholarship request was REJECTED by the Principal' };
+    const updatedTimeline = [...(c.timeline || []), newTimelineEntry];
+    
+    try {
+      await updateWelfareRecord(c.id, {
+        status: 'Rejected',
+        timeline: updatedTimeline
+      });
+      addLog(`Principal rejected scholarship request for ${c.studentName}.`);
+      triggerToast(`❌ Scholarship rejected.`);
+    } catch (err) {
+      triggerToast('❌ Failed to reject case');
+    }
+  };
+
+  const handleOpenReply = (c) => {
+    setSelectedCase(c);
+    setReplyText('');
+    setShowReplyModal(true);
+  };
+
+  const addReplyAction = async (e) => {
+    e.preventDefault();
+    if (!replyText.trim()) return;
+
+    const newTimelineEntry = { 
+      date: new Date().toISOString().split('T')[0], 
+      text: `Principal Reply: ${replyText}` 
+    };
+    
+    const updatedTimeline = [...(selectedCase.timeline || []), newTimelineEntry];
+    
+    try {
+      await updateWelfareRecord(selectedCase.id, {
+        status: 'Under Review', // Change status to show it's being handled
+        timeline: updatedTimeline
+      });
+      addLog(`Principal replied to ${selectedCase.studentName}'s request.`);
+      setShowReplyModal(false);
+      triggerToast(`💬 Reply sent to student successfully!`);
+    } catch (err) {
+      triggerToast('❌ Failed to send reply');
+    }
   };
 
   // Anonymous complaints helpers
@@ -489,7 +581,7 @@ export default function PrincipalStudentWelfare() {
 
       {/* --- TAB VIEW: DISCIPLINARY & WELFARE CASES --- */}
       {activeTab === 'disciplinary' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '7.5fr 2.5fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 7.5fr) minmax(0, 2.5fr)', gap: '1.5rem' }}>
           
           {/* Main Incidents Table */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
@@ -643,29 +735,55 @@ export default function PrincipalStudentWelfare() {
                     </p>
                   </div>
 
-                  {selectedCase.status !== 'Resolved' && (
+                  {selectedCase.status !== 'Resolved' && selectedCase.status !== 'Rejected' && selectedCase.status !== 'Approved' && (
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
-                        <button
-                          onClick={() => handleOpenCounselor(selectedCase)}
-                          style={{ padding: '0.5rem', background: '#6366F1', border: 'none', color: 'white', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
-                        >
-                          <Users size={12} /> Assign Counselor
-                        </button>
-                        <button
-                          onClick={() => handleOpenParentMeeting(selectedCase)}
-                          style={{ padding: '0.5rem', background: '#3b82f6', border: 'none', color: 'white', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
-                        >
-                          <Calendar size={12} /> Parent Meeting
-                        </button>
-                      </div>
-                      
-                      <button
-                        onClick={() => handleOpenWarning(selectedCase)}
-                        style={{ padding: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: 'none', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
-                      >
-                        <Mail size={12} /> Send Official Warning to Parent
-                      </button>
+                      {selectedCase.issueType === 'Scholarship' ? (
+                        <>
+                          <button
+                            onClick={() => handleOpenScholarship(selectedCase)}
+                            style={{ padding: '0.5rem', background: '#10B981', border: 'none', color: 'white', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
+                          >
+                            <Heart size={12} /> Approve Scholarship
+                          </button>
+                          <button
+                            onClick={() => rejectScholarshipAction(selectedCase)}
+                            style={{ padding: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: 'none', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
+                          >
+                            <X size={12} /> Reject Request
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+                            <button
+                              onClick={() => handleOpenCounselor(selectedCase)}
+                              style={{ padding: '0.5rem', background: '#6366F1', border: 'none', color: 'white', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
+                            >
+                              <Users size={12} /> Assign Counselor
+                            </button>
+                            <button
+                              onClick={() => handleOpenParentMeeting(selectedCase)}
+                              style={{ padding: '0.5rem', background: '#3b82f6', border: 'none', color: 'white', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
+                            >
+                              <Calendar size={12} /> Parent Meeting
+                            </button>
+                          </div>
+                          
+                          <button
+                            onClick={() => handleOpenWarning(selectedCase)}
+                            style={{ padding: '0.5rem', background: 'rgba(239, 68, 68, 0.1)', color: 'var(--danger)', border: 'none', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
+                          >
+                            <Mail size={12} /> Send Official Warning
+                          </button>
+                          
+                          <button
+                            onClick={() => handleOpenReply(selectedCase)}
+                            style={{ padding: '0.5rem', background: 'var(--bg-secondary)', color: 'var(--text-main)', border: '1px solid var(--border-color)', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
+                          >
+                            <MessageSquare size={12} /> Reply to Student
+                          </button>
+                        </>
+                      )}
                     </div>
                   )}
 
@@ -862,7 +980,7 @@ export default function PrincipalStudentWelfare() {
 
       {/* --- TAB VIEW: ANONYMOUS COMPLAINTS INBOX --- */}
       {activeTab === 'anonymous' && (
-        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '1.5rem' }}>
+        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 7fr) minmax(0, 3fr)', gap: '1.5rem' }}>
           
           {/* Complaints Table */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
@@ -1259,6 +1377,80 @@ export default function PrincipalStudentWelfare() {
             >
               Acknowledge Boundaries
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Approve Scholarship Modal */}
+      {showScholarshipModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', width: '100%', maxWidth: '450px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
+            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                <Heart size={18} color="#10b981"/> Approve Scholarship
+              </h3>
+              <button onClick={() => setShowScholarshipModal(false)} style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
+            </div>
+            <form onSubmit={approveScholarshipAction} style={{ padding: '1.25rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Scholarship Name</label>
+                <input 
+                  type="text" 
+                  value={scholarshipData.name} 
+                  onChange={e => setScholarshipData({...scholarshipData, name: e.target.value})}
+                  style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', outline: 'none' }}
+                  required
+                />
+              </div>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Discount Amount (₹)</label>
+                <input 
+                  type="number" 
+                  value={scholarshipData.amount} 
+                  onChange={e => setScholarshipData({...scholarshipData, amount: e.target.value})}
+                  style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', outline: 'none' }}
+                  required
+                />
+              </div>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '1.25rem', lineHeight: '1.4' }}>
+                Approving this scholarship will automatically recalculate the fee structure for {selectedCase?.studentName} and notify the Accounts Department.
+              </p>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                <button type="button" onClick={() => setShowScholarshipModal(false)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, color: 'var(--text-muted)', background: 'transparent', border: '1px solid var(--border-color)', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#10b981', color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px 0 rgba(16, 185, 129, 0.39)' }}>Confirm Approval</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reply to Student Modal */}
+      {showReplyModal && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)', padding: '1rem' }}>
+          <div style={{ background: 'var(--bg-primary)', border: '1px solid var(--border-color)', width: '100%', maxWidth: '450px', borderRadius: '16px', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
+            <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <h3 style={{ fontWeight: 700, color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
+                <MessageSquare size={18} color="#4f46e5"/> Reply to {selectedCase?.studentName}
+              </h3>
+              <button onClick={() => setShowReplyModal(false)} style={{ color: 'var(--text-muted)', background: 'transparent', border: 'none', cursor: 'pointer' }}><X size={20}/></button>
+            </div>
+            <form onSubmit={addReplyAction} style={{ padding: '1.25rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-muted)', marginBottom: '0.25rem' }}>Your Message</label>
+                <textarea 
+                  rows="4"
+                  value={replyText} 
+                  onChange={e => setReplyText(e.target.value)}
+                  placeholder="Type your response here. The student will see this in their Support Center..."
+                  style={{ width: '100%', padding: '0.6rem', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', outline: 'none', resize: 'none' }}
+                  required
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' }}>
+                <button type="button" onClick={() => setShowReplyModal(false)} style={{ padding: '0.5rem 1rem', borderRadius: '8px', fontWeight: 600, color: 'var(--text-muted)', background: 'transparent', border: '1px solid var(--border-color)', cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ padding: '0.5rem 1.25rem', borderRadius: '8px', background: '#4f46e5', color: 'white', fontWeight: 600, border: 'none', cursor: 'pointer', boxShadow: '0 4px 14px 0 rgba(79, 70, 229, 0.39)' }}>Send Reply</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

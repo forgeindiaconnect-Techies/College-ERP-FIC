@@ -4,7 +4,21 @@ import { getDepartments, getExams, createExam, updateExam, deleteExam } from '..
 import './ExamsManagement.css';
 
 const DEPARTMENTS = [
-  'Computer Science', 'Electronics & Comm.', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.'
+  'Computer Science Engineering',
+  'Information Technology',
+  'Electronics & Communication Engineering',
+  'Electrical & Electronics Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Artificial Intelligence & Data Science',
+  'Artificial Intelligence & Machine Learning',
+  'Cyber Security',
+  'Biomedical Engineering',
+  'Aeronautical Engineering',
+  'Automobile Engineering',
+  'Robotics Engineering',
+  'Chemical Engineering',
+  'Biotechnology Engineering'
 ];
 
 const SEMS = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
@@ -48,7 +62,7 @@ const ExamsManagement = () => {
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
-  const [form, setForm] = useState({ name: 'Internal Assessment 1 (IA-1)', dept: 'Computer Science', sem: 'Sem 3', subject: '', date: '', time: '10:00 AM - 12:00 PM', room: '', maxMarks: 100 });
+  const [form, setForm] = useState({ name: 'Internal Assessment 1 (IA-1)', dept: 'Computer Science Engineering', sem: 'Sem 3', subject: '', date: '', time: '10:00 AM - 12:00 PM', room: '', maxMarks: 100 });
 
   useEffect(() => {
     fetchData();
@@ -77,7 +91,7 @@ const ExamsManagement = () => {
     const deptSubs = subjects.filter(s => s.dept === form.dept);
     setForm({ 
       name: 'Internal Assessment 1 (IA-1)', 
-      dept: 'Computer Science', 
+      dept: 'Computer Science Engineering', 
       sem: 'Sem 3',
       subject: deptSubs[0]?.name || 'Core Curriculum', 
       date: new Date(Date.now() + 5*24*60*60*1000).toISOString().split('T')[0], 
@@ -132,13 +146,31 @@ const ExamsManagement = () => {
 
   // Get active subjects for the selected department in the form
   const getDeptSubjects = (deptName) => {
-    return subjects.filter(s => s.dept === deptName);
+    return subjects.filter(s => {
+      let sDept = s.dept;
+      if (sDept === 'Computer Science') sDept = 'Computer Science Engineering';
+      else if (sDept === 'Electronics & Comm.') sDept = 'Electronics & Communication Engineering';
+      else if (sDept === 'Electrical Engg.') sDept = 'Electrical & Electronics Engineering';
+      else if (sDept === 'Mechanical Engg.') sDept = 'Mechanical Engineering';
+      else if (sDept === 'Civil Engg.') sDept = 'Civil Engineering';
+      else if (sDept === 'Information Tech.') sDept = 'Information Technology';
+      return sDept === deptName;
+    });
   };
 
   const filtered = exams.filter(ex => {
     const q = search.toLowerCase();
     const matchesSearch = ex.name.toLowerCase().includes(q) || ex.subject.toLowerCase().includes(q) || ex.room.toLowerCase().includes(q);
-    const matchesDept = deptFilter === 'All' || ex.dept === deptFilter;
+    
+    let exDept = ex.dept;
+    if (exDept === 'Computer Science') exDept = 'Computer Science Engineering';
+    else if (exDept === 'Electronics & Comm.') exDept = 'Electronics & Communication Engineering';
+    else if (exDept === 'Electrical Engg.') exDept = 'Electrical & Electronics Engineering';
+    else if (exDept === 'Mechanical Engg.') exDept = 'Mechanical Engineering';
+    else if (exDept === 'Civil Engg.') exDept = 'Civil Engineering';
+    else if (exDept === 'Information Tech.') exDept = 'Information Technology';
+
+    const matchesDept = deptFilter === 'All' || exDept === deptFilter;
     return matchesSearch && matchesDept;
   });
 
@@ -227,7 +259,20 @@ const ExamsManagement = () => {
                       </div>
                     </td>
                     <td><span className="badge-outline">{ex.sem || 'Sem 3'}</span></td>
-                    <td><span className="text-muted">{ex.dept}</span></td>
+                    <td>
+                      <span className="text-muted">
+                        {(() => {
+                          let d = ex.dept;
+                          if (d === 'Computer Science') d = 'Computer Science Engineering';
+                          else if (d === 'Electronics & Comm.') d = 'Electronics & Communication Engineering';
+                          else if (d === 'Electrical Engg.') d = 'Electrical & Electronics Engineering';
+                          else if (d === 'Mechanical Engg.') d = 'Mechanical Engineering';
+                          else if (d === 'Civil Engg.') d = 'Civil Engineering';
+                          else if (d === 'Information Tech.') d = 'Information Technology';
+                          return d;
+                        })()}
+                      </span>
+                    </td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <Calendar size={13} className="text-muted" />

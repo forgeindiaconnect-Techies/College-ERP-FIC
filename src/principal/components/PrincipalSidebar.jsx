@@ -16,7 +16,8 @@ import {
   Settings,
   ClipboardList,
   CheckSquare,
-  ShieldAlert
+  ShieldAlert,
+  LifeBuoy
 } from 'lucide-react';
 import '../../components/layout/Sidebar.css';
 
@@ -44,7 +45,6 @@ const PrincipalSidebar = ({ isOpen, onClose }) => {
 
   const menuItems = [
     { name: 'Dashboard', path: '/principal/dashboard', icon: <LayoutDashboard size={18} />, exact: true },
-    { name: 'Approvals Center', path: '/principal/approvals', icon: <CheckSquare size={18} /> },
     { name: 'Departments', path: '/principal/departments', icon: <Building2 size={18} /> },
     { name: 'HOD Management', path: '/principal/hods', icon: <UserCheck size={18} /> },
     { name: 'Staff Overview', path: '/principal/staff', icon: <GraduationCap size={18} /> },
@@ -58,6 +58,7 @@ const PrincipalSidebar = ({ isOpen, onClose }) => {
     { name: 'Academic Planning', path: '/principal/academic-planning', icon: <CalendarCheck size={18} /> },
     { name: 'Faculty Performance', path: '/principal/faculty-performance', icon: <UserCheck size={18} /> },
     { name: 'Student Welfare & Discipline', path: '/principal/student-welfare', icon: <ShieldAlert size={18} /> },
+    { name: 'Staff Support Center', path: '/principal/staff-support', icon: <LifeBuoy size={18} /> },
     { name: 'Reports', path: '/principal/reports', icon: <ClipboardList size={19} /> },
     { name: 'Placements', path: '/principal/placement', icon: <Briefcase size={19} /> },
     { name: 'Settings', path: '/principal/settings', icon: <Settings size={18} /> }

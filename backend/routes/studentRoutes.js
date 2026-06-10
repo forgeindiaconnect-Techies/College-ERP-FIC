@@ -3,6 +3,7 @@ import Student from '../models/Student.js';
 import { protect, authorize, departmentScope, requirePermission } from '../middleware/authMiddleware.js';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
+import FeeStructure from '../models/FeeStructure.js';
 
 const router = express.Router();
 
@@ -68,6 +69,21 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'A
       }
     } catch (userErr) {
       console.error('Failed to create User account for Student:', userErr);
+    }
+    
+    // Create a FeeStructure for the student
+    try {
+      const feeStructure = new FeeStructure({
+        studentId: newStudent.id,
+        tuitionFee: req.body.tuitionFee || 60000,
+        examFee: req.body.examFee || 2500,
+        libraryFee: req.body.libraryFee || 0,
+        hostelFee: (req.body.hostelRequired === 'yes' || req.body.hostelRequired === true) ? (req.body.hostelFeeAmount || 40000) : 0,
+        transportFee: (req.body.transportRequired === 'yes' || req.body.transportRequired === true) ? (req.body.transportFeeAmount || 15000) : 0
+      });
+      await feeStructure.save();
+    } catch (feeErr) {
+      console.error('Failed to create FeeStructure for Student:', feeErr);
     }
 
     req.app.get('io').emit('dataUpdated', { module: 'students', action: 'created' });

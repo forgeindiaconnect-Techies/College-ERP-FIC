@@ -60,6 +60,7 @@ import AdminAssignments from './pages/assignments/AdminAssignments';
 import AIAssistant from './pages/ai/AIAssistant';
 import SettingsSecurity from './pages/settings/SettingsSecurity';
 import LandingPage from './pages/landing/LandingPage';
+import AcademicStructure from './pages/academic/AcademicStructure';
 
 import PrincipalLayout from './principal/components/PrincipalLayout';
 import PrincipalDashboard from './principal/pages/PrincipalDashboard';
@@ -72,6 +73,7 @@ import PrincipalMeetingsEvents from './principal/pages/PrincipalMeetingsEvents';
 import PrincipalAcademicPlanning from './principal/pages/PrincipalAcademicPlanning';
 import PrincipalFacultyPerformance from './principal/pages/PrincipalFacultyPerformance';
 import PrincipalStudentWelfare from './principal/pages/PrincipalStudentWelfare';
+import PrincipalStaffSupport from './principal/pages/PrincipalStaffSupport';
 import PrincipalHodManagement from './principal/pages/PrincipalHodManagement';
 import PrincipalStaffOverview from './principal/pages/PrincipalStaffOverview';
 import PrincipalStudentsOverview from './principal/pages/PrincipalStudentsOverview';
@@ -103,6 +105,7 @@ import HodAssignments from './hod/pages/HodAssignments';
 import HodPayroll from './hod/pages/HodPayroll';
 import HodPlacements from './hod/pages/HodPlacements';
 import HodLibrary from './hod/pages/HodLibrary';
+import HodSupport from './hod/pages/HodSupport';
 
 // Staff Layout & Pages
 import StaffLayout from './staff/components/StaffLayout';
@@ -119,6 +122,7 @@ import StaffExams from './staff/pages/StaffExams';
 import StaffPayroll from './staff/pages/StaffPayroll';
 import StaffPlacements from './staff/pages/StaffPlacements';
 import StaffLibrary from './staff/pages/StaffLibrary';
+import StaffSupport from './staff/pages/StaffSupport';
 
 // Student Layout & Pages
 import StudentLayout from './student/components/StudentLayout';
@@ -136,6 +140,7 @@ import StudentExams from './student/pages/StudentExams';
 import StudentHostel from './student/pages/StudentHostel';
 import StudentPlacements from './student/pages/StudentPlacements';
 import StudentLibrary from './student/pages/StudentLibrary';
+import StudentWelfare from './student/pages/StudentWelfare';
 
 // Parent Layout & Pages
 import ParentLayout from './parent/components/ParentLayout';
@@ -245,13 +250,17 @@ const DriverGuard = ({ children }) => {
 };
 
 function App() {
-  const [theme, setTheme] = useState('light');
+  const [theme, setTheme] = useState('dark');
 
   useEffect(() => {
     const savedTheme = localStorage.getItem('erp-theme');
-    if (savedTheme) {
-      setTheme(savedTheme);
-      if (savedTheme === 'dark') document.body.classList.add('dark');
+    if (savedTheme === 'light') {
+      setTheme('light');
+      document.body.classList.remove('dark');
+    } else {
+      setTheme('dark');
+      document.body.classList.add('dark');
+      localStorage.setItem('erp-theme', 'dark');
     }
   }, []);
 
@@ -291,6 +300,7 @@ function App() {
               <Route path="students"      element={<StudentManagement />} />
               <Route path="staff"         element={<StaffManagement />} />
               <Route path="parents"       element={<ParentsManagement />} />
+              <Route path="academic"      element={<AcademicStructure />} />
               <Route path="subjects"      element={<SubjectsManagement />} />
               <Route path="attendance"    element={<AttendanceManagement />} />
               <Route path="timetable"     element={<TimetableManagement />} />
@@ -334,6 +344,7 @@ function App() {
               <Route path="academic-planning" element={<PrincipalAcademicPlanning />} />
               <Route path="faculty-performance" element={<PrincipalFacultyPerformance />} />
               <Route path="student-welfare" element={<PrincipalStudentWelfare />} />
+              <Route path="staff-support" element={<PrincipalStaffSupport />} />
               <Route path="reports"       element={<PrincipalReports />} />
               <Route path="placement"     element={<PrincipalPlacements />} />
               <Route path="settings"      element={<Settings />} />
@@ -354,6 +365,7 @@ function App() {
               <Route path="leaves"        element={<HodLeaves />} />
               <Route path="announcements" element={<HodAnnouncements />} />
               <Route path="payroll"       element={<HodPayroll />} />
+              <Route path="support"       element={<HodSupport />} />
               <Route path="placement"     element={<HodPlacements />} />
               <Route path="library"       element={<HodLibrary />} />
               <Route path="settings"      element={<HodSettings />} />
@@ -374,6 +386,7 @@ function App() {
               <Route path="payroll"    element={<StaffPayroll />} />
               <Route path="placement"  element={<StaffPlacements />} />
               <Route path="library"    element={<StaffLibrary />} />
+              <Route path="support"    element={<StaffSupport />} />
             </Route>
 
             {/* ── STUDENT ROUTES ── */}
@@ -392,6 +405,7 @@ function App() {
               <Route path="hostel"      element={<StudentHostel />} />
               <Route path="placement"   element={<StudentPlacements />} />
               <Route path="library"     element={<StudentLibrary />} />
+              <Route path="welfare"     element={<StudentWelfare />} />
             </Route>
 
             {/* ── PARENT ROUTES ── */}

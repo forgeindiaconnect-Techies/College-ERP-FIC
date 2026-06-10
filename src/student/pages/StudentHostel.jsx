@@ -35,6 +35,28 @@ const StudentHostel = () => {
   const [complaintPriority, setComplaintPriority] = useState('Medium');
   const [myVisitors, setMyVisitors] = useState([]);
   const [attendanceMarked, setAttendanceMarked] = useState(false);
+  
+  // Leave Pass State
+  const [showLeaveModal, setShowLeaveModal] = useState(false);
+  const [leaveRequests, setLeaveRequests] = useState(() => {
+    const saved = localStorage.getItem('erp_hostel_leaves');
+    if (saved) {
+      const allLeaves = JSON.parse(saved);
+      // Try to filter for the current student once studentDetails is loaded, 
+      // but initially just return them all or mock data. We'll filter in useEffect.
+      return allLeaves;
+    }
+    return [
+      { id: 1, type: 'Weekend Home Visit', dates: '24 May - 26 May', status: 'Approved' },
+      { id: 2, type: 'Local Outing', dates: 'Today, 5:00 PM - 8:00 PM', status: 'Pending' }
+    ];
+  });
+  const [leaveData, setLeaveData] = useState({
+    type: 'Weekend Home Visit',
+    startDate: '',
+    endDate: '',
+    reason: ''
+  });
 
   const handleMarkAttendance = () => {
     setAttendanceMarked(true);
@@ -112,7 +134,7 @@ const StudentHostel = () => {
 
 
   useEffect(() => {
-    if (showComplaintModal) {
+    if (showComplaintModal || showLeaveModal) {
       document.body.style.overflow = 'hidden';
     } else {
       document.body.style.overflow = 'auto';
@@ -120,7 +142,36 @@ const StudentHostel = () => {
     return () => {
       document.body.style.overflow = 'auto';
     };
-  }, [showComplaintModal]);
+  }, [showComplaintModal, showLeaveModal]);
+
+  const handleApplyLeave = (e) => {
+    e.preventDefault();
+    if (!leaveData.startDate || !leaveData.reason) return;
+
+    const newLeave = {
+      id: Date.now(),
+      studentId: studentDetails?.id || studentDetails?.referenceId || 'Unknown',
+      studentName: studentDetails?.name || 'Unknown Student',
+      room: studentDetails?.roomNumber ? `${studentDetails.blockWing || ''}-${studentDetails.roomNumber}` : 'Not Assigned',
+      type: leaveData.type,
+      dates: `${leaveData.startDate} - ${leaveData.endDate || 'Same day'}`,
+      reason: leaveData.reason,
+      status: 'Pending',
+      appliedOn: new Date().toISOString().split('T')[0]
+    };
+
+    setLeaveRequests(prev => {
+      const updated = [newLeave, ...prev];
+      // Save globally for Admin to see
+      const allSaved = JSON.parse(localStorage.getItem('erp_hostel_leaves') || '[]');
+      localStorage.setItem('erp_hostel_leaves', JSON.stringify([newLeave, ...allSaved]));
+      return updated;
+    });
+    
+    alert('Leave Pass Application Submitted successfully!');
+    setShowLeaveModal(false);
+    setLeaveData({ type: 'Weekend Home Visit', startDate: '', endDate: '', reason: '' });
+  };
 
   useEffect(() => {
     const savedMenu = localStorage.getItem('erp_mess_menu');
@@ -321,23 +372,20 @@ const StudentHostel = () => {
             <div className="glass-card" style={{ padding: '2rem', borderRadius: '24px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                 <h3 style={{ fontSize: '1.3rem', margin: 0, display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 800 }}><MapPin size={22} className="text-primary" /> Leave Requests</h3>
-                <button className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.9rem', borderRadius: '10px' }}>Apply Pass</button>
+                <button onClick={() => setShowLeaveModal(true)} className="btn-primary" style={{ padding: '8px 16px', fontSize: '0.9rem', borderRadius: '10px' }}>Apply Pass</button>
               </div>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                <div style={{ padding: '1.25rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s cursor-pointer' }} className="hover:border-emerald-500">
-                  <div>
-                    <p style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Weekend Home Visit</p>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>24 May - 26 May</p>
+                {leaveRequests.map(req => (
+                  <div key={req.id} style={{ padding: '1.25rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s cursor-pointer' }} className={`hover:border-${req.status === 'Approved' ? 'emerald' : 'amber'}-500`}>
+                    <div>
+                      <p style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>{req.type}</p>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>{req.dates}</p>
+                    </div>
+                    <span style={{ fontSize: '0.8rem', fontWeight: 800, padding: '6px 12px', borderRadius: '8px', background: req.status === 'Approved' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)', color: req.status === 'Approved' ? '#10b981' : '#f59e0b' }}>
+                      {req.status}
+                    </span>
                   </div>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 800, padding: '6px 12px', borderRadius: '8px', background: 'rgba(16, 185, 129, 0.1)', color: '#10b981' }}>Approved</span>
-                </div>
-                <div style={{ padding: '1.25rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', transition: 'all 0.2s cursor-pointer' }} className="hover:border-amber-500">
-                  <div>
-                    <p style={{ fontSize: '1rem', fontWeight: 700, margin: 0 }}>Local Outing</p>
-                    <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>Today, 5:00 PM - 8:00 PM</p>
-                  </div>
-                  <span style={{ fontSize: '0.8rem', fontWeight: 800, padding: '6px 12px', borderRadius: '8px', background: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' }}>Pending</span>
-                </div>
+                ))}
               </div>
             </div>
 
@@ -704,6 +752,71 @@ const StudentHostel = () => {
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
                 <button type="button" onClick={() => setShowComplaintModal(false)} style={{ padding: '10px 20px', borderRadius: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-main)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
                 <button type="submit" style={{ padding: '10px 24px', borderRadius: '12px', background: '#ef4444', border: 'none', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Submit Complaint</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Leave Modal */}
+      {showLeaveModal && (
+        <div className="modal-overlay" onClick={() => setShowLeaveModal(false)}>
+          <div className="modal-content" style={{ background: 'var(--bg-secondary)', borderRadius: '24px', padding: '2.5rem', width: '90%', maxWidth: '500px', border: '1px solid var(--border-color)', position: 'relative', zIndex: 10000, display: 'block' }} onClick={e => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <MapPin size={24} className="text-primary" /> Apply Gate Pass
+              </h2>
+              <button onClick={() => setShowLeaveModal(false)} style={{ background: 'transparent', border: 'none', fontSize: '1.5rem', cursor: 'pointer', color: 'var(--text-muted)' }}>&times;</button>
+            </div>
+            <form onSubmit={handleApplyLeave}>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-main)' }}>Pass Type</label>
+                <select
+                  required
+                  style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontSize: '1rem', outline: 'none', marginBottom: '1.5rem' }}
+                  value={leaveData.type}
+                  onChange={(e) => setLeaveData({...leaveData, type: e.target.value})}
+                >
+                  <option value="Weekend Home Visit">Weekend Home Visit</option>
+                  <option value="Local Outing">Local Outing (Few Hours)</option>
+                  <option value="Medical Emergency">Medical Emergency</option>
+                  <option value="Event/Competition">Event/Competition</option>
+                </select>
+
+                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.5rem' }}>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-main)' }}>Start Date</label>
+                    <input 
+                      type="date"
+                      required
+                      value={leaveData.startDate}
+                      onChange={e => setLeaveData({...leaveData, startDate: e.target.value})}
+                      style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)' }}
+                    />
+                  </div>
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-main)' }}>End Date</label>
+                    <input 
+                      type="date"
+                      value={leaveData.endDate}
+                      onChange={e => setLeaveData({...leaveData, endDate: e.target.value})}
+                      style={{ width: '100%', padding: '12px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)' }}
+                    />
+                  </div>
+                </div>
+
+                <label style={{ display: 'block', fontSize: '0.9rem', fontWeight: 700, marginBottom: '8px', color: 'var(--text-main)' }}>Reason</label>
+                <textarea 
+                  required
+                  placeholder="Enter the reason for leave..."
+                  style={{ width: '100%', minHeight: '100px', padding: '12px', borderRadius: '12px', border: '1px solid var(--border-color)', background: 'var(--bg-secondary)', color: 'var(--text-main)', fontSize: '1rem', outline: 'none', resize: 'none' }}
+                  value={leaveData.reason}
+                  onChange={(e) => setLeaveData({...leaveData, reason: e.target.value})}
+                />
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+                <button type="button" onClick={() => setShowLeaveModal(false)} style={{ padding: '10px 20px', borderRadius: '12px', background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', color: 'var(--text-main)', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+                <button type="submit" style={{ padding: '10px 24px', borderRadius: '12px', background: '#4f46e5', border: 'none', color: 'white', fontWeight: 700, cursor: 'pointer' }}>Submit Application</button>
               </div>
             </form>
           </div>

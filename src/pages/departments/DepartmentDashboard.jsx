@@ -2,8 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, Users, UserCheck, BookOpen, Clock, 
-  Calendar, FileText, BarChart2, TrendingUp,
-  Building2, UserCircle, ArrowRight, Scan, Camera, QrCode, Cpu, CheckCircle2, XCircle
+  Building2, UserCircle, ArrowRight, Scan, Camera, QrCode, Cpu, CheckCircle2, XCircle, Plus, Hash, User, Award
 } from 'lucide-react';
 import { getDepartments, getStudents, getStaff } from '../../api/index';
 import './DepartmentDashboard.css';
@@ -188,6 +187,11 @@ const DepartmentDashboard = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [students, setStudents] = useState([]);
   const [staff, setStaff] = useState([]);
+  const [deptSubjects, setDeptSubjects] = useState([]);
+  
+  // Subject Modal State
+  const [subjectModalOpen, setSubjectModalOpen] = useState(false);
+  const [subjectForm, setSubjectForm] = useState({ code: '', name: '', sem: 'Semester 1', teacher: '', credits: 4 });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -210,6 +214,12 @@ const DepartmentDashboard = () => {
           // Fallback if not found
           setDept({ id: id, name: 'Unknown', code: 'N/A', hod: 'Not Assigned', students: 0, staff: 0, status: 'Unknown' });
         }
+        const savedSubs = localStorage.getItem('erp_subjects');
+        if (savedSubs && found) {
+          const parsedSubs = JSON.parse(savedSubs);
+          setDeptSubjects(parsedSubs.filter(s => s.dept === found.name || s.dept.includes(found.name.split(' ')[0])));
+        }
+
       } catch (err) {
         console.error("Error fetching department data:", err);
         setDept({ id: id, name: 'Error', code: 'ERR', hod: 'Error', students: 0, staff: 0, status: 'Error' });
@@ -219,6 +229,32 @@ const DepartmentDashboard = () => {
     };
     fetchData();
   }, [id]);
+
+  const handleAddSubject = (e) => {
+    e.preventDefault();
+    const newId = `SUB${String(deptSubjects.length + 1).padStart(3, '0')}`;
+    const newSub = {
+      id: newId,
+      code: subjectForm.code,
+      name: subjectForm.name,
+      dept: dept.name,
+      sem: subjectForm.sem,
+      teacher: subjectForm.teacher,
+      credits: Number(subjectForm.credits),
+      workload: 4
+    };
+    
+    // Save locally to dashboard state
+    setDeptSubjects([...deptSubjects, newSub]);
+    
+    // Save globally to erp_subjects
+    const savedSubs = localStorage.getItem('erp_subjects');
+    const parsedSubs = savedSubs ? JSON.parse(savedSubs) : [];
+    localStorage.setItem('erp_subjects', JSON.stringify([...parsedSubs, newSub]));
+    
+    setSubjectModalOpen(false);
+    setSubjectForm({ code: '', name: '', sem: 'Semester 1', teacher: '', credits: 4 });
+  };
 
   if (loading) {
     return (
@@ -302,7 +338,7 @@ const DepartmentDashboard = () => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <h2 style={{ margin: 0 }}>Student Roster</h2>
-              <button className="btn-outline"><ArrowRight size={16}/> Add Student</button>
+              <button className="btn-outline" onClick={() => navigate('/admin/students')}><ArrowRight size={16}/> Add Student</button>
             </div>
             <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
               <thead>
@@ -337,7 +373,7 @@ const DepartmentDashboard = () => {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
               <h2 style={{ margin: 0 }}>Faculty Directory</h2>
-              <button className="btn-outline"><ArrowRight size={16}/> Add Staff</button>
+              <button className="btn-outline" onClick={() => navigate('/admin/staff')}><ArrowRight size={16}/> Add Staff</button>
             </div>
             <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
               <thead>
@@ -372,7 +408,47 @@ const DepartmentDashboard = () => {
           <SmartScannerTab students={students} deptName={dept?.name} />
         )}
 
-        {['subjects', 'attendance', 'timetable', 'exams', 'results', 'reports'].includes(activeTab) && (
+        {activeTab === 'subjects' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+              <h2 style={{ margin: 0 }}>Department Subjects</h2>
+              <div style={{ display: 'flex', gap: '0.75rem' }}>
+                <button className="btn-primary flex items-center gap-2" onClick={() => setSubjectModalOpen(true)}>
+                  <Plus size={16}/> Add Subject Here
+                </button>
+                <button className="btn-outline flex items-center gap-2" onClick={() => navigate('/admin/subjects')}>
+                  <BookOpen size={16}/> View All Subjects
+                </button>
+              </div>
+            </div>
+            <table style={{ width: '100%', textAlign: 'left', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ borderBottom: '1px solid var(--border-color)' }}>
+                  <th style={{ padding: '0.75rem' }}>Course Code</th>
+                  <th style={{ padding: '0.75rem' }}>Subject Name</th>
+                  <th style={{ padding: '0.75rem' }}>Semester</th>
+                  <th style={{ padding: '0.75rem' }}>Credits</th>
+                  <th style={{ padding: '0.75rem' }}>Instructor</th>
+                </tr>
+              </thead>
+              <tbody>
+                {deptSubjects.length > 0 ? deptSubjects.map(s => (
+                  <tr key={s.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '0.75rem' }}><span className="code-pill bg-purple-100 text-purple-700">{s.code}</span></td>
+                    <td style={{ padding: '0.75rem', fontWeight: 600 }}>{s.name}</td>
+                    <td style={{ padding: '0.75rem' }}>{s.sem}</td>
+                    <td style={{ padding: '0.75rem' }}>{s.credits}</td>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>{s.teacher || 'Unassigned'}</td>
+                  </tr>
+                )) : (
+                  <tr><td colSpan="5" style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>No subjects mapped. Click "Manage Curriculum" to add subjects.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+
+        {['attendance', 'timetable', 'exams', 'results', 'reports'].includes(activeTab) && (
           <div className="tab-placeholder-panel">
             <div className="tab-placeholder-icon">
               <BookOpen size={48} className="text-muted" opacity={0.5} />
@@ -381,6 +457,58 @@ const DepartmentDashboard = () => {
             <p className="text-muted">
               Dummy data for {TABS.find(t => t.id === activeTab)?.label.toLowerCase()} is being populated. MongoDB connection pending.
             </p>
+          </div>
+        )}
+
+        {/* Add Subject Modal */}
+        {subjectModalOpen && (
+          <div className="modal-overlay" onClick={() => setSubjectModalOpen(false)}>
+            <div className="modal-card glass-card" onClick={e => e.stopPropagation()}>
+              <div className="modal-header">
+                <h2>Add Subject to {dept?.name}</h2>
+                <button className="btn-icon" onClick={() => setSubjectModalOpen(false)}><XCircle size={20} /></button>
+              </div>
+              <form onSubmit={handleAddSubject} className="modal-form">
+                <div className="form-grid">
+                  <div className="form-group">
+                    <label><Hash size={13} style={{ display: 'inline', marginRight: '4px' }} /> Course Code *</label>
+                    <input required placeholder="e.g. CS301" value={subjectForm.code} onChange={e => setSubjectForm({ ...subjectForm, code: e.target.value })} />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label><BookOpen size={13} style={{ display: 'inline', marginRight: '4px' }} /> Course Title *</label>
+                    <input required placeholder="e.g. Data Structures" value={subjectForm.name} onChange={e => setSubjectForm({ ...subjectForm, name: e.target.value })} />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Academic Semester *</label>
+                    <select value={subjectForm.sem} onChange={e => setSubjectForm({ ...subjectForm, sem: e.target.value })}>
+                      {['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'].map(s => <option key={s} value={s}>{s}</option>)}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label><User size={13} style={{ display: 'inline', marginRight: '4px' }} /> Assign Instructor</label>
+                    <select value={subjectForm.teacher} onChange={e => setSubjectForm({ ...subjectForm, teacher: e.target.value })}>
+                      <option value="">— Select Instructor —</option>
+                      {staff.map(f => (
+                        <option key={f.id || f._id} value={f.name}>{f.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="form-group">
+                    <label><Award size={13} style={{ display: 'inline', marginRight: '4px' }} /> Credits</label>
+                    <input type="number" min="1" max="6" value={subjectForm.credits} onChange={e => setSubjectForm({ ...subjectForm, credits: e.target.value })} />
+                  </div>
+                </div>
+                
+                <div className="modal-actions" style={{ marginTop: '1.5rem', display: 'flex', justifyContent: 'flex-end', gap: '0.75rem' }}>
+                  <button type="button" className="btn-ghost" onClick={() => setSubjectModalOpen(false)}>Cancel</button>
+                  <button type="submit" className="btn-primary">Add Subject</button>
+                </div>
+              </form>
+            </div>
           </div>
         )}
       </div>

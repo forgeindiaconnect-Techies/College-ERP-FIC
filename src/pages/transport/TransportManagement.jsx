@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
   Bus, Users, Navigation, Plus, Search, Download, 
-  CreditCard, UserCheck, ShieldCheck, FileText, BarChart
+  CreditCard, UserCheck, ShieldCheck, FileText, BarChart, Clock
 } from 'lucide-react';
 import { getTransportRoutes, getTransportDrivers, getTransportStudents } from '../../api/index';
 import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area
 } from 'recharts';
-import './TransportManagement.css';
+import './TransportManagement.css'; // Keep custom CSS but we will inject premium inline styles for the main layout
 
 const CHART_DATA = [
   { month: 'Jul', riders: 320 }, { month: 'Aug', riders: 380 },
@@ -24,6 +24,86 @@ const TransportManagement = () => {
   const [routes, setRoutes] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [students, setStudents] = useState([]);
+  const [driverAttendanceLogs, setDriverAttendanceLogs] = useState([]);
+
+  // Assign Student Modal State
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assignForm, setAssignForm] = useState({
+    studentId: '',
+    name: '',
+    routeId: '',
+    pickupPoint: '',
+    feeStatus: 'Pending',
+    amount: ''
+  });
+
+  // Report Modal State
+  const [reportModal, setReportModal] = useState({
+    isOpen: false,
+    title: '',
+    headers: [],
+    rows: []
+  });
+
+  const handleAssignStudent = (e) => {
+    e.preventDefault();
+    if (!assignForm.studentId || !assignForm.routeId) return;
+
+    const newStudent = {
+      _id: Date.now().toString(),
+      studentId: assignForm.studentId,
+      name: assignForm.name || 'Unknown Student',
+      routeId: assignForm.routeId,
+      pickupPoint: assignForm.pickupPoint,
+      feeStatus: assignForm.feeStatus,
+      amount: Number(assignForm.amount) || 0
+    };
+
+    setStudents(prev => [newStudent, ...prev]);
+    alert(`Successfully assigned ${assignForm.studentId} to route ${assignForm.routeId}`);
+    setShowAssignModal(false);
+    setAssignForm({ studentId: '', name: '', routeId: '', pickupPoint: '', feeStatus: 'Pending', amount: '' });
+  };
+
+  const downloadCSV = (filename, rows) => {
+    const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleViewManifest = () => {
+    const headers = ["Student ID", "Name", "Route ID", "Pickup Point", "Fee Status", "Amount"];
+    const rows = students.map(s => [
+      s.studentId, s.name, s.routeId, s.pickupPoint, s.feeStatus, `₹${s.amount}`
+    ]);
+    setReportModal({
+      isOpen: true,
+      title: "Transport Student Manifest",
+      headers,
+      rows,
+      filename: "Transport_Student_Manifest.csv"
+    });
+  };
+
+  const handleViewDefaulters = () => {
+    const headers = ["Student ID", "Name", "Route ID", "Pending Amount"];
+    const defaulters = students.filter(s => s.feeStatus === 'Pending');
+    const rows = defaulters.map(s => [
+      s.studentId, s.name, s.routeId, `₹${s.amount}`
+    ]);
+    setReportModal({
+      isOpen: true,
+      title: "Transport Fee Defaulters",
+      headers,
+      rows,
+      filename: "Transport_Fee_Defaulters.csv"
+    });
+  };
 
   const fetchTransportData = async () => {
     try {
@@ -35,14 +115,50 @@ const TransportManagement = () => {
       setRoutes(routesRes.data);
       setDrivers(driversRes.data);
       setStudents(studentsRes.data);
+
+      // Fetch all driver attendance logs from localStorage
+      const logs = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('erp_driver_attendance_')) {
+          try {
+            const driverData = JSON.parse(localStorage.getItem(key) || '[]');
+            const driverId = key.split('erp_driver_attendance_')[1];
+            // Find driver name from drivers array
+            const driverObj = driversRes.data.find(d => d.driverId === driverId) || 
+                             driversRes.data.find(d => d.name === driverId); // Fallback
+            
+            driverData.forEach(record => {
+              logs.push({
+                ...record,
+                driverName: driverObj ? driverObj.name : driverId
+              });
+            });
+          } catch (e) {
+            console.error('Error parsing attendance', e);
+          }
+        }
+      }
+      // Sort by date descending
+      logs.sort((a, b) => new Date(b.date) - new Date(a.date));
+      setDriverAttendanceLogs(logs);
+      
     } catch (error) {
       console.error('Failed to load transport data', error);
     }
   };
 
   React.useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     fetchTransportData();
+
+    // Listen for cross-tab storage changes to update attendance in real-time
+    const handleStorage = (e) => {
+      if (!e || !e.key || e.key.startsWith('erp_driver_attendance_')) {
+        fetchTransportData();
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -51,14 +167,37 @@ const TransportManagement = () => {
     { name: 'Routes & Vehicles', icon: <Navigation size={18} /> },
     { name: 'Drivers', icon: <UserCheck size={18} /> },
     { name: 'Student Allocation', icon: <Users size={18} /> },
+    { name: 'Attendance', icon: <Clock size={18} /> },
     { name: 'Reports', icon: <FileText size={18} /> }
   ];
 
   return (
-    <div className="transport-page animate-fade-in">
-      <div className="transport-header">
-        <h1><Bus size={32} className="text-primary" /> Advanced Transport Management</h1>
-        <p className="text-muted mt-2">Manage college fleets, routes, student allocations, and track buses in real-time.</p>
+    <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      {/* Premium Header Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+        borderRadius: '16px',
+        padding: '1.5rem 2rem',
+        marginBottom: '1.5rem',
+        color: '#fff',
+        boxShadow: '0 4px 15px -5px rgba(59, 130, 246, 0.4)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Decorative blur */}
+        <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '300px', height: '300px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(40px)' }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Bus size={24} /> Advanced Transport Management
+          </h1>
+          <p style={{ margin: 0, opacity: 0.9, fontSize: '0.875rem', fontWeight: 500 }}>
+            Manage college fleets, routes, student allocations, and track buses in real-time.
+          </p>
+        </div>
       </div>
 
       <div className="transport-tabs">
@@ -75,26 +214,50 @@ const TransportManagement = () => {
 
       {activeTab === 'Dashboard' && (
         <div className="animate-fade-in">
-          <div className="transport-grid">
-            <div className="glass-card p-5 relative overflow-hidden">
-              <Bus size={24} className="text-blue-500 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Total Vehicles</h3>
-              <p className="text-2xl font-bold mt-1">{routes.length} Buses</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="glass-card p-6 border-t-4 border-blue-500 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg text-blue-600">
+                  <Bus size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xs text-muted uppercase font-bold tracking-wider">Total Vehicles</h3>
+                  <p className="text-2xl font-black mt-1">{routes.length} Buses</p>
+                </div>
+              </div>
             </div>
-            <div className="glass-card p-5 relative overflow-hidden">
-              <Navigation size={24} className="text-purple-500 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Active Routes</h3>
-              <p className="text-2xl font-bold mt-1">{routes.length} Routes</p>
+            <div className="glass-card p-6 border-t-4 border-indigo-500 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="p-3 bg-indigo-100 dark:bg-indigo-900/30 rounded-lg text-indigo-600">
+                  <Navigation size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xs text-muted uppercase font-bold tracking-wider">Active Routes</h3>
+                  <p className="text-2xl font-black mt-1">{routes.length} Routes</p>
+                </div>
+              </div>
             </div>
-            <div className="glass-card p-5 relative overflow-hidden">
-              <Users size={24} className="text-success mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Assigned Students</h3>
-              <p className="text-2xl font-bold mt-1">{students.length}</p>
+            <div className="glass-card p-6 border-t-4 border-green-500 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="p-3 bg-green-100 dark:bg-green-900/30 rounded-lg text-green-600">
+                  <Users size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xs text-muted uppercase font-bold tracking-wider">Assigned Students</h3>
+                  <p className="text-2xl font-black mt-1">{students.length}</p>
+                </div>
+              </div>
             </div>
-            <div className="glass-card p-5 relative overflow-hidden">
-              <CreditCard size={24} className="text-danger mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Pending Fees</h3>
-              <p className="text-2xl font-bold text-danger mt-1">₹ {students.filter(s=>s.feeStatus==='Pending').reduce((a,b)=>a+b.amount,0).toLocaleString('en-IN')}</p>
+            <div className="glass-card p-6 border-t-4 border-red-500 hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-4 mb-2">
+                <div className="p-3 bg-red-100 dark:bg-red-900/30 rounded-lg text-red-600">
+                  <CreditCard size={24} />
+                </div>
+                <div>
+                  <h3 className="text-xs text-muted uppercase font-bold tracking-wider">Pending Fees</h3>
+                  <p className="text-2xl font-black text-danger mt-1">₹ {students.filter(s=>s.feeStatus==='Pending').reduce((a,b)=>a+b.amount,0).toLocaleString('en-IN')}</p>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -192,7 +355,7 @@ const TransportManagement = () => {
                 <Search size={16} className="text-muted"/>
                 <input type="text" placeholder="Search student or route..." value={search} onChange={e=>setSearch(e.target.value)}/>
               </div>
-              <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Assign Student</button>
+              <button className="btn-primary flex items-center gap-2" onClick={() => setShowAssignModal(true)}><Plus size={16}/> Assign Student</button>
             </div>
             <div className="table-container">
               <table>
@@ -254,14 +417,166 @@ const TransportManagement = () => {
 
 
 
+      {activeTab === 'Attendance' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Driver Attendance Logs</h2>
+            <div className="search-box">
+              <Search size={16} className="text-muted"/>
+              <input type="text" placeholder="Search driver or date..." value={search} onChange={e=>setSearch(e.target.value)}/>
+            </div>
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Date</th>
+                  <th>Driver Info</th>
+                  <th>Check In</th>
+                  <th>Check Out</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {driverAttendanceLogs
+                  .filter(log => (log.driverName || '').toLowerCase().includes(search.toLowerCase()) || log.date.includes(search))
+                  .map((log, index) => (
+                  <tr key={`${log.driverId}-${index}`}>
+                    <td className="font-medium text-sm">
+                      {new Date(log.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    </td>
+                    <td>
+                      <div className="font-bold">{log.driverName}</div>
+                      <div className="text-xs text-muted font-mono">{log.driverId}</div>
+                    </td>
+                    <td className="font-mono text-sm">{log.checkInTime || '-'}</td>
+                    <td className="font-mono text-sm">{log.checkOutTime || '-'}</td>
+                    <td>
+                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
+                        log.status === 'Present' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                      }`}>
+                        {log.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+                {driverAttendanceLogs.length === 0 && (
+                  <tr><td colSpan="5" className="text-center text-muted p-8">No attendance records found. Drivers can check in via their dashboard.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
       {activeTab === 'Reports' && (
         <div className="animate-fade-in glass-card p-12 flex flex-col items-center text-center">
           <FileText size={48} className="text-muted opacity-50 mb-4"/>
           <h2 className="text-xl font-bold mb-2">Transport Reports Generator</h2>
           <p className="text-muted max-w-md mb-6">Export route-wise student lists, fee defaulter reports, and driver attendance logs to Excel.</p>
           <div className="flex gap-4">
-            <button className="btn-primary flex items-center gap-2"><Download size={16}/> Student Manifest</button>
-            <button className="btn-secondary flex items-center gap-2"><Download size={16}/> Defaulters List</button>
+            <button className="btn-primary flex items-center gap-2" onClick={handleViewManifest}><FileText size={16}/> View Student Manifest</button>
+            <button className="btn-secondary flex items-center gap-2" onClick={handleViewDefaulters}><FileText size={16}/> View Defaulters List</button>
+          </div>
+        </div>
+      )}
+
+      {/* Report Preview Modal */}
+      {reportModal.isOpen && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card" style={{ maxWidth: '1000px', width: '95vw', padding: '2rem' }}>
+            <div className="flex justify-between items-center mb-4 pb-4 border-b border-gray-200 dark:border-gray-800">
+              <h2 className="text-xl font-bold">{reportModal.title}</h2>
+              <div className="flex items-center gap-3">
+                <button 
+                  className="btn-primary py-1 px-3 text-xs flex items-center gap-2"
+                  onClick={() => downloadCSV(reportModal.filename, [reportModal.headers, ...reportModal.rows])}
+                >
+                  <Download size={14}/> Download CSV
+                </button>
+                <button className="text-muted hover:text-danger" onClick={() => setReportModal({ ...reportModal, isOpen: false })}>✕</button>
+              </div>
+            </div>
+            
+            <div className="table-container max-h-[60vh] overflow-auto" style={{ width: '100%' }}>
+              <table style={{ minWidth: '800px' }}>
+                <thead>
+                  <tr>
+                    {reportModal.headers.map((h, i) => (
+                      <th key={i}>{h}</th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportModal.rows.map((row, i) => (
+                    <tr key={i}>
+                      {row.map((cell, j) => (
+                        <td key={j}>{cell}</td>
+                      ))}
+                    </tr>
+                  ))}
+                  {reportModal.rows.length === 0 && (
+                    <tr>
+                      <td colSpan={reportModal.headers.length} className="text-center p-8 text-muted">
+                        No records found for this report.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Student Modal */}
+      {showAssignModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Assign Student to Transport</h2>
+              <button className="text-muted hover:text-danger" onClick={() => setShowAssignModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleAssignStudent}>
+              <div className="form-group">
+                <label>Student ID (Roll No)</label>
+                <input type="text" required placeholder="e.g., CS2022001" className="input-field" value={assignForm.studentId} onChange={e => setAssignForm({...assignForm, studentId: e.target.value})} />
+              </div>
+              <div className="form-group mt-3">
+                <label>Student Name</label>
+                <input type="text" required placeholder="e.g., John Doe" className="input-field" value={assignForm.name} onChange={e => setAssignForm({...assignForm, name: e.target.value})} />
+              </div>
+              <div className="form-group mt-3">
+                <label>Route</label>
+                <select className="input-field" required value={assignForm.routeId} onChange={e => setAssignForm({...assignForm, routeId: e.target.value})}>
+                  <option value="">Select Route</option>
+                  {routes.map(r => (
+                    <option key={r.routeId} value={r.routeId}>{r.routeId} - {r.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="form-group mt-3">
+                <label>Pickup Point</label>
+                <input type="text" required placeholder="e.g., City Mall" className="input-field" value={assignForm.pickupPoint} onChange={e => setAssignForm({...assignForm, pickupPoint: e.target.value})} />
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="form-group">
+                  <label>Fee Status</label>
+                  <select className="input-field" value={assignForm.feeStatus} onChange={e => setAssignForm({...assignForm, feeStatus: e.target.value})}>
+                    <option value="Pending">Pending</option>
+                    <option value="Paid">Paid</option>
+                  </select>
+                </div>
+                <div className="form-group">
+                  <label>Amount (₹)</label>
+                  <input type="number" required placeholder="15000" className="input-field" value={assignForm.amount} onChange={e => setAssignForm({...assignForm, amount: e.target.value})} />
+                </div>
+              </div>
+              <div className="flex gap-4 mt-6">
+                <button type="button" className="btn-secondary flex-1" onClick={() => setShowAssignModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Assign Student</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

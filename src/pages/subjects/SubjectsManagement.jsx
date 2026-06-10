@@ -4,18 +4,32 @@ import { getStaff, getDepartments } from '../../api/index';
 import './SubjectsManagement.css';
 
 const DEFAULT_SUBJECTS = [
-  { id: 'SUB001', code: 'CS301', name: 'Data Structures', dept: 'Computer Science', sem: 'Sem 3', teacher: 'Dr. Ananya Rao', credits: 4, workload: 4 },
-  { id: 'SUB002', code: 'CS302', name: 'DBMS', dept: 'Computer Science', sem: 'Sem 3', teacher: 'Dr. Ananya Rao', credits: 4, workload: 4 },
-  { id: 'SUB003', code: 'CS401', name: 'Operating Systems', dept: 'Computer Science', sem: 'Sem 4', teacher: 'Prof. Karthik S.', credits: 4, workload: 4 },
-  { id: 'SUB004', code: 'CS501', name: 'Machine Learning', dept: 'Computer Science', sem: 'Sem 5', teacher: 'Prof. Karthik S.', credits: 3, workload: 3 },
-  { id: 'SUB005', code: 'EE201', name: 'Circuits & Networks', dept: 'Electrical Engg.', sem: 'Sem 2', teacher: 'Prof. Rajan Iyer', credits: 4, workload: 4 },
-  { id: 'SUB006', code: 'ME301', name: 'Thermodynamics', dept: 'Mechanical Engg.', sem: 'Sem 3', teacher: 'Dr. Priya Nair', credits: 4, workload: 4 },
+  { id: 'SUB001', code: 'CS301', name: 'Data Structures', dept: 'Computer Science Engineering', sem: 'Sem 3', teacher: 'Dr. Ananya Rao', credits: 4, workload: 4 },
+  { id: 'SUB002', code: 'CS302', name: 'DBMS', dept: 'Computer Science Engineering', sem: 'Sem 3', teacher: 'Dr. Ananya Rao', credits: 4, workload: 4 },
+  { id: 'SUB003', code: 'CS401', name: 'Operating Systems', dept: 'Computer Science Engineering', sem: 'Sem 4', teacher: 'Prof. Karthik S.', credits: 4, workload: 4 },
+  { id: 'SUB004', code: 'CS501', name: 'Machine Learning', dept: 'Computer Science Engineering', sem: 'Sem 5', teacher: 'Prof. Karthik S.', credits: 3, workload: 3 },
+  { id: 'SUB005', code: 'EE201', name: 'Circuits & Networks', dept: 'Electrical & Electronics Engineering', sem: 'Sem 2', teacher: 'Prof. Rajan Iyer', credits: 4, workload: 4 },
+  { id: 'SUB006', code: 'ME301', name: 'Thermodynamics', dept: 'Mechanical Engineering', sem: 'Sem 3', teacher: 'Dr. Priya Nair', credits: 4, workload: 4 },
   { id: 'SUB007', code: 'AI101', name: 'Introduction to AI', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 4, workload: 4 },
   { id: 'SUB008', code: 'AI102', name: 'Python Programming', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 3, workload: 4 }
 ];
 
 const DEPARTMENTS = [
-  'Computer Science', 'Electronics & Comm.', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.', 'Artificial Intelligence & Data Science'
+  'Computer Science Engineering',
+  'Information Technology',
+  'Electronics & Communication Engineering',
+  'Electrical & Electronics Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Artificial Intelligence & Data Science',
+  'Artificial Intelligence & Machine Learning',
+  'Cyber Security',
+  'Biomedical Engineering',
+  'Aeronautical Engineering',
+  'Automobile Engineering',
+  'Robotics Engineering',
+  'Chemical Engineering',
+  'Biotechnology Engineering'
 ];
 const SEMESTERS = ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'];
 
@@ -29,7 +43,7 @@ const SubjectsManagement = () => {
   // Modal states
   const [modalOpen, setModalOpen] = useState(false);
   const [editTarget, setEditTarget] = useState(null);
-  const [form, setForm] = useState({ code: '', name: '', dept: 'Computer Science', sem: 'Sem 1', teacher: '', credits: 4, workload: 4 });
+  const [form, setForm] = useState({ code: '', name: '', dept: 'Computer Science Engineering', sem: 'Sem 1', teacher: '', credits: 4, workload: 4 });
 
   useEffect(() => {
     fetchData();
@@ -67,7 +81,7 @@ const SubjectsManagement = () => {
   };
 
   const openAdd = () => {
-    setForm({ code: '', name: '', dept: 'Computer Science', sem: 'Sem 1', teacher: staff[0]?.name || '', credits: 4, workload: 4 });
+    setForm({ code: '', name: '', dept: 'Computer Science Engineering', sem: 'Sem 1', teacher: staff[0]?.name || '', credits: 4, workload: 4 });
     setEditTarget(null);
     setModalOpen(true);
   };
@@ -106,7 +120,16 @@ const SubjectsManagement = () => {
   const filtered = subjects.filter(s => {
     const q = search.toLowerCase();
     const matchesSearch = s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q) || s.teacher.toLowerCase().includes(q);
-    const matchesDept = deptFilter === 'All' || s.dept === deptFilter;
+    
+    let sDept = s.dept;
+    if (sDept === 'Computer Science') sDept = 'Computer Science Engineering';
+    else if (sDept === 'Electronics & Comm.') sDept = 'Electronics & Communication Engineering';
+    else if (sDept === 'Electrical Engg.') sDept = 'Electrical & Electronics Engineering';
+    else if (sDept === 'Mechanical Engg.') sDept = 'Mechanical Engineering';
+    else if (sDept === 'Civil Engg.') sDept = 'Civil Engineering';
+    else if (sDept === 'Information Tech.') sDept = 'Information Technology';
+
+    const matchesDept = deptFilter === 'All' || sDept === deptFilter;
     return matchesSearch && matchesDept;
   });
 
@@ -188,7 +211,20 @@ const SubjectsManagement = () => {
                   <tr key={sub.id}>
                     <td><span className="subject-code-pill">{sub.code}</span></td>
                     <td className="font-semibold">{sub.name}</td>
-                    <td><span className="text-muted">{sub.dept}</span></td>
+                    <td>
+                      <span className="text-muted">
+                        {(() => {
+                          let d = sub.dept;
+                          if (d === 'Computer Science') d = 'Computer Science Engineering';
+                          else if (d === 'Electronics & Comm.') d = 'Electronics & Communication Engineering';
+                          else if (d === 'Electrical Engg.') d = 'Electrical & Electronics Engineering';
+                          else if (d === 'Mechanical Engg.') d = 'Mechanical Engineering';
+                          else if (d === 'Civil Engg.') d = 'Civil Engineering';
+                          else if (d === 'Information Tech.') d = 'Information Technology';
+                          return d;
+                        })()}
+                      </span>
+                    </td>
                     <td><span className="badge-outline">{sub.sem}</span></td>
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>

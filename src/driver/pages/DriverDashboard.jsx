@@ -65,15 +65,34 @@ const DriverDashboard = () => {
   }
 
   return (
-    <div className="driver-dashboard animate-fade-in">
-      {/* Welcome Banner */}
-      <div className="driver-welcome-banner">
-        <div className="driver-banner-left">
-          <h1>Welcome back, {session.name || 'Driver'}!</h1>
-          <p>Here is an overview of your schedule, route, and assignments for today.</p>
+    <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      {/* Premium Header Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+        borderRadius: '16px',
+        padding: '1.25rem 1.5rem',
+        marginBottom: '1.5rem',
+        color: '#fff',
+        boxShadow: '0 8px 20px -5px rgba(59, 130, 246, 0.3)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        {/* Decorative blur */}
+        <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '200px', height: '200px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(30px)' }} />
+        
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 4px 0' }}>
+            Welcome back, {session.name || 'Driver'}!
+          </h1>
+          <p style={{ margin: 0, opacity: 0.9, fontSize: '0.9rem', fontWeight: 500 }}>
+            Here is an overview of your schedule, route, and assignments for today.
+          </p>
         </div>
-        <div className="driver-badge-number">
-          <span>DRIVER ID: <strong>{session.referenceId || 'N/A'}</strong></span>
+        <div style={{ position: 'relative', zIndex: 1, background: 'rgba(255,255,255,0.15)', padding: '0.4rem 1rem', borderRadius: '30px', border: '1px solid rgba(255,255,255,0.2)', fontSize: '0.8rem', fontWeight: 700 }}>
+          DRIVER ID: {session.referenceId || 'N/A'}
         </div>
       </div>
 
@@ -125,10 +144,14 @@ const DriverDashboard = () => {
       </div>
 
       {/* Route Stops Board */}
-      <div className="driver-card" style={{ marginTop: '0.5rem' }}>
-        <div className="driver-card-header">
-          <h3><Navigation size={18} className="text-primary-d" style={{ marginRight: '8px' }}/> Today's Route Stops</h3>
-          <span className="notif-pill-d">{dashboardData.route?.points?.length || 0} STOPS</span>
+      <div className="glass-card" style={{ marginTop: '0.5rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-color)', paddingBottom: '1rem', marginBottom: '1.5rem' }}>
+          <h3 style={{ fontSize: '1.2rem', fontWeight: 800, margin: 0, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-main)' }}>
+            <Navigation size={20} style={{ color: '#3b82f6' }}/> Today's Route Stops
+          </h3>
+          <span style={{ background: '#3b82f6', color: 'white', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 800 }}>
+            {dashboardData.route?.points?.length || 0} STOPS
+          </span>
         </div>
         
         <div className="driver-list">
@@ -139,22 +162,25 @@ const DriverDashboard = () => {
               const status = isFirst ? 'Next Stop' : 'Pending';
               
               return (
-                <div key={i} className="driver-list-item" style={{ borderLeft: `4px solid ${isFirst ? '#3b82f6' : '#94a3b8'}`, padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                    <h4 className="ann-title" style={{ fontSize: '1.05rem', color: 'var(--text-main)', margin: 0 }}>{stop}</h4>
-                    <span style={{ fontSize: '0.75rem', background: isFirst ? 'rgba(59, 130, 246, 0.1)' : 'rgba(148, 163, 184, 0.1)', color: isFirst ? '#3b82f6' : '#64748b', padding: '2px 8px', borderRadius: '12px', fontWeight: 600 }}>
+                <div key={i} className="hover-scale" style={{ borderLeft: `4px solid ${isFirst ? '#3b82f6' : '#94a3b8'}`, padding: '1.25rem', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', gap: '0.5rem', cursor: 'default' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                    <h4 style={{ fontSize: '1.1rem', color: 'var(--text-main)', margin: 0, fontWeight: 700 }}>{stop}</h4>
+                    <span style={{ fontSize: '0.75rem', background: isFirst ? 'rgba(59, 130, 246, 0.1)' : 'rgba(148, 163, 184, 0.1)', color: isFirst ? '#3b82f6' : '#64748b', padding: '4px 10px', borderRadius: '12px', fontWeight: 700 }}>
                       {status}
                     </span>
                   </div>
-                  <div className="ann-desc" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between' }}>
-                    <span>Scheduled: ~Morning</span>
-                    <span>Boarding: <strong>{studentsAtStop} Students</strong></span>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'flex', justifyContent: 'space-between', fontWeight: 500 }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Clock size={14} /> Scheduled: ~Morning</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><Users size={14} /> Boarding: <strong style={{ color: 'var(--text-main)' }}>{studentsAtStop} Students</strong></span>
                   </div>
                 </div>
               );
             })
           ) : (
-            <p className="text-muted text-center" style={{ padding: '2rem' }}>No route stops available or assigned.</p>
+            <div style={{ padding: '3rem', textAlign: 'center', background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px dashed var(--border-color)' }}>
+              <Navigation size={32} style={{ color: 'var(--text-muted)', margin: '0 auto 1rem', opacity: 0.5 }} />
+              <p style={{ color: 'var(--text-muted)', fontWeight: 600, fontSize: '0.95rem' }}>No route stops available or assigned for today.</p>
+            </div>
           )}
         </div>
       </div>

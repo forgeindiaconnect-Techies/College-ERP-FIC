@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Search, FileText, CheckCircle2, AlertCircle, User, X, Printer, UserPlus } from 'lucide-react';
-import { getStudents, createFee, createStudent, getAllFees } from '../../api/index';
+import { getStudents, createFee, createStudent, getAllFees, getStudentFeeStructure, getFeesByStudent } from '../../api/index';
 
 const printReceipt = (student, receiptNo, feeType, semester, amount, paymentMode) => {
   const win = window.open('', '_blank', 'width=700,height=650');
@@ -43,6 +43,19 @@ const FeesCollection = () => {
   const [successMsg, setSuccessMsg]     = useState('');
   const [errorMsg, setErrorMsg]         = useState('');
   const [lastReceipt, setLastReceipt]   = useState(null);
+  const [feeStructure, setFeeStructure] = useState(null);
+  const [studentPayments, setStudentPayments] = useState([]);
+  const [studentScholarship, setStudentScholarship] = useState(null);
+
+  const getDiscountedAmount = (key, baseAmount, scholarship) => {
+    if (!scholarship || key !== 'tuitionFee') return baseAmount;
+    let discount = 0;
+    if (scholarship.amount === '100%') discount = baseAmount;
+    else if (scholarship.amount === '75%') discount = baseAmount * 0.75;
+    else if (scholarship.amount === '50%') discount = baseAmount * 0.50;
+    else if (scholarship.amount === '25%') discount = baseAmount * 0.25;
+    return Math.max(0, baseAmount - discount);
+  };
 
   // New Student Modal States
   const [showRegModal, setShowRegModal] = useState(false);
@@ -144,32 +157,57 @@ const FeesCollection = () => {
     setSuggestions(matches);
   };
 
-  const selectStudent = (s) => {
+  const selectStudent = async (s) => {
     setSelectedStudent(s);
     setQuery(s.name);
     setSuggestions([]);
     
-    // Calculate default fee based on department
-    let defaultFee = 45000; // default fallback
-    const dept = s.dept || s.department || '';
-    if (dept.includes('Computer Science') || dept.includes('Information')) defaultFee = 55000;
-    else if (dept.includes('Electronics') || dept.includes('Electrical')) defaultFee = 50000;
-    else if (dept.includes('Mechanical') || dept.includes('Civil')) defaultFee = 45000;
-    else if (dept.includes('Artificial Intelligence') || dept.includes('Cyber Security') || dept.includes('Robotics')) defaultFee = 60000;
-    else if (dept.includes('Biomedical') || dept.includes('Biotechnology')) defaultFee = 52000;
-    else if (dept.includes('Aeronautical') || dept.includes('Automobile') || dept.includes('Chemical')) defaultFee = 48000;
+    try {
+      const [structRes, feesRes] = await Promise.all([
+        getStudentFeeStructure(s.id || s._id).catch(() => ({ data: null })),
+        getFeesByStudent(s.id || s._id).catch(() => ({ data: [] }))
+      ]);
+      
+      const structure = structRes.data || {
+        tuitionFee: 60000,
+        examFee: 2500,
+        libraryFee: 1000,
+        hostelFee: 40000,
+        transportFee: 15000
+      };
+      
+      let foundScholarship = null;
+      try {
+        const savedScholars = localStorage.getItem('erp_scholarships');
+        if (savedScholars) {
+          const scholarsList = JSON.parse(savedScholars);
+          foundScholarship = scholarsList.find(sch => sch.studentId === (s.id || s._id) && sch.status === 'Active');
+        }
+      } catch (e) { console.error('Error parsing scholarships', e); }
+      
+      setStudentScholarship(foundScholarship);
+      setFeeStructure(structure);
+      setStudentPayments(feesRes.data || []);
+      
+      setFeeType('Tuition Fee');
+      
+      // Calculate pending amount for Tuition Fee
+      const effectiveTuition = getDiscountedAmount('tuitionFee', structure.tuitionFee, foundScholarship);
+      const paid = (feesRes.data || []).filter(f => f.feeType === 'Tuition Fee').reduce((acc, curr) => acc + curr.paidAmount, 0);
+      const pending = effectiveTuition - paid;
+      setAmount(pending > 0 ? pending : 0);
 
-    setAmount(defaultFee);
-    setFeeType('Tuition Fee');
-
-    // Auto-fill semester from student record
-    if (s.sem) setSemester(s.sem);
+      if (s.sem) setSemester(s.sem);
+    } catch (err) {
+      console.error(err);
+    }
   };
 
   const clearStudent = () => {
     setSelectedStudent(null);
     setQuery('');
     setSuggestions([]);
+    setStudentScholarship(null);
     inputRef.current?.focus();
   };
 
@@ -276,7 +314,8 @@ const FeesCollection = () => {
         studentName: selectedStudent.name,
         department: selectedStudent.dept || selectedStudent.department || 'Computer Science',
         semester,
-        totalFees: Number(amount),
+        feeType,
+        totalFees: feeStructure ? getDiscountedAmount(feeType.replace(' ', '').replace(/^\w/, c => c.toLowerCase()), feeStructure[feeType.replace(' ', '').replace(/^\w/, c => c.toLowerCase())], studentScholarship) : Number(amount),
         paidAmount: Number(amount),
         paymentMode,
         receiptNo,
@@ -290,6 +329,10 @@ const FeesCollection = () => {
         printReceipt(selectedStudent, receiptNo, feeType, semester, amount, paymentMode);
         // Refresh the student list so their feeStatus updates immediately
         await load();
+        if (selectedStudent) {
+          // Re-fetch to update the table immediately
+          selectStudent(selectedStudent);
+        }
         setTimeout(() => {
           setSuccessMsg('');
           setLastReceipt(null);
@@ -486,9 +529,145 @@ const FeesCollection = () => {
                   </div>
                 ))}
               </div>
+              
+              {studentScholarship && (
+                <div style={{ marginTop: '16px', padding: '12px', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', borderRadius: '8px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                    <span style={{ color: '#6366F1', fontWeight: 700, fontSize: '0.85rem', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      🎓 Active Scholarship
+                    </span>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem', color: 'var(--text-main)' }}>
+                    <span>{studentScholarship.type}</span>
+                    <span style={{ fontWeight: 700, color: '#10b981' }}>{studentScholarship.amount} Waiver</span>
+                  </div>
+                </div>
+              )}
+
               <button onClick={clearStudent} style={{ marginTop:'12px', width:'100%', padding:'8px', background:'none', border:'1px solid var(--border-color)', borderRadius:'8px', color:'var(--text-muted)', cursor:'pointer', fontSize:'0.85rem' }}>
                 ✕ Change Student
               </button>
+
+              {feeStructure && (() => {
+                const validFees = [
+                  { label: 'Tuition Fee', key: 'tuitionFee' },
+                  { label: 'Exam Fee', key: 'examFee' },
+                  { label: 'Library Fee', key: 'libraryFee' },
+                  { label: 'Hostel Fee', key: 'hostelFee' },
+                  { label: 'Transport Fee', key: 'transportFee' }
+                ].filter(fee => (feeStructure[fee.key] || 0) > 0);
+
+                let grossFee = 0;
+                let totalDiscount = 0;
+                let totalPaid = 0;
+                
+                validFees.forEach(fee => {
+                  const baseTotal = feeStructure[fee.key] || 0;
+                  const netTotal = getDiscountedAmount(fee.key, baseTotal, studentScholarship);
+                  const paid = studentPayments.filter(f => f.feeType === fee.label).reduce((acc, curr) => acc + curr.paidAmount, 0);
+                  grossFee += baseTotal;
+                  totalDiscount += (baseTotal - netTotal);
+                  totalPaid += paid;
+                });
+
+                const netFee = grossFee - totalDiscount;
+                const pendingFee = netFee - totalPaid;
+
+                return (
+                  <div style={{ marginTop: '20px' }}>
+                    <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '10px' }}>Fee Status Table</h4>
+                    <div style={{ overflowX: 'auto', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem', textAlign: 'left' }}>
+                        <thead style={{ background: 'var(--bg-secondary)', color: 'var(--text-muted)' }}>
+                          <tr>
+                            <th style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)' }}>Fee Type</th>
+                            <th style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)' }}>Gross Fee</th>
+                            <th style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)' }}>Discount</th>
+                            <th style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)' }}>Net Fee</th>
+                            <th style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)' }}>Paid</th>
+                            <th style={{ padding: '8px 10px', borderBottom: '1px solid var(--border-color)' }}>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {validFees.map(fee => {
+                            const baseTotal = feeStructure[fee.key] || 0;
+                            const total = getDiscountedAmount(fee.key, baseTotal, studentScholarship);
+                            const discountAmount = baseTotal - total;
+                            const paid = studentPayments.filter(f => f.feeType === fee.label).reduce((acc, curr) => acc + curr.paidAmount, 0);
+                            const pending = total - paid;
+                            const status = paid >= total && total > 0 ? 'Paid' : (paid > 0 ? 'Partial' : 'Pending');
+                            
+                            return (
+                              <tr key={fee.key} 
+                                onClick={() => {
+                                  setFeeType(fee.label);
+                                  setAmount(pending > 0 ? pending : 0);
+                                }}
+                                style={{ 
+                                  cursor: 'pointer', 
+                                  background: feeType === fee.label ? 'rgba(59,130,246,0.1)' : 'transparent',
+                                  borderBottom: '1px solid var(--border-color)' 
+                                }}>
+                                <td style={{ padding: '8px 10px', fontWeight: 600, color: 'var(--text-main)' }}>{fee.label}</td>
+                                <td style={{ padding: '8px 10px', color: 'var(--text-muted)' }}>₹{baseTotal.toLocaleString()}</td>
+                                <td style={{ padding: '8px 10px', color: '#10b981' }}>{discountAmount > 0 ? `-₹${discountAmount.toLocaleString()}` : '—'}</td>
+                                <td style={{ padding: '8px 10px', color: 'var(--text-main)', fontWeight: 600 }}>₹{total.toLocaleString()}</td>
+                                <td style={{ padding: '8px 10px', color: '#3b82f6', fontWeight: 600 }}>₹{paid.toLocaleString()}</td>
+                                <td style={{ padding: '8px 10px' }}>
+                                  <span style={{ padding: '2px 6px', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 600, 
+                                    background: status === 'Paid' ? 'rgba(16,185,129,0.1)' : (status === 'Partial' ? 'rgba(245,158,11,0.1)' : 'rgba(239,68,68,0.1)'),
+                                    color: status === 'Paid' ? '#10b981' : (status === 'Partial' ? '#f59e0b' : '#ef4444')
+                                  }}>
+                                    {status}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                    <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px', textAlign: 'center', marginBottom: '16px' }}>
+                      Click a row to load the pending amount into the form.
+                    </p>
+
+                    <div style={{ padding: '16px', background: 'var(--bg-secondary)', borderRadius: '10px', border: '1px solid var(--border-color)' }}>
+                      <h4 style={{ fontSize: '0.9rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '12px' }}>Total Fee Summary</h4>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Original Gross Fee</span>
+                        <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>₹{grossFee.toLocaleString()}</span>
+                      </div>
+                      
+                      {totalDiscount > 0 && (
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                          <span style={{ color: 'var(--text-muted)' }}>Scholarship Discount</span>
+                          <span style={{ fontWeight: 700, color: '#10b981' }}>-₹{totalDiscount.toLocaleString()}</span>
+                        </div>
+                      )}
+                      
+                      <div style={{ height: '1px', background: 'var(--border-color)', margin: '10px 0' }} />
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                        <span style={{ fontWeight: 600, color: 'var(--text-main)' }}>Net Payable Fee</span>
+                        <span style={{ fontWeight: 700, color: 'var(--text-main)' }}>₹{netFee.toLocaleString()}</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', fontSize: '0.85rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Amount Paid</span>
+                        <span style={{ fontWeight: 600, color: '#3b82f6' }}>₹{totalPaid.toLocaleString()}</span>
+                      </div>
+                      
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.85rem' }}>
+                        <span style={{ color: 'var(--text-muted)' }}>Pending Amount</span>
+                        <span style={{ fontWeight: 800, color: pendingFee > 0 ? '#f59e0b' : '#10b981' }}>
+                          {pendingFee > 0 ? `₹${pendingFee.toLocaleString()}` : 'Fully Paid'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           ) : (
             <div className="glass-card" style={{ padding:'20px', opacity:0.5 }}>
@@ -517,13 +696,32 @@ const FeesCollection = () => {
             <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:'18px', marginBottom:'18px' }}>
               <div>
                 <label style={{ display:'block', fontSize:'0.85rem', fontWeight:600, color:'var(--text-muted)', marginBottom:'6px' }}>Fee Type</label>
-                <select value={feeType} onChange={e => setFeeType(e.target.value)}
+                <select value={feeType} onChange={e => {
+                  setFeeType(e.target.value);
+                  if (feeStructure) {
+                    const key = e.target.value === 'Tuition Fee' ? 'tuitionFee' : 
+                                e.target.value === 'Exam Fee' ? 'examFee' : 
+                                e.target.value === 'Library Fee' ? 'libraryFee' : 
+                                e.target.value === 'Hostel Fee' ? 'hostelFee' : 
+                                e.target.value === 'Transport Fee' ? 'transportFee' : '';
+                    if (key) {
+                      const effectiveTotal = getDiscountedAmount(key, feeStructure[key], studentScholarship);
+                      const paid = studentPayments.filter(f => f.feeType === e.target.value).reduce((acc, curr) => acc + curr.paidAmount, 0);
+                      const pending = effectiveTotal - paid;
+                      setAmount(pending > 0 ? pending : 0);
+                    }
+                  }
+                }}
                   style={{ width:'100%', padding:'10px 14px', borderRadius:'8px', border:'1px solid var(--border-color)', background:'var(--bg-secondary)', color:'var(--text-main)', fontSize:'0.95rem', outline:'none' }}>
-                  <option>Tuition Fee</option>
-                  <option>Exam Fee</option>
-                  <option>Hostel Fee</option>
-                  <option>Transport Fee</option>
-                  <option>Library Fine</option>
+                  {[
+                    { label: 'Tuition Fee', key: 'tuitionFee' },
+                    { label: 'Exam Fee', key: 'examFee' },
+                    { label: 'Library Fee', key: 'libraryFee' },
+                    { label: 'Hostel Fee', key: 'hostelFee' },
+                    { label: 'Transport Fee', key: 'transportFee' }
+                  ].filter(fee => !feeStructure || feeStructure[fee.key] > 0).map(fee => (
+                    <option key={fee.key} value={fee.label}>{fee.label}</option>
+                  ))}
                 </select>
               </div>
               <div>

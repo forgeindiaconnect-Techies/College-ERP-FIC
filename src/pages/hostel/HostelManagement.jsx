@@ -103,6 +103,12 @@ const HostelManagement = () => {
   const [showEditMenuModal, setShowEditMenuModal] = useState(false);
   const [editMenuForm, setEditMenuForm] = useState(messMenu);
 
+  // Gate Passes State
+  const [gatePasses, setGatePasses] = useState(() => {
+    const saved = localStorage.getItem('erp_hostel_leaves');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const handleEditMenuSubmit = (e) => {
     e.preventDefault();
     setMessMenu(editMenuForm);
@@ -272,12 +278,26 @@ const HostelManagement = () => {
     });
   };
 
+  const handleUpdateGatePass = (id, newStatus) => {
+    setGatePasses(prev => {
+      const updated = prev.map(p => p.id === id ? { ...p, status: newStatus } : p);
+      localStorage.setItem('erp_hostel_leaves', JSON.stringify(updated));
+      return updated;
+    });
+    // Trigger storage event so other tabs sync
+    window.dispatchEvent(new Event('storage'));
+  };
+
   React.useEffect(() => {
     fetchHostelData();
 
-    // Listen for changes from the HOD tab
+    // Listen for changes from the HOD tab or Student tab
     const handleStorage = (e) => {
-      if (e.key === 'erp_students') fetchHostelData();
+      if (e?.key === 'erp_students') fetchHostelData();
+      if (e?.key === 'erp_hostel_leaves' || !e?.key) {
+        const saved = localStorage.getItem('erp_hostel_leaves');
+        if (saved) setGatePasses(JSON.parse(saved));
+      }
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
@@ -371,6 +391,7 @@ const HostelManagement = () => {
     { name: 'Dashboard', icon: <LayoutDashboard size={16} /> },
     { name: 'Hostel Requests', icon: <AlertCircle size={16} /> },
     { name: 'Student Allocation', icon: <Users size={16} /> },
+    { name: 'Gate Passes', icon: <CheckCircle size={16} /> },
     { name: 'Hostel Blocks', icon: <Building size={16} /> },
     { name: 'Rooms', icon: <DoorOpen size={16} /> },
     { name: 'Wardens', icon: <UserCheck size={16} /> },
@@ -624,6 +645,69 @@ const HostelManagement = () => {
                 ))}
                 {allocatedStudents.length === 0 && (
                   <tr><td colSpan="6" className="text-center text-muted p-8">No students have been allocated a room yet.</td></tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'Gate Passes' && (
+        <div className="animate-fade-in glass-card">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-gray-50 dark:bg-gray-800/50">
+            <h2 className="font-bold">Student Gate Passes</h2>
+            <div className="search-box">
+              <Search size={16} className="text-muted"/>
+              <input type="text" placeholder="Search passes..." value={search} onChange={e=>setSearch(e.target.value)}/>
+            </div>
+          </div>
+          <div className="table-container">
+            <table>
+              <thead>
+                <tr>
+                  <th>Student Info</th>
+                  <th>Room</th>
+                  <th>Pass Type</th>
+                  <th>Dates</th>
+                  <th>Reason</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {gatePasses.filter(p => p.studentName?.toLowerCase().includes(search.toLowerCase()) || p.studentId?.toLowerCase().includes(search.toLowerCase())).map(pass => (
+                  <tr key={pass.id}>
+                    <td>
+                      <div className="font-medium">{pass.studentName}</div>
+                      <div className="text-xs text-muted font-mono">{pass.studentId}</div>
+                    </td>
+                    <td className="font-bold text-primary">{pass.room || 'N/A'}</td>
+                    <td>{pass.type}</td>
+                    <td className="font-medium text-sm">{pass.dates}</td>
+                    <td className="text-sm max-w-[200px] truncate" title={pass.reason}>{pass.reason}</td>
+                    <td>
+                      <span className={`px-2 py-1 rounded text-xs font-bold ${
+                        pass.status === 'Approved' ? 'bg-green-100 text-green-700' :
+                        pass.status === 'Rejected' ? 'bg-red-100 text-red-700' :
+                        'bg-yellow-100 text-yellow-700'
+                      }`}>
+                        {pass.status}
+                      </span>
+                    </td>
+                    <td>
+                      {pass.status === 'Pending' ? (
+                        <div className="flex gap-2">
+                          <button className="btn-primary text-xs py-1 px-3" onClick={() => handleUpdateGatePass(pass.id, 'Approved')}>Approve</button>
+                          <button className="btn-secondary text-xs py-1 px-3 text-danger hover:bg-red-50" onClick={() => handleUpdateGatePass(pass.id, 'Rejected')}>Reject</button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted italic">Processed</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+                {gatePasses.length === 0 && (
+                  <tr><td colSpan="7" className="text-center text-muted p-8">No gate passes have been requested yet.</td></tr>
                 )}
               </tbody>
             </table>

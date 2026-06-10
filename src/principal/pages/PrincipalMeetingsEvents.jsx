@@ -1339,7 +1339,7 @@ export default function PrincipalMeetingsEvents() {
 
       {/* --- RENDER VIEW: INTERACTIVE CALENDAR --- */}
       {activeView === 'calendar' && (
-        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '1.5rem' }}>
+        <div className="animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 7fr) minmax(0, 3fr)', gap: '1.5rem' }}>
           
           {/* Calendar Left Card */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
@@ -1467,7 +1467,7 @@ export default function PrincipalMeetingsEvents() {
 
       {/* --- RENDER VIEW: STANDARD SCHEDULES LIST (Original Split Layout) --- */}
       {activeView === 'list' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '7fr 3fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 7fr) minmax(0, 3fr)', gap: '1.5rem' }}>
           
           {/* LEFT COLUMN: EVENTS TABLE */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', minHeight: '500px' }}>
@@ -1788,11 +1788,12 @@ export default function PrincipalMeetingsEvents() {
                   >
                     <option value="All Departments">All Departments</option>
                     <option value="CSE Department">CSE Department</option>
+                    <option value="IT Department">IT Department</option>
+                    <option value="AI&DS Department">AI&DS Department</option>
+                    <option value="Cyber Security Department">Cyber Security Department</option>
                     <option value="ECE Department">ECE Department</option>
                     <option value="EEE Department">EEE Department</option>
                     <option value="MECH Department">MECH Department</option>
-                    <option value="MBA Department">MBA Department</option>
-                    <option value="BCA Department">BCA Department</option>
                   </select>
                 </div>
               </div>

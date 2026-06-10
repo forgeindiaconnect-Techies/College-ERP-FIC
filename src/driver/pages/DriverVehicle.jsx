@@ -140,12 +140,12 @@ const DriverVehicle = () => {
           <div style={{ backgroundColor: 'white', border: '1px solid #e5e7eb', borderRadius: '1rem', overflow: 'hidden', boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)' }}>
             
             {/* Gradient Banner */}
-            <div style={{ background: 'linear-gradient(to right, #1e3a8a, #2563eb)', padding: '2rem', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
+            <div style={{ background: 'linear-gradient(to right, #1e3a8a, #2563eb)', padding: '1.25rem 1.5rem', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
               <div>
-                <p style={{ color: '#bfdbfe', fontSize: '0.75rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.25rem 0' }}>{vehicle.vehicleType} • Capacity: {vehicle.capacity}</p>
-                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, margin: 0, letterSpacing: '0.05em', color: 'white' }}>{vehicle.vehicleNumber}</h2>
+                <p style={{ color: '#bfdbfe', fontSize: '0.7rem', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.05em', margin: '0 0 0.25rem 0' }}>{vehicle.vehicleType} • Capacity: {vehicle.capacity}</p>
+                <h2 style={{ fontSize: '1.5rem', fontWeight: 800, margin: 0, letterSpacing: '0.05em', color: 'white' }}>{vehicle.vehicleNumber}</h2>
               </div>
-              <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: '0.25rem 1rem', borderRadius: '9999px', fontSize: '0.875rem', fontWeight: 'bold', backdropFilter: 'blur(4px)' }}>
+              <div style={{ backgroundColor: 'rgba(255, 255, 255, 0.2)', padding: '0.25rem 1rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 'bold', backdropFilter: 'blur(4px)' }}>
                 ID: {vehicle.vehicleId}
               </div>
             </div>

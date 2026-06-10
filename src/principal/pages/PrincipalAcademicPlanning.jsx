@@ -587,7 +587,7 @@ export default function PrincipalAcademicPlanning() {
         }
         .workflow-box {
           display: flex;
-          justify-content: space-between;
+          justify-content: flex-start;
           align-items: center;
           background: var(--bg-secondary);
           padding: 1rem 1.5rem;
@@ -595,7 +595,7 @@ export default function PrincipalAcademicPlanning() {
           border: 1px solid var(--border-color);
           margin-bottom: 1.5rem;
           flex-wrap: wrap;
-          gap: 1rem;
+          gap: 1.5rem;
         }
         .workflow-step-node {
           display: flex;
@@ -762,7 +762,7 @@ export default function PrincipalAcademicPlanning() {
 
       {/* --- RENDER VIEW: MASTER SCHEDULES LIST --- */}
       {activeView === 'list' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '7.5fr 2.5fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 7.5fr) minmax(0, 2.5fr)', gap: '1.5rem' }}>
           
           {/* Main Table Column */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', transition: 'none' }}>
@@ -993,7 +993,7 @@ export default function PrincipalAcademicPlanning() {
               <p style={{ fontSize: '0.72rem', color: 'var(--text-muted)', lineHeight: '1.4', marginBottom: '1rem' }}>
                 Synchronize changes to campus portals, student timetables, and external directories.
               </p>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 1fr) minmax(0, 1fr)', gap: '0.5rem' }}>
                 <button
                   onClick={() => triggerToast('📅 Synced! Master calendar pushed to student & parent mobile app queues.')}
                   style={{ padding: '0.5rem', background: '#3b82f6', border: 'none', color: 'white', borderRadius: '6px', fontSize: '0.7rem', fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '3px', cursor: 'pointer' }}
@@ -1064,7 +1064,7 @@ export default function PrincipalAcademicPlanning() {
 
       {/* --- RENDER VIEW: ACADEMIC CALENDAR (GRID VIEW) --- */}
       {activeView === 'calendar' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '7.5fr 2.5fr', gap: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(0, 7.5fr) minmax(0, 2.5fr)', gap: '1.5rem' }}>
           
           {/* Monthly Calendar Card */}
           <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', transition: 'none' }}>

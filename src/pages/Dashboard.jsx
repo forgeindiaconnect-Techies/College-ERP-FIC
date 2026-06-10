@@ -194,33 +194,33 @@ const Dashboard = () => {
       <div className="stats-grid">
         <div className="stat-card glass-card">
           <div className="stat-icon-wrapper bg-icon-blue">
-            <Users size={24} />
+            <Users size={18} />
           </div>
           <div className="stat-details">
             <h3>Total Students</h3>
             <p className="stat-value">{totalStudentsCount.toLocaleString()}</p>
             <p className="stat-change positive">
-              <TrendingUp size={14} /> Global Enrollment
+              <TrendingUp size={12} /> Global Enrollment
             </p>
           </div>
         </div>
 
         <div className="stat-card glass-card">
           <div className="stat-icon-wrapper bg-icon-purple">
-            <GraduationCap size={24} />
+            <GraduationCap size={18} />
           </div>
           <div className="stat-details">
             <h3>Total HODs</h3>
             <p className="stat-value">{totalHodsCount}</p>
             <p className="stat-change positive">
-              <TrendingUp size={14} /> Assigned departments
+              <TrendingUp size={12} /> Assigned departments
             </p>
           </div>
         </div>
 
         <div className="stat-card glass-card">
           <div className="stat-icon-wrapper bg-icon-orange">
-            <Building2 size={24} />
+            <Building2 size={18} />
           </div>
           <div className="stat-details">
             <h3>Departments</h3>
@@ -231,39 +231,39 @@ const Dashboard = () => {
 
         <div className="stat-card glass-card">
           <div className="stat-icon-wrapper bg-icon-green">
-            <CalendarCheck size={24} />
+            <CalendarCheck size={18} />
           </div>
           <div className="stat-details">
             <h3>Avg Attendance</h3>
             <p className="stat-value">{averageAttendance}%</p>
             <p className="stat-change positive">
-              <TrendingUp size={14} /> Overall rate
+              <TrendingUp size={12} /> Overall rate
             </p>
           </div>
         </div>
 
         <div className="stat-card glass-card">
           <div className="stat-icon-wrapper bg-icon-emerald">
-            <Wallet size={24} />
+            <Wallet size={18} />
           </div>
           <div className="stat-details">
             <h3>Fees Collected</h3>
             <p className="stat-value">{feesDisplay}</p>
             <p className="stat-change positive">
-              <TrendingUp size={14} /> Mapped terms
+              <TrendingUp size={12} /> Mapped terms
             </p>
           </div>
         </div>
 
         <div className="stat-card glass-card">
           <div className="stat-icon-wrapper bg-icon-teal">
-            <Heart size={24} />
+            <Heart size={18} />
           </div>
           <div className="stat-details">
             <h3>Parents Accounts</h3>
             <p className="stat-value">{totalParentsCount.toLocaleString()}</p>
             <p className="stat-change positive">
-              <TrendingUp size={14} /> Active links
+              <TrendingUp size={12} /> Active links
             </p>
           </div>
         </div>

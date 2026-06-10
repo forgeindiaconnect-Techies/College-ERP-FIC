@@ -1,9 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { Calendar, Filter, Save, Plus, CheckCircle, X } from 'lucide-react';
-import { getTimetable, publishTimetable } from '../api/index';
+import { getTimetable, publishTimetable, getDepartments } from '../api/index';
+
+const DEFAULT_DEPARTMENTS = [
+  'Computer Science Engineering',
+  'Information Technology',
+  'Electronics & Communication Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Cyber Security',
+  'Artificial Intelligence & Data Science'
+];
+
+const SEMESTERS = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'];
 
 const TimetableManagement = () => {
-  const [dept, setDept] = useState('Computer Science');
+  const [departments, setDepartments] = useState(DEFAULT_DEPARTMENTS);
+  const [dept, setDept] = useState('Computer Science Engineering');
   const [sem, setSem] = useState('Semester 6');
   const [times, setTimes] = useState(['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00']);
   const [grid, setGrid] = useState([
@@ -23,6 +36,8 @@ const TimetableManagement = () => {
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
 
   useEffect(() => {
+    const savedDepts = localStorage.getItem('erp_departments');
+    if (savedDepts) setDepartments(JSON.parse(savedDepts));
     fetchData();
   }, [dept, sem]);
 
@@ -111,17 +126,13 @@ const TimetableManagement = () => {
           className="bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded px-3 py-1.5 outline-none focus:border-[#6366F1]"
           value={dept} onChange={e => setDept(e.target.value)}
         >
-          <option>Computer Science</option>
-          <option>Electrical Engg.</option>
-          <option>Mechanical Engg.</option>
+          {departments.map(d => <option key={d}>{d}</option>)}
         </select>
         <select 
           className="bg-transparent border border-[var(--border-color)] text-[var(--text-main)] rounded px-3 py-1.5 outline-none focus:border-[#6366F1]"
           value={sem} onChange={e => setSem(e.target.value)}
         >
-          <option>Semester 1</option>
-          <option>Semester 2</option>
-          <option>Semester 6</option>
+          {SEMESTERS.map(s => <option key={s}>{s}</option>)}
         </select>
       </div>
 

@@ -391,7 +391,7 @@ export default function PrincipalApprovals() {
       <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
         
         {/* LEFT COLUMN: REQUESTS TABLE */}
-        <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+        <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', minWidth: 0, overflowX: 'auto' }}>
           
           {/* SEARCH & FILTERS HEADER */}
           <div className="flex justify-between items-center mb-4 flex-wrap gap-4">
@@ -429,8 +429,8 @@ export default function PrincipalApprovals() {
           </div>
 
           {/* TABLE */}
-          <div className="table-container animate-fade-in">
-            <table>
+          <div className="table-container animate-fade-in" style={{ overflowX: 'auto', width: '100%' }}>
+            <table style={{ width: '100%', minWidth: '700px' }}>
               <thead>
                 <tr>
                   <th>Request Type</th>
@@ -478,11 +478,11 @@ export default function PrincipalApprovals() {
                       </span>
                     </td>
                     <td>
-                      <div style={{ display: 'flex', gap: '0.4rem' }}>
+                      <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', minWidth: '180px' }}>
                         <button 
                           onClick={() => { setSelectedReq(req); setSignatureKey(''); setIsSignatureVerified(false); }}
                           className="btn-primary" 
-                          style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px' }}
+                          style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', flex: '1 1 auto', textAlign: 'center' }}
                         >
                           View Details
                         </button>
@@ -491,14 +491,14 @@ export default function PrincipalApprovals() {
                             <button 
                               onClick={() => handleApprove(req.id)}
                               className="btn-primary" 
-                              style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', background: 'var(--success)' }}
+                              style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', background: 'var(--success)', flex: '1 1 auto', textAlign: 'center' }}
                             >
                               Approve
                             </button>
                             <button 
                               onClick={() => { setSelectedReq(req); setRemarksInput(''); }}
                               className="btn-primary" 
-                              style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', background: 'var(--danger)' }}
+                              style={{ padding: '4px 8px', fontSize: '0.75rem', borderRadius: '6px', background: 'var(--danger)', flex: '1 1 auto', textAlign: 'center' }}
                             >
                               Reject
                             </button>

@@ -7,7 +7,7 @@ const getHodSession = () => {
   catch { return { dept: 'Computer Science' }; }
 };
 
-const SEMESTERS = ['Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
+const SEMESTERS = ['Semester 1','Semester 2','Semester 3','Semester 4','Semester 5','Semester 6','Semester 7','Semester 8'];
 
 const DEPT_SUBJECTS = {
   'Computer Science': ['Data Structures', 'DBMS', 'OS', 'Machine Learning', 'Computer Networks'],
@@ -29,7 +29,7 @@ const HodSubjects = () => {
   const [semFilter, setSemFilter] = useState('All');
   const [modalOpen, setModalOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [form, setForm] = useState({ code:'', name:'', sem:'Sem 1', teacher:'', credits:4, hours:4 });
+  const [form, setForm] = useState({ code:'', name:'', sem:'Semester 1', teacher:'', credits:4, hours:4 });
 
   useEffect(() => {
     const saved = localStorage.getItem('erp_subjects');
@@ -68,7 +68,7 @@ const HodSubjects = () => {
     localStorage.setItem('erp_subjects', JSON.stringify([...otherDeptSubjects, ...list]));
   };
 
-  const openAdd = () => { setForm({ code:'', name:'', sem:'Sem 1', teacher:'', credits:4, hours:4 }); setEditId(null); setModalOpen(true); };
+  const openAdd = () => { setForm({ code:'', name:'', sem:'Semester 1', teacher:'', credits:4, hours:4 }); setEditId(null); setModalOpen(true); };
   const openEdit = (s) => { setForm({ code:s.code, name:s.name, sem:s.sem, teacher:s.teacher, credits:s.credits, hours:s.hours }); setEditId(s.id); setModalOpen(true); };
 
   const handleSubmit = (e) => {

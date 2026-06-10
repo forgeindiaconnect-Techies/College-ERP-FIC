@@ -66,12 +66,38 @@ const AdminAssignments = () => {
     loadData();
   }, [navigate]);
 
-  const departments = ['All Departments', ...new Set(assignments.map(a => a.department).filter(Boolean))];
+  const departments = [
+    'All Departments',
+    'Computer Science Engineering',
+    'Information Technology',
+    'Electronics & Communication Engineering',
+    'Electrical & Electronics Engineering',
+    'Mechanical Engineering',
+    'Civil Engineering',
+    'Artificial Intelligence & Data Science',
+    'Artificial Intelligence & Machine Learning',
+    'Cyber Security',
+    'Biomedical Engineering',
+    'Aeronautical Engineering',
+    'Automobile Engineering',
+    'Robotics Engineering',
+    'Chemical Engineering',
+    'Biotechnology Engineering'
+  ];
 
   // Filter assignments by selected department
   let filteredAssignments = assignments;
   if (filterDept !== 'All Departments') {
-    filteredAssignments = filteredAssignments.filter(a => a.department === filterDept);
+    filteredAssignments = filteredAssignments.filter(a => {
+      let dept = a.department;
+      if (dept === 'Computer Science') dept = 'Computer Science Engineering';
+      else if (dept === 'Electronics & Comm.') dept = 'Electronics & Communication Engineering';
+      else if (dept === 'Electrical Engg.') dept = 'Electrical & Electronics Engineering';
+      else if (dept === 'Mechanical Engg.') dept = 'Mechanical Engineering';
+      else if (dept === 'Civil Engg.') dept = 'Civil Engineering';
+      else if (dept === 'Information Tech.') dept = 'Information Technology';
+      return dept === filterDept;
+    });
   }
 
   filteredAssignments = filteredAssignments.filter(a =>
@@ -153,7 +179,16 @@ const AdminAssignments = () => {
               <div key={a._id || a.id} className="glass-card assignment-card" onClick={() => openSubmissions(a)} style={{ display: 'flex', flexDirection: 'column', cursor: 'pointer' }}>
                 <div className="assignment-card-header">
                   <span className="assignment-class-badge" style={{ background: 'var(--primary-light)', color: 'var(--primary)' }}>
-                    {a.department || 'General'} - {a.class}
+                    {(() => {
+                      let dept = a.department || 'General';
+                      if (dept === 'Computer Science') dept = 'Computer Science Engineering';
+                      else if (dept === 'Electronics & Comm.') dept = 'Electronics & Communication Engineering';
+                      else if (dept === 'Electrical Engg.') dept = 'Electrical & Electronics Engineering';
+                      else if (dept === 'Mechanical Engg.') dept = 'Mechanical Engineering';
+                      else if (dept === 'Civil Engg.') dept = 'Civil Engineering';
+                      else if (dept === 'Information Tech.') dept = 'Information Technology';
+                      return dept;
+                    })()} - {a.class}
                   </span>
                   <span className="instructor-label" style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>By: {a.faculty}</span>
                 </div>

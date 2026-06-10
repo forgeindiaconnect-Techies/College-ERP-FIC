@@ -11,6 +11,7 @@ const feeSchema = new mongoose.Schema({
   pendingAmount: { type: Number },
   paymentDate: { type: Date },
   paymentMode: { type: String },
+  feeType: { type: String, default: 'Tuition Fee' },
   status: { type: String, enum: ['Paid', 'Pending', 'Partial'], default: 'Pending' },
   receiptNo: { type: String },
   payments: { type: Array, default: [] }

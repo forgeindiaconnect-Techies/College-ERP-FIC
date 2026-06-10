@@ -34,12 +34,12 @@
 }
 
 .stat-card {
-  display: flex; flex-direction: row; align-items: center; gap: 1rem;
+  display: flex; flex-direction: row; align-items: center; gap: 0.75rem;
   overflow: hidden;
 }
 
 .stat-icon-wrapper {
-  width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
+  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
 .stat-icon-wrapper svg { color: inherit !important; }
@@ -52,8 +52,8 @@
 .bg-gradient-teal { background: rgba(20, 184, 166, 0.1) !important; color: #14B8A6 !important; }
 
 .stat-details { display: flex; flex-direction: column; flex: 1; }
-.stat-details h3 { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin: 0 0 0.15rem 0; line-height: 1.2; }
-.stat-card .stat-value, .stat-value { font-size: 1.3rem; font-weight: 700; color: var(--text-main) !important; margin: 0 0 0.1rem 0; line-height: 1.2; }
+.stat-details h3 { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin: 0 0 0.15rem 0; line-height: 1.2; }
+.stat-card .stat-value, .stat-value { font-size: 1.15rem; font-weight: 700; color: var(--text-main) !important; margin: 0 0 0.1rem 0; line-height: 1.2; }
 .stat-change { display: flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; font-weight: 500; margin: 0; }
 
 .stat-change.positive {

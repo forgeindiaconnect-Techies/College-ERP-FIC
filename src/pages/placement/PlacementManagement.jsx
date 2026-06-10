@@ -242,35 +242,35 @@ const PlacementManagement = () => {
       {activeTab === 'Dashboard' && (
         <div className="animate-fade-in">
           <div className="placement-grid grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-            <div className="glass-card p-5 relative overflow-hidden">
-              <Building size={24} className="text-blue-500 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Total Companies</h3>
-              <p className="text-2xl font-bold mt-1">{companies.length}</p>
+            <div className="glass-card p-3 relative overflow-hidden">
+              <Building size={18} className="text-blue-500 mb-1"/>
+              <h3 className="text-xs text-muted uppercase font-bold">Total Companies</h3>
+              <p className="text-lg font-bold mt-1">{companies.length}</p>
             </div>
-            <div className="glass-card p-5 relative overflow-hidden">
-              <Briefcase size={24} className="text-purple-500 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Active Drives</h3>
-              <p className="text-2xl font-bold mt-1">{jobs.length}</p>
+            <div className="glass-card p-3 relative overflow-hidden">
+              <Briefcase size={18} className="text-purple-500 mb-1"/>
+              <h3 className="text-xs text-muted uppercase font-bold">Active Drives</h3>
+              <p className="text-lg font-bold mt-1">{jobs.length}</p>
             </div>
-            <div className="glass-card p-5 relative overflow-hidden">
-              <Users size={24} className="text-yellow-500 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Applications</h3>
-              <p className="text-2xl font-bold mt-1">{applications.length}</p>
+            <div className="glass-card p-3 relative overflow-hidden">
+              <Users size={18} className="text-yellow-500 mb-1"/>
+              <h3 className="text-xs text-muted uppercase font-bold">Applications</h3>
+              <p className="text-lg font-bold mt-1">{applications.length}</p>
             </div>
-            <div className="glass-card p-5 relative overflow-hidden">
-              <Award size={24} className="text-success mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Students Placed</h3>
-              <p className="text-2xl font-bold text-success mt-1">{selections.length}</p>
+            <div className="glass-card p-3 relative overflow-hidden">
+              <Award size={18} className="text-success mb-1"/>
+              <h3 className="text-xs text-muted uppercase font-bold">Students Placed</h3>
+              <p className="text-lg font-bold text-success mt-1">{selections.length}</p>
             </div>
-            <div className="glass-card p-5 relative overflow-hidden">
-              <DollarSign size={24} className="text-blue-400 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Highest Package</h3>
-              <p className="text-2xl font-bold mt-1">{packageStats.highest}</p>
+            <div className="glass-card p-3 relative overflow-hidden">
+              <DollarSign size={18} className="text-blue-400 mb-1"/>
+              <h3 className="text-xs text-muted uppercase font-bold">Highest Package</h3>
+              <p className="text-lg font-bold mt-1">{packageStats.highest}</p>
             </div>
-            <div className="glass-card p-5 relative overflow-hidden">
-              <DollarSign size={24} className="text-green-400 mb-2"/>
-              <h3 className="text-sm text-muted uppercase font-bold">Avg Package</h3>
-              <p className="text-2xl font-bold mt-1">{packageStats.average}</p>
+            <div className="glass-card p-3 relative overflow-hidden">
+              <DollarSign size={18} className="text-green-400 mb-1"/>
+              <h3 className="text-xs text-muted uppercase font-bold">Avg Package</h3>
+              <p className="text-lg font-bold mt-1">{packageStats.average}</p>
             </div>
           </div>
 

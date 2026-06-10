@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { getUsers } from '../../api/index';
+import { getUsers, getStaffSupportRequests } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import { 
   Building2, Users, GraduationCap, UserCheck, 
-  Sparkles, Search, Filter, ChevronRight, Briefcase
+  Sparkles, Search, Filter, ChevronRight, Briefcase, LifeBuoy
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../../pages/Dashboard.css';
@@ -23,6 +23,7 @@ export default function PrincipalDashboard() {
   });
   const [departmentData, setDepartmentData] = useState({});
   const [selectedDept, setSelectedDept] = useState('All');
+  const [pendingStaffRequests, setPendingStaffRequests] = useState(0);
 
   // Fetch Users from Database
   const fetchData = useCallback(() => {
@@ -61,10 +62,16 @@ export default function PrincipalDashboard() {
       .finally(() => {
         setLoading(false);
       });
+
+    getStaffSupportRequests().then(res => {
+      if (res?.data) {
+        setPendingStaffRequests(res.data.filter(r => r.status === 'Pending').length);
+      }
+    }).catch(err => console.error(err));
   }, []);
 
   // Sync users in real-time
-  useRealtimeSync(fetchData, ['users', 'students', 'staff']);
+  useRealtimeSync(fetchData, ['users', 'students', 'staff', 'staffSupportUpdated']);
 
   useEffect(() => {
     fetchData();
@@ -100,34 +107,34 @@ export default function PrincipalDashboard() {
       {/* Welcome Banner */}
       <div style={{
         background: 'linear-gradient(135deg, var(--primary), #a855f7)',
-        borderRadius: '20px',
-        padding: '2rem 2.5rem',
-        marginBottom: '2.5rem',
+        borderRadius: '12px',
+        padding: '1.25rem 1.5rem',
+        marginBottom: '1.5rem',
         color: '#fff',
         boxShadow: '0 10px 25px -5px rgba(99, 102, 241, 0.3)',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexWrap: 'wrap',
-        gap: '1.5rem',
+        gap: '1rem',
         position: 'relative',
         overflow: 'hidden'
       }}>
         {/* Background decorative blob */}
-        <div style={{ position: 'absolute', top: '-50%', right: '-5%', width: '300px', height: '300px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(40px)' }} />
+        <div style={{ position: 'absolute', top: '-50%', right: '-2%', width: '150px', height: '150px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(30px)' }} />
         
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 4px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
             Institution Roster
           </h1>
-          <p style={{ margin: 0, opacity: 0.9, fontSize: '0.95rem', fontWeight: 500 }}>
+          <p style={{ margin: 0, opacity: 0.9, fontSize: '0.85rem', fontWeight: 500 }}>
             Welcome back, {userName}. Monitor all registered HODs, Staff, and Students across departments.
           </p>
         </div>
 
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '8px 16px', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 20, fontSize: '0.85rem', fontWeight: 700, color: '#fff', backdropFilter: 'blur(10px)' }}>
-            <span style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 8px #10b981', animation: 'pulse 2s infinite' }} />
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: 'rgba(255,255,255,0.15)', border: '1px solid rgba(255,255,255,0.3)', borderRadius: 16, fontSize: '0.75rem', fontWeight: 700, color: '#fff', backdropFilter: 'blur(10px)' }}>
+            <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 6px #10b981', animation: 'pulse 2s infinite' }} />
             Live DB Sync
           </div>
         </div>
@@ -180,7 +187,26 @@ export default function PrincipalDashboard() {
         </div>
       </div>
 
-
+      {/* Staff Support Notification Widget */}
+      {pendingStaffRequests > 0 && (
+        <div style={{ background: 'rgba(245, 158, 11, 0.1)', border: '1px solid rgba(245, 158, 11, 0.3)', borderRadius: '12px', padding: '1rem 1.5rem', marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ background: '#f59e0b', color: 'white', padding: '8px', borderRadius: '50%', display: 'flex' }}>
+              <LifeBuoy size={20} />
+            </div>
+            <div>
+              <h3 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1.1rem', fontWeight: 700 }}>Pending Staff Support Requests</h3>
+              <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.9rem' }}>You have {pendingStaffRequests} staff requests waiting for your review.</p>
+            </div>
+          </div>
+          <button 
+            onClick={() => navigate('/principal/staff-support')}
+            style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '0.6rem 1.25rem', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', boxShadow: '0 4px 14px 0 rgba(245, 158, 11, 0.39)' }}
+          >
+            Review Requests
+          </button>
+        </div>
+      )}
 
       {/* Department-wise Lists */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>

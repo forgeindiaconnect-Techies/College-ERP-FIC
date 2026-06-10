@@ -11,7 +11,7 @@ import {
 } from 'recharts';
 import './FeesManagement.css';
 
-const DEPARTMENTS = ['All','Computer Science','Electrical Engg.','Mechanical Engg.','Civil Engg.','Information Tech.'];
+const DEPARTMENTS = ['All','Computer Science','Electrical Engg.','Mechanical Engg.','Civil Engg.','Information Tech.', 'Computer Science & Engineering', 'Information Technology', 'Biotechnology Engineering', 'Artificial Intelligence & Data Science', 'Cyber Security'];
 const SEMESTERS   = ['All','Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
 const PIE_COLORS  = { Paid:'#10b981', Pending:'#ef4444', Partial:'#f59e0b', Waived:'#6366f1' };
 const AVATAR_COLORS = ['bg-gradient-blue','bg-gradient-purple','bg-gradient-green','bg-gradient-orange','bg-gradient-pink','bg-gradient-teal'];
@@ -141,8 +141,8 @@ const FeesManagement = () => {
     try {
       setLoading(true);
       const [studentsRes, feesRes] = await Promise.all([ getStudents(), getAllFees() ]);
-      const studentList = studentsRes.data;
-      const feesList = feesRes.data;
+      const studentList = Array.isArray(studentsRes.data) ? studentsRes.data : (studentsRes.data?.data || []);
+      const feesList = Array.isArray(feesRes.data) ? feesRes.data : (feesRes.data?.data || []);
       const feeMap = Object.fromEntries(
         (feesList.length > 0 ? feesList : MOCK_FEES).map(f => [f.studentId || f.id, f])
       );
@@ -160,32 +160,65 @@ const FeesManagement = () => {
           });
         }
       });
+
+      const feeGroups = {};
+      actualFees.forEach(f => {
+         const sid = f.studentId || f.id;
+         if (!feeGroups[sid]) feeGroups[sid] = [];
+         feeGroups[sid].push(f);
+      });
       
+      const savedScholars = JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
+
       const mergedRecords = combinedStudents.map(s => {
-        const f = feeMap[s.id] || {};
-        let feeStatus = s.feeStatus || f.status || 'Pending';
-        const semesterFee = f.totalFees || f.semesterFee || 75000;
+        const studentPayments = feeGroups[s.id] || [];
         
-        let paid = f.paidAmount || f.paid || 0;
-
-        // Force 'Paid' status if amount is fully paid, mitigating any backend 'Pending' state bugs
-        if (paid >= semesterFee && semesterFee > 0) {
-            feeStatus = 'Paid';
+        // Calculate dynamic total fees
+        let tuitionFee = 60000;
+        let examFee = 2500;
+        let hostelFee = (s.hostelRequired === 'yes' || s.hostelRequired === true) ? 40000 : 0;
+        let transportFee = (s.transportRequired === 'yes' || s.transportRequired === true) ? 15000 : 0;
+        
+        // In this simple fallback, we use 62500 base + optional
+        let grossFee = tuitionFee + examFee + hostelFee + transportFee;
+        
+        let discount = 0;
+        const sch = savedScholars.find(x => x.studentId === s.id && x.status === 'Active');
+        if (sch) {
+          if (sch.amount === '100%') discount = tuitionFee;
+          else if (sch.amount === '75%') discount = tuitionFee * 0.75;
+          else if (sch.amount === '50%') discount = tuitionFee * 0.50;
+          else if (sch.amount === '25%') discount = tuitionFee * 0.25;
         }
-
-        if (feeStatus === 'Paid' || feeStatus === 'Waived') paid = semesterFee;
-        else if (feeStatus === 'Partial' && paid === 0) paid = semesterFee / 2;
+        
+        let semesterFee = grossFee - discount;
+        
+        // Total Paid
+        let paid = studentPayments.reduce((acc, curr) => acc + (curr.paidAmount || curr.amount || 0), 0);
+        
+        let feeStatus = 'Pending';
+        if (paid >= semesterFee && semesterFee > 0) feeStatus = 'Paid';
+        else if (paid > 0) feeStatus = 'Partial';
+        else if (semesterFee === 0) feeStatus = 'Waived';
         
         return {
           id: s.id,
           name: s.name,
-          dept: s.dept,
-          sem: s.sem,
+          dept: s.dept || s.department || 'Unknown',
+          sem: s.sem || s.semester || 'Unknown',
+          grossFee: grossFee,
+          discount: discount,
           semesterFee: semesterFee,
-          fine: f.fine || 0,
+          fine: 0,
           paid: paid,
           status: feeStatus,
-          payments: f.payments || []
+          payments: studentPayments.map(p => ({
+            id: p.receiptNo || p._id || p.id || 'N/A',
+            date: p.paymentDate || p.date || p.createdAt || new Date().toISOString(),
+            amount: p.paidAmount || p.amount || 0,
+            mode: p.paymentMode || p.mode || 'Online',
+            feeType: p.feeType || 'Tuition Fee'
+          }))
         };
       });
       setFees(mergedRecords);
@@ -320,7 +353,7 @@ const FeesManagement = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {MOCK_FEE_STRUCTURES.map(fs => (
-              <div key={fs.id} className="glass-card p-6 fs-card hover:border-primary transition-all">
+              <div key={fs.id} className="glass-card p-4 fs-card hover:border-primary transition-all">
                 <div className="flex justify-between items-start mb-4">
                   <div>
                     <h3 className="text-lg font-bold">{fs.dept}</h3>
@@ -429,8 +462,9 @@ const FeesManagement = () => {
                   <tr>
                     <th>Student Info</th>
                     <th>Dept & Sem</th>
-                    <th>Base Fee</th>
-                    <th>Fine</th>
+                    <th>Gross Fee</th>
+                    <th>Discount</th>
+                    <th>Net Fee</th>
                     <th>Paid</th>
                     <th>Pending</th>
                     <th>Status</th>
@@ -444,9 +478,9 @@ const FeesManagement = () => {
                     fees
                       .filter(f => activeTab === 'Pending & Fines' ? ['Pending', 'Partial'].includes(f.status) : true)
                       .filter(f => 
-                        (f.name.toLowerCase().includes(search.toLowerCase()) || f.id.toLowerCase().includes(search.toLowerCase())) &&
-                        (deptFilter === 'All' || f.dept === deptFilter) &&
-                        (semFilter === 'All' || f.sem === semFilter) &&
+                        ((f.name || '').toLowerCase().includes((search || '').toLowerCase()) || (f.id || '').toLowerCase().includes((search || '').toLowerCase())) &&
+                        (deptFilter === 'All' || (f.dept || '').includes(deptFilter) || (deptFilter.includes('Computer') && (f.dept || '').includes('Computer'))) &&
+                        (semFilter === 'All' || f.sem === semFilter || (f.sem || '').includes(semFilter)) &&
                         (statusFilter === 'All' || activeTab === 'Pending & Fines' || f.status === statusFilter)
                       )
                       .map((f, idx) => {
@@ -467,8 +501,9 @@ const FeesManagement = () => {
                               <span className="badge-outline">{f.sem}</span>
                             </div>
                           </td>
-                          <td className="font-medium text-muted">{fmtCurrency(f.semesterFee)}</td>
-                          <td className={f.fine > 0 ? 'text-danger font-medium' : 'text-muted'}>{fmtCurrency(f.fine)}</td>
+                          <td className="font-medium text-muted">{fmtCurrency(f.grossFee)}</td>
+                          <td className="text-success font-medium">{f.discount > 0 ? `-` + fmtCurrency(f.discount) : '—'}</td>
+                          <td className="font-bold text-main">{fmtCurrency(f.semesterFee)}</td>
                           <td>
                             <div className="amt-bar-wrap">
                               <span className="text-success font-semibold">{fmtCurrency(f.paid)}</span>
@@ -525,13 +560,13 @@ const FeesManagement = () => {
                 No scholarships granted yet. Go to <strong>Accounts → Scholarships</strong> to grant one.
               </div>
             ) : scholarships.map((sch, i) => (
-              <div key={sch.id || i} className="glass-card p-6 flex justify-between items-center border-l-4 border-[#6366F1]">
+              <div key={sch.id || i} className="glass-card p-4 flex justify-between items-center border-l-4 border-[#6366F1]">
                 <div>
                   <h3 className="font-bold text-lg mb-1">{sch.studentName || sch.name}</h3>
                   <p className="text-sm text-muted">{sch.studentId || sch.regNo}</p>
                   <div className="flex items-center gap-2 mt-3">
-                    <span className="badge" style={{background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1'}}>{sch.type}</span>
-                    <span className="badge" style={{background: 'rgba(16, 185, 129, 0.1)', color: '#10b981'}}>{sch.status}</span>
+                    <span className="fee-badge" style={{background: 'rgba(99, 102, 241, 0.1)', color: '#6366F1'}}>{sch.type}</span>
+                    <span className="fee-badge" style={{background: 'rgba(16, 185, 129, 0.1)', color: '#10b981'}}>{sch.status}</span>
                   </div>
                 </div>
                 <div className="text-right">
@@ -570,7 +605,9 @@ const FeesManagement = () => {
               <div className="modal-body">
                 <div className="student-fee-summary">
                   {[
-                    { label:'Semester Fee',   value: fmtCurrency(f.semesterFee), color:'var(--text-main)' },
+                    { label:'Gross Fee',      value: fmtCurrency(f.grossFee), color:'var(--text-main)' },
+                    { label:'Discount',       value: f.discount > 0 ? `-` + fmtCurrency(f.discount) : '—', color:'var(--success)' },
+                    { label:'Net Fee',        value: fmtCurrency(f.semesterFee), color:'var(--text-main)' },
                     { label:'Paid Amount',    value: fmtCurrency(f.paid),        color:'var(--success)'   },
                     { label:'Balance Due',    value: fmtCurrency(balance),       color: balance>0?'var(--danger)':'var(--success)' },
                   ].map((c,i)=>(

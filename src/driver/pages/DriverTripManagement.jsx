@@ -126,20 +126,36 @@ const DriverTripManagement = () => {
   const completedToday = trips.find(t => t.date === todayStr && t.status === 'Completed');
 
   return (
-    <div className="p-8 animate-fade-in">
-      <div className="flex justify-between items-center mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-800 dark:text-white mb-2 flex items-center gap-2">
-            <Navigation className="text-blue-600" /> Trip Management
+    <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
+      {/* Premium Header Banner */}
+      <div style={{
+        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+        borderRadius: '20px',
+        padding: '2.5rem',
+        marginBottom: '2.5rem',
+        color: '#fff',
+        boxShadow: '0 10px 25px -5px rgba(59, 130, 246, 0.4)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        position: 'relative',
+        overflow: 'hidden'
+      }}>
+        <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '300px', height: '300px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(40px)' }} />
+        <div style={{ position: 'relative', zIndex: 1 }}>
+          <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: '0 0 8px 0', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <Navigation size={28} /> Trip Management
           </h1>
-          <p className="text-gray-500 dark:text-gray-400">Start, end, and track your active transport trip.</p>
+          <p style={{ margin: 0, opacity: 0.9, fontSize: '1rem', fontWeight: 500 }}>
+            Start, end, and track your active transport trip in real-time.
+          </p>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
         {/* Active Trip Controls */}
         <div className="lg:col-span-2">
-          <div className="bg-white dark:bg-[#1e1e1e] p-8 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 h-full flex flex-col justify-center items-center text-center">
+          <div className="glass-card h-full flex flex-col justify-center items-center text-center p-8">
             {completedToday ? (
               <div className="text-green-600 dark:text-green-500 flex flex-col items-center">
                 <CheckCircle size={64} className="mb-4" />
@@ -184,25 +200,25 @@ const DriverTripManagement = () => {
 
         {/* Trip Info */}
         <div className="space-y-4">
-          <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
+          <div className="glass-card hover-scale">
             <h3 className="font-bold text-gray-500 uppercase text-xs mb-2 tracking-wider">Assigned Route</h3>
-            <p className="text-xl font-bold">{route?.name || 'Loading...'}</p>
+            <p className="text-xl font-bold" style={{ color: 'var(--text-main)' }}>{route?.name || 'Loading...'}</p>
           </div>
-          <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
+          <div className="glass-card hover-scale">
             <h3 className="font-bold text-gray-500 uppercase text-xs mb-2 tracking-wider">Assigned Vehicle</h3>
-            <p className="text-xl font-bold flex items-center gap-2"><Bus size={20} className="text-blue-500"/> {myDriverInfo?.vehicleId || 'Loading...'}</p>
+            <p className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}><Bus size={20} className="text-blue-500"/> {myDriverInfo?.vehicleId || 'Loading...'}</p>
           </div>
-          <div className="bg-white dark:bg-[#1e1e1e] p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800">
+          <div className="glass-card hover-scale">
             <h3 className="font-bold text-gray-500 uppercase text-xs mb-2 tracking-wider">Total Students</h3>
-            <p className="text-xl font-bold flex items-center gap-2"><Users size={20} className="text-orange-500"/> {students.length}</p>
+            <p className="text-xl font-bold flex items-center gap-2" style={{ color: 'var(--text-main)' }}><Users size={20} className="text-orange-500"/> {students.length}</p>
           </div>
         </div>
       </div>
 
       {/* Student Tracking (Only visible during active trip) */}
       {currentTrip && currentTrip.status === 'Started' && (
-        <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden mb-8">
-          <div className="p-6 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center bg-blue-50 dark:bg-blue-900/10">
+        <div className="glass-card p-0 overflow-hidden mb-8">
+          <div className="p-6 flex justify-between items-center" style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
             <h2 className="text-xl font-bold text-blue-900 dark:text-blue-100 flex items-center gap-2"><Users size={20}/> Student Boarding Checklist</h2>
             <span className="bg-blue-600 text-white px-3 py-1 rounded-full text-sm font-bold shadow-sm">
               {currentTrip.studentTracking.filter(t => t.boarded).length} / {currentTrip.studentTracking.length} Boarded
@@ -246,8 +262,8 @@ const DriverTripManagement = () => {
       )}
 
       {/* Trip History */}
-      <div className="bg-white dark:bg-[#1e1e1e] rounded-2xl shadow-sm border border-gray-200 dark:border-gray-800 overflow-hidden">
-        <div className="p-6 border-b border-gray-200 dark:border-gray-800">
+      <div className="glass-card p-0 overflow-hidden">
+        <div className="p-6" style={{ borderBottom: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
           <h2 className="text-xl font-bold flex items-center gap-2"><Clock size={20} className="text-gray-400" /> Trip History</h2>
         </div>
         <div className="overflow-x-auto">

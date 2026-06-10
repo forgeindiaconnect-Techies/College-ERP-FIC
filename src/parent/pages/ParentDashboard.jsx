@@ -10,7 +10,8 @@ import {
   Percent, Calendar, ShieldAlert, Building
 } from 'lucide-react';
 import { 
-  getStudentById, getFeesByStudent, getMarksByStudent, getExams
+  getStudentById, getFeesByStudent, getMarksByStudent, getExams,
+  getNotifications, getStudentFeeStructure
 } from '../../api/index';
 import './ParentDashboard.css';
 
@@ -20,6 +21,8 @@ const ParentDashboard = () => {
   const [parentSession, setParentSession] = useState(null);
   const [childDetails, setChildDetails] = useState(null);
   const [exams, setExams] = useState([]);
+  const [notifications, setNotifications] = useState([]);
+  const [scholarship, setScholarship] = useState(null);
 
   useEffect(() => {
     const init = async () => {
@@ -40,12 +43,25 @@ const ParentDashboard = () => {
           if (match && match.id) studentId = match.id;
         }
 
-        const [studentRes, feesRes, marksRes, examsRes] = await Promise.all([
+        const [studentRes, feesRes, marksRes, examsRes, notifRes, feeStructureRes] = await Promise.all([
           getStudentById(studentId).catch(() => null),
           getFeesByStudent(studentId).catch(() => null),
           getMarksByStudent(studentId).catch(() => null),
-          getExams().catch(() => ({ data: [] }))
+          getExams().catch(() => ({ data: [] })),
+          getNotifications().catch(() => ({ data: [] })),
+          getStudentFeeStructure(studentId).catch(() => null)
         ]);
+
+        if (notifRes?.data && Array.isArray(notifRes.data)) {
+          setNotifications(notifRes.data);
+        }
+
+        if (feeStructureRes?.data && feeStructureRes.data.scholarshipAmount > 0) {
+          setScholarship({
+            type: feeStructureRes.data.scholarshipName || 'Merit Scholarship',
+            amount: `₹${feeStructureRes.data.scholarshipAmount.toLocaleString()}`
+          });
+        }
 
         let dbRecord = studentRes?.data || null;
         if (!dbRecord) {
@@ -136,6 +152,21 @@ const ParentDashboard = () => {
           <span>CHILD ID: <strong>{childDetails.id}</strong></span>
         </div>
       </div>
+
+      {/* Scholarship Alert Banner */}
+      {scholarship && (
+        <div style={{ padding: '1rem', background: 'linear-gradient(to right, rgba(99, 102, 241, 0.1), rgba(16, 185, 129, 0.05))', border: '1px solid rgba(99, 102, 241, 0.3)', borderRadius: '12px', marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '15px' }}>
+          <div style={{ background: '#6366F1', color: 'white', padding: '10px', borderRadius: '50%' }}>
+            <AlertCircle size={24} />
+          </div>
+          <div>
+            <h4 style={{ margin: 0, fontSize: '1rem', color: 'var(--text-main)', fontWeight: 800 }}>Congratulations! {scholarship.type} Scholarship Active for {childDetails.name}</h4>
+            <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+              Your child has been awarded a <strong>{scholarship.amount} fee waiver</strong>. Check the Fees Analytics below for the updated active statement.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Metrics Row */}
       <div className="parent-metrics-grid">
@@ -292,19 +323,22 @@ const ParentDashboard = () => {
         <div className="glass-card p-announcements-card" style={{ marginTop: 0 }}>
           <div className="p-announcements-header">
             <h3><Bell size={18} className="text-primary-p" /> Important Notifications</h3>
-            <span className="p-notif-pill">1 NEW</span>
+            {notifications.length > 0 && <span className="p-notif-pill">{notifications.filter(n => !n.isRead).length} NEW</span>}
           </div>
           <div className="p-announcement-list">
-            <div className="p-announcement-item">
-              <span className="p-ann-date">22-May-2026</span>
-              <h4 className="p-ann-title">Upcoming Parent-Teacher Meeting</h4>
-              <p className="p-ann-desc">A meeting has been scheduled for June 5th to discuss your child's mid-semester performance and academic track.</p>
-            </div>
-            <div className="p-announcement-item">
-              <span className="p-ann-date">15-May-2026</span>
-              <h4 className="p-ann-title">Semester Fee Deadline</h4>
-              <p className="p-ann-desc">Please clear the pending semester fees before May 28 to ensure your child receives their examination hall ticket.</p>
-            </div>
+            {notifications.length === 0 ? (
+              <p className="text-muted text-center" style={{ padding: '2rem' }}>No announcements available.</p>
+            ) : (
+              notifications.map((n, i) => (
+                <div key={n._id || i} className="p-announcement-item" style={{ borderLeft: `4px solid ${n.type === 'Warning' ? '#ef4444' : n.type === 'Success' ? '#10b981' : '#f59e0b'}`, padding: '1rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)', marginBottom: '0.8rem' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                    <h4 className="p-ann-title" style={{ fontSize: '1rem', color: 'var(--text-main)', margin: 0 }}>{n.title}</h4>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{new Date(n.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <p className="p-ann-desc" style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>{n.message}</p>
+                </div>
+              ))
+            )}
           </div>
         </div>
 

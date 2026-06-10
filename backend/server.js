@@ -37,6 +37,9 @@ import salaryRoutes from './routes/salaryRoutes.js';
 import timetableRoutes from './routes/timetableRoutes.js';
 import assignmentRoutes from './routes/assignmentRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
+import welfareRoutes from './routes/welfareRoutes.js';
+import staffSupportRoutes from './routes/staffSupportRoutes.js';
+import hodSupportRoutes from './routes/hodSupportRoutes.js';
 
 // Import Models for auto-seeding
 import Approval from './models/Approval.js';
@@ -67,6 +70,9 @@ import LoginLog from './models/LoginLog.js';
 import StudentProfile from './models/StudentProfile.js';
 import Notification from './models/Notification.js';
 import Salary from './models/Salary.js';
+import WelfareRecord from './models/WelfareRecord.js';
+import StaffSupportRecord from './models/StaffSupportRecord.js';
+import HodSupportRecord from './models/HodSupportRecord.js';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -242,6 +248,20 @@ const autoSeedIfEmpty = async () => {
           { id: 'MB2022001', name: 'Ritu Sen',       email: 'ritu@college.edu',    phone: '9867123456', dept: 'Master of Business Admin.', sem: 'Sem 4', cgpa: 9.2, attendance: 96, status: 'Active',   feeStatus: 'Paid'    },
         ]);
         console.log('✅ Students seeded successfully.');
+      }
+
+      // Incremental patch for missing WelfareRecords
+      const welfareCount = await WelfareRecord.countDocuments();
+      if (welfareCount === 0) {
+        console.log('🌱 Patching database: missing WelfareRecords detected. Injecting them now...');
+        await WelfareRecord.insertMany([
+          { studentName: 'Rohan Sharma', department: 'Computer Science', issueType: 'Disciplinary', reportedBy: 'HOD CSE', priority: 'High', date: '2026-05-24', status: 'Counselor Assigned', description: 'Caught proxying attendance in lab.', timeline: [{date: '2026-05-24', text: 'Misconduct incident reported by HOD CSE'}, {date: '2026-05-26', text: 'Counselor assigned for behavioral counseling assessment'}] },
+          { studentName: 'Ananya Sen', department: 'Electronics & Comm.', issueType: 'Scholarship', reportedBy: 'Accounts Board', priority: 'Medium', date: '2026-05-20', status: 'Resolved', description: 'Requires Principal approval for 20% fee waiver.', timeline: [{date: '2026-05-20', text: 'Scholarship application compiled by registrar'}, {date: '2026-05-23', text: 'Annual fee waiver disbursement successfully cleared'}] },
+          { studentName: 'Karan Malhotra', department: 'Mechanical Engg.', issueType: 'Anti-Ragging', reportedBy: 'Student Welfare', priority: 'High', date: '2026-05-25', status: 'Under Investigation', description: 'Reported bullying in hostel premises.', timeline: [{date: '2026-05-25', text: 'Hostel warden submitted report to Welfare Board'}, {date: '2026-05-26', text: 'Anti-ragging cell mobilized for campus security footage inspection'}] },
+          { studentName: 'Sneha Patil', department: 'Computer Science', issueType: 'Counseling', reportedBy: 'Self-referred', priority: 'Low', date: '2026-05-26', status: 'Scheduled', description: 'Requested professional guidance regarding high academic stress levels.', timeline: [{date: '2026-05-26', text: 'Mental health assessment request submitted'}, {date: '2026-05-27', text: 'Weekly session scheduled with Dr. Asha Roy'}] },
+          { studentName: 'Vikram Joshi', department: 'Electrical & Electronics', issueType: 'Complaint', reportedBy: 'Junior Student', priority: 'High', date: '2026-05-26', status: 'Pending', description: 'Altercation in college cafeteria.', timeline: [{date: '2026-05-26', text: 'Complaint registered'}] }
+        ]);
+        console.log('✅ WelfareRecords seeded successfully.');
       }
 
       return;
@@ -581,7 +601,17 @@ const autoSeedIfEmpty = async () => {
       { staffId: 'STF009', staffName: 'Dr. Meena Pillai', designation: 'Associate Prof.', department: 'Electronics & Comm.',       billingMonth: 'May 2026', basicPay: 75000, allowances: 12000, deductions: 4000, netSalary: 83000, status: 'Pending',   paymentMode: 'Bank Transfer' },
     ]);
 
-    console.log('✅ Auto-seed successfully pre-populated! 22 users | 6 departments | 10 students | 9 staff | 9 attendance entries | 13 mark transcripts | 12 fee invoices | 5 books | 3 issues | Transport Setup | Hostel Setup | Placement Setup | Settings Setup | Notifications Setup | Approvals Setup | Exams Seeded | Salary Payroll Seeded');
+    // 17. Welfare Records Seed
+    await WelfareRecord.deleteMany();
+    await WelfareRecord.insertMany([
+      { studentName: 'Rohan Sharma', department: 'Computer Science', issueType: 'Disciplinary', reportedBy: 'HOD CSE', priority: 'High', date: '2026-05-24', status: 'Counselor Assigned', description: 'Caught proxying attendance in lab.', timeline: [{date: '2026-05-24', text: 'Misconduct incident reported by HOD CSE'}, {date: '2026-05-26', text: 'Counselor assigned for behavioral counseling assessment'}] },
+      { studentName: 'Ananya Sen', department: 'Electronics & Comm.', issueType: 'Scholarship', reportedBy: 'Accounts Board', priority: 'Medium', date: '2026-05-20', status: 'Resolved', description: 'Requires Principal approval for 20% fee waiver.', timeline: [{date: '2026-05-20', text: 'Scholarship application compiled by registrar'}, {date: '2026-05-23', text: 'Annual fee waiver disbursement successfully cleared'}] },
+      { studentName: 'Karan Malhotra', department: 'Mechanical Engg.', issueType: 'Anti-Ragging', reportedBy: 'Student Welfare', priority: 'High', date: '2026-05-25', status: 'Under Investigation', description: 'Reported bullying in hostel premises.', timeline: [{date: '2026-05-25', text: 'Hostel warden submitted report to Welfare Board'}, {date: '2026-05-26', text: 'Anti-ragging cell mobilized for campus security footage inspection'}] },
+      { studentName: 'Sneha Patil', department: 'Computer Science', issueType: 'Counseling', reportedBy: 'Self-referred', priority: 'Low', date: '2026-05-26', status: 'Scheduled', description: 'Requested professional guidance regarding high academic stress levels.', timeline: [{date: '2026-05-26', text: 'Mental health assessment request submitted'}, {date: '2026-05-27', text: 'Weekly session scheduled with Dr. Asha Roy'}] },
+      { studentName: 'Vikram Joshi', department: 'Electrical & Electronics', issueType: 'Complaint', reportedBy: 'Junior Student', priority: 'High', date: '2026-05-26', status: 'Pending', description: 'Altercation in college cafeteria.', timeline: [{date: '2026-05-26', text: 'Complaint registered'}] }
+    ]);
+
+    console.log('✅ Auto-seed successfully pre-populated! 22 users | 6 departments | 10 students | 9 staff | 9 attendance entries | 13 mark transcripts | 12 fee invoices | 5 books | 3 issues | Transport Setup | Hostel Setup | Placement Setup | Settings Setup | Notifications Setup | Approvals Setup | Exams Seeded | Salary Payroll Seeded | Welfare Records');
     console.log('   🔑 CSE HOD login: csehod@gmail.com / password123');
     console.log('   🔑 Student login: john@college.edu / password123');
   } catch (err) {
@@ -612,6 +642,9 @@ app.use('/api/salaries', salaryRoutes);
 app.use('/api/timetable', timetableRoutes);
 app.use('/api/assignments', assignmentRoutes);
 app.use('/api/expenses', expenseRoutes);
+app.use('/api/welfare', welfareRoutes);
+app.use('/api/staff-support', staffSupportRoutes);
+app.use('/api/hod-support', hodSupportRoutes);
 
 app.get('/', (req, res) => {
   res.send('College ERP API is running...');

@@ -5,7 +5,24 @@ import { getStudents, getAllMarks, updateMark } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './CgpaManagement.css';
 
-const DEPARTMENTS = ['All','Computer Science','Electrical Engg.','Mechanical Engg.','Civil Engg.','Information Tech.'];
+const DEPARTMENTS = [
+  'All',
+  'Computer Science Engineering',
+  'Information Technology',
+  'Electronics & Communication Engineering',
+  'Electrical & Electronics Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Artificial Intelligence & Data Science',
+  'Artificial Intelligence & Machine Learning',
+  'Cyber Security',
+  'Biomedical Engineering',
+  'Aeronautical Engineering',
+  'Automobile Engineering',
+  'Robotics Engineering',
+  'Chemical Engineering',
+  'Biotechnology Engineering'
+];
 const SEMESTERS   = ['All','Sem 1','Sem 2','Sem 3','Sem 4','Sem 5','Sem 6','Sem 7','Sem 8'];
 const AVATAR_COLORS = ['bg-gradient-blue','bg-gradient-purple','bg-gradient-orange','bg-gradient-green','bg-gradient-teal','bg-gradient-pink'];
 
@@ -22,16 +39,16 @@ const getGpaColor = g => g >= 8.5 ? 'var(--success)' : g >= 6 ? 'var(--warning)'
 const isPassing = (internal, external) => internal >= 20 && external >= 35;
 
 const MOCK_MARKS = [
-  { id:'CS2021001', name:'John Doe',       dept:'Computer Science',  sem:'Sem 6', internal:42, external:71, arrears:0 },
-  { id:'EE2022001', name:'Alice Smith',    dept:'Electrical Engg.',  sem:'Sem 4', internal:48, external:88, arrears:0 },
-  { id:'ME2023001', name:'Robert Johnson', dept:'Mechanical Engg.',  sem:'Sem 2', internal:35, external:55, arrears:2 },
-  { id:'CS2021004', name:'Emily Davis',    dept:'Computer Science',  sem:'Sem 6', internal:47, external:85, arrears:0 },
-  { id:'CE2020001', name:'Michael Brown',  dept:'Civil Engg.',       sem:'Sem 8', internal:19, external:48, arrears:3 },
-  { id:'EE2022002', name:'Sarah Wilson',   dept:'Electrical Engg.',  sem:'Sem 4', internal:49, external:91, arrears:0 },
-  { id:'CS2022001', name:'David Lee',      dept:'Computer Science',  sem:'Sem 3', internal:43, external:76, arrears:0 },
-  { id:'IT2022001', name:'Priya Sharma',   dept:'Information Tech.', sem:'Sem 5', internal:49, external:92, arrears:0 },
-  { id:'ME2023002', name:'Arjun Nair',     dept:'Mechanical Engg.',  sem:'Sem 2', internal:25, external:40, arrears:1 },
-  { id:'CE2020002', name:'Lakshmi Rao',    dept:'Civil Engg.',       sem:'Sem 8', internal:46, external:88, arrears:0 },
+  { id:'CS2021001', name:'John Doe',       dept:'Computer Science Engineering',  sem:'Sem 6', internal:42, external:71, arrears:0 },
+  { id:'EE2022001', name:'Alice Smith',    dept:'Electrical & Electronics Engineering',  sem:'Sem 4', internal:48, external:88, arrears:0 },
+  { id:'ME2023001', name:'Robert Johnson', dept:'Mechanical Engineering',  sem:'Sem 2', internal:35, external:55, arrears:2 },
+  { id:'CS2021004', name:'Emily Davis',    dept:'Computer Science Engineering',  sem:'Sem 6', internal:47, external:85, arrears:0 },
+  { id:'CE2020001', name:'Michael Brown',  dept:'Civil Engineering',       sem:'Sem 8', internal:19, external:48, arrears:3 },
+  { id:'EE2022002', name:'Sarah Wilson',   dept:'Electrical & Electronics Engineering',  sem:'Sem 4', internal:49, external:91, arrears:0 },
+  { id:'CS2022001', name:'David Lee',      dept:'Computer Science Engineering',  sem:'Sem 3', internal:43, external:76, arrears:0 },
+  { id:'IT2022001', name:'Priya Sharma',   dept:'Information Technology', sem:'Sem 5', internal:49, external:92, arrears:0 },
+  { id:'ME2023002', name:'Arjun Nair',     dept:'Mechanical Engineering',  sem:'Sem 2', internal:25, external:40, arrears:1 },
+  { id:'CE2020002', name:'Lakshmi Rao',    dept:'Civil Engineering',       sem:'Sem 8', internal:46, external:88, arrears:0 },
 ];
 
 const CGPA_TREND = [
@@ -121,8 +138,16 @@ const CgpaManagement = () => {
 
   const filtered = records.filter(r => {
     const q = search.toLowerCase();
+    let rDept = r.dept;
+    if (rDept === 'Computer Science') rDept = 'Computer Science Engineering';
+    else if (rDept === 'Electronics & Comm.') rDept = 'Electronics & Communication Engineering';
+    else if (rDept === 'Electrical Engg.') rDept = 'Electrical & Electronics Engineering';
+    else if (rDept === 'Mechanical Engg.') rDept = 'Mechanical Engineering';
+    else if (rDept === 'Civil Engg.') rDept = 'Civil Engineering';
+    else if (rDept === 'Information Tech.') rDept = 'Information Technology';
+
     return (r.name.toLowerCase().includes(q) || r.id.toLowerCase().includes(q)) &&
-           (deptFilter === 'All' || r.dept === deptFilter) &&
+           (deptFilter === 'All' || rDept === deptFilter) &&
            (semFilter  === 'All' || r.sem  === semFilter);
   });
 
@@ -238,7 +263,18 @@ const CgpaManagement = () => {
                 <div className={`avatar-sm ${AVATAR_COLORS[idx]}`}>{s.name[0]}</div>
                 <div className="top-student-info">
                   <p className="top-student-name">{s.name}</p>
-                  <p className="top-student-dept">{s.dept}</p>
+                  <p className="top-student-dept">
+                    {(() => {
+                      let d = s.dept;
+                      if (d === 'Computer Science') d = 'Computer Science Engineering';
+                      else if (d === 'Electronics & Comm.') d = 'Electronics & Communication Engineering';
+                      else if (d === 'Electrical Engg.') d = 'Electrical & Electronics Engineering';
+                      else if (d === 'Mechanical Engg.') d = 'Mechanical Engineering';
+                      else if (d === 'Civil Engg.') d = 'Civil Engineering';
+                      else if (d === 'Information Tech.') d = 'Information Technology';
+                      return d;
+                    })()}
+                  </p>
                 </div>
                 <span className="top-student-cgpa" style={{color:getGpaColor(s.cgpa)}}>{s.cgpa}</span>
               </div>
@@ -330,7 +366,18 @@ const CgpaManagement = () => {
                       </div>
                     </td>
                     <td><span className="roll-no">{r.id}</span></td>
-                    <td className="text-sm text-muted">{r.dept}</td>
+                    <td className="text-sm text-muted">
+                      {(() => {
+                        let d = r.dept;
+                        if (d === 'Computer Science') d = 'Computer Science Engineering';
+                        else if (d === 'Electronics & Comm.') d = 'Electronics & Communication Engineering';
+                        else if (d === 'Electrical Engg.') d = 'Electrical & Electronics Engineering';
+                        else if (d === 'Mechanical Engg.') d = 'Mechanical Engineering';
+                        else if (d === 'Civil Engg.') d = 'Civil Engineering';
+                        else if (d === 'Information Tech.') d = 'Information Technology';
+                        return d;
+                      })()}
+                    </td>
                     <td><span className="badge-outline">{r.sem}</span></td>
                     <td>
                       <div className="marks-cell">
@@ -407,7 +454,18 @@ const CgpaManagement = () => {
                     <div className={`avatar-sm ${AVATAR_COLORS[0]}`}>{student.name[0]}</div>
                     <div>
                       <p className="modal-student-name">{student.name}</p>
-                      <p className="modal-student-meta">{student.id} · {student.dept} · {student.sem}</p>
+                      <p className="modal-student-meta">
+                        {student.id} · {(() => {
+                          let d = student.dept;
+                          if (d === 'Computer Science') d = 'Computer Science Engineering';
+                          else if (d === 'Electronics & Comm.') d = 'Electronics & Communication Engineering';
+                          else if (d === 'Electrical Engg.') d = 'Electrical & Electronics Engineering';
+                          else if (d === 'Mechanical Engg.') d = 'Mechanical Engineering';
+                          else if (d === 'Civil Engg.') d = 'Civil Engineering';
+                          else if (d === 'Information Tech.') d = 'Information Technology';
+                          return d;
+                        })()} · {student.sem}
+                      </p>
                     </div>
                   </div>
                 )}

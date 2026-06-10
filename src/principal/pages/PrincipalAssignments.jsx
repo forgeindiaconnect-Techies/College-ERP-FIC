@@ -3,6 +3,24 @@ import { ClipboardList, Search, Calendar, Users, FileText, ArrowLeft, BookOpen, 
 import { useNavigate } from 'react-router-dom';
 import { getAssignments, getAssignmentSubmissions, getStudents } from '../../api/index';
 
+const FULL_DEPARTMENTS = [
+  'Computer Science Engineering',
+  'Information Technology',
+  'Electronics & Communication Engineering',
+  'Electrical & Electronics Engineering',
+  'Mechanical Engineering',
+  'Civil Engineering',
+  'Artificial Intelligence & Data Science',
+  'Artificial Intelligence & Machine Learning',
+  'Cyber Security',
+  'Biomedical Engineering',
+  'Aeronautical Engineering',
+  'Automobile Engineering',
+  'Robotics Engineering',
+  'Chemical Engineering',
+  'Biotechnology Engineering'
+];
+
 const PrincipalAssignments = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -66,10 +84,22 @@ const PrincipalAssignments = () => {
     loadData();
   }, [navigate]);
 
-  const departments = ['All Departments', ...new Set(assignments.map(a => a.department).filter(Boolean))];
+  const departments = ['All Departments', ...FULL_DEPARTMENTS];
+
+  // Map legacy names
+  const normalizedAssignments = assignments.map(a => {
+    let dept = a.department;
+    if (dept === 'Computer Science') dept = 'Computer Science Engineering';
+    else if (dept === 'Electronics & Comm.') dept = 'Electronics & Communication Engineering';
+    else if (dept === 'Electrical Engg.') dept = 'Electrical & Electronics Engineering';
+    else if (dept === 'Mechanical Engg.') dept = 'Mechanical Engineering';
+    else if (dept === 'Civil Engg.') dept = 'Civil Engineering';
+    else if (dept === 'Information Tech.') dept = 'Information Technology';
+    return { ...a, department: dept };
+  });
 
   // Filter assignments by selected department
-  let filteredAssignments = assignments;
+  let filteredAssignments = normalizedAssignments;
   if (filterDept !== 'All Departments') {
     filteredAssignments = filteredAssignments.filter(a => a.department === filterDept);
   }

@@ -1,6 +1,7 @@
 import express from 'express';
 import Fee from '../models/Fee.js';
 import Student from '../models/Student.js';
+import FeeStructure from '../models/FeeStructure.js';
 import { protect, authorize, departmentScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -66,6 +67,28 @@ router.get('/student/:studentId', protect, async (req, res) => {
     }
     const fees = await Fee.find({ studentId: req.params.studentId }).sort({ createdAt: -1 });
     res.json(fees);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Get fee structure for a specific student
+router.get('/structure/:studentId', protect, async (req, res) => {
+  try {
+    let structure = await FeeStructure.findOne({ studentId: req.params.studentId });
+    // If not found, return default structure based on student preferences
+    if (!structure) {
+      const student = await Student.findOne({ id: req.params.studentId });
+      structure = {
+        studentId: req.params.studentId,
+        tuitionFee: 60000,
+        examFee: 2500,
+        libraryFee: 0,
+        hostelFee: student && (student.hostelRequired === 'yes' || student.hostelRequired === true) ? 40000 : 0,
+        transportFee: student && (student.transportRequired === 'yes' || student.transportRequired === true) ? 15000 : 0
+      };
+    }
+    res.json(structure);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

@@ -1,6 +1,6 @@
 .payroll-container {
   padding: 2rem;
-  max-width: 900px;
+  max-width: 1200px;
   margin: 0 auto;
   animation: fadeIn 0.4s ease-out;
 }
@@ -54,7 +54,104 @@
   box-shadow: 0 6px 15px rgba(var(--primary-rgb), 0.3);
 }
 
+.payroll-layout {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+}
+
+@media (max-width: 900px) {
+  .payroll-layout {
+    flex-direction: column;
+  }
+}
+
+.salary-history-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  background: var(--surface-color, #ffffff);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--border-color);
+}
+
+@media (max-width: 900px) {
+  .salary-history-sidebar {
+    width: 100%;
+  }
+}
+
+.history-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 1.5rem;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1.25rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--background-alt);
+}
+
+.history-item:hover {
+  border-color: var(--primary-color);
+  background: rgba(var(--primary-rgb), 0.02);
+}
+
+.history-item.active {
+  border-color: var(--primary-color);
+  background: linear-gradient(135deg, rgba(var(--primary-rgb), 0.1), rgba(var(--primary-rgb), 0.05));
+  box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.1);
+}
+
+.history-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.history-month {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.history-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0.25rem 0.6rem;
+  border-radius: 9999px;
+  background: rgba(var(--text-secondary), 0.1);
+}
+
+.history-amount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--primary-color);
+}
+
 .payslip-card {
+  flex: 1;
   background: var(--surface-color, #ffffff);
   border-radius: 16px;
   padding: 2.5rem;
@@ -62,6 +159,7 @@
   border: 1px solid var(--border-color);
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 /* Dark mode specific */

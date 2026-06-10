@@ -3,7 +3,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarCheck, BookOpenCheck,
   ClipboardList, CreditCard, Calendar, FileText,
-  Settings, LogOut, ChevronRight, Megaphone, GraduationCap, Home, Briefcase, Library
+  Settings, LogOut, ChevronRight, Megaphone, GraduationCap, Home, Briefcase, Library, ShieldAlert
 } from 'lucide-react';
 import './StudentSidebar.css';
 
@@ -34,6 +34,7 @@ const StudentSidebar = () => {
     { name: 'Timetable', path: '/student/timetable', icon: <Calendar size={19} /> },
     { name: 'Library', path: '/student/library', icon: <Library size={19} /> },
     { name: 'Leave Requests', path: '/student/leaves', icon: <FileText size={19} /> },
+    { name: 'Student Support Center', path: '/student/welfare', icon: <ShieldAlert size={19} /> },
     { name: 'Profile Settings', path: '/student/settings', icon: <Settings size={19} /> },
   ];
 
