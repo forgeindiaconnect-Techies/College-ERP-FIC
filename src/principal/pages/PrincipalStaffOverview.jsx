@@ -34,6 +34,24 @@ const FULL_DEPARTMENTS = [
   'Biotechnology Engineering'
 ];
 
+const DEPT_SUBJECTS = {
+  'Computer Science Engineering': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI', 'Cloud Computing', 'Cryptography'],
+  'Information Technology': ['Web Technologies', 'Software Engineering', 'DBMS', 'Cyber Security', 'Data Science', 'IoT'],
+  'Electronics & Communication Engineering': ['Circuits', 'Signals and Systems', 'Microprocessors', 'Digital Logic', 'VLSI Design', 'Antenna Theory'],
+  'Electrical & Electronics Engineering': ['Power Systems', 'Control Systems', 'Machines', 'Power Electronics', 'High Voltage Engineering'],
+  'Mechanical Engineering': ['Thermodynamics', 'Fluid Mechanics', 'Kinematics', 'Machine Design', 'Robotics', 'Heat Transfer'],
+  'Civil Engineering': ['Structural Analysis', 'Concrete Technology', 'Geotechnical Engineering', 'Surveying', 'Fluid Mechanics'],
+  'Artificial Intelligence & Data Science': ['Machine Learning', 'Deep Learning', 'Big Data', 'Data Mining', 'Python Programming', 'NLP'],
+  'Artificial Intelligence & Machine Learning': ['Neural Networks', 'AI Ethics', 'Computer Vision', 'Pattern Recognition', 'Robotics', 'Algorithms'],
+  'Cyber Security': ['Network Security', 'Cryptography', 'Ethical Hacking', 'Forensics', 'Malware Analysis'],
+  'Biomedical Engineering': ['Biomechanics', 'Biomaterials', 'Medical Imaging', 'Biosensors', 'Human Anatomy'],
+  'Aeronautical Engineering': ['Aerodynamics', 'Propulsion', 'Flight Mechanics', 'Aircraft Structures', 'Avionics'],
+  'Automobile Engineering': ['Vehicle Dynamics', 'Engine Systems', 'Automotive Electronics', 'Chassis Design'],
+  'Robotics Engineering': ['Kinematics', 'Sensors and Actuators', 'Control Systems', 'AI for Robotics', 'Machine Vision'],
+  'Chemical Engineering': ['Fluid Mechanics', 'Mass Transfer', 'Heat Transfer', 'Chemical Reaction Engineering', 'Process Control'],
+  'Biotechnology Engineering': ['Genetics', 'Cell Biology', 'Bioprocess Engineering', 'Immunology', 'Bioinformatics']
+};
+
 export default function PrincipalStaffOverview() {
   const [staffList, setStaffList] = useState(initialStaff);
   const [allStudents, setAllStudents] = useState([]);
@@ -97,7 +115,7 @@ export default function PrincipalStaffOverview() {
               name: s.name,
               dept: staffDept,
               designation: s.designation || 'Staff',
-              subjects: s.subjects || [],
+              subjects: s.subjects && s.subjects.length > 0 ? s.subjects : (DEPT_SUBJECTS[staffDept] || ['General Engineering']),
               attendance: s.attendance || 95,
               performance: s.performance || 88,
               students: realStudentCount,
