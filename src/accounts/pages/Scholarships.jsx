@@ -49,12 +49,10 @@ const Scholarships = () => {
                   sessionStorage.getItem('principal_token') ||
                   sessionStorage.getItem('admin_token') ||
                   sessionStorage.getItem('token');
-    fetch('/api/students', {
-      headers: { Authorization: `Bearer ${token}` }
-    })
-      .then(r => r.json())
-      .then(data => {
-        const list = Array.isArray(data) ? data : (data.data || []);
+    getStudents()
+      .then(res => {
+        const data = res.data || [];
+        const list = Array.isArray(data) ? data : [];
         setAllStudents(list);
       })
       .catch(() => {

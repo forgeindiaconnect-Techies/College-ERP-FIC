@@ -19,6 +19,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requireP
   const department = new Department(req.body);
   try {
     const newDepartment = await department.save();
+    req.app.get('io').emit('dataUpdated', { module: 'departments', action: 'created' });
     res.status(201).json(newDepartment);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -33,6 +34,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requir
       req.body,
       { new: true }
     );
+    req.app.get('io').emit('dataUpdated', { module: 'departments', action: 'updated' });
     res.json(updatedDepartment);
   } catch (err) {
     res.status(400).json({ message: err.message });
@@ -43,6 +45,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requir
 router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
   try {
     await Department.findOneAndDelete({ id: req.params.id });
+    req.app.get('io').emit('dataUpdated', { module: 'departments', action: 'deleted' });
     res.json({ message: 'Department deleted' });
   } catch (err) {
     res.status(500).json({ message: err.message });

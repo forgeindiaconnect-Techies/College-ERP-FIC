@@ -3,7 +3,10 @@ import axios from 'axios';
 const api = axios.create({
   baseURL: 'https://college-erp-fic1.onrender.com/api',
   headers: {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
+    'Cache-Control': 'no-cache',
+    'Pragma': 'no-cache',
+    'Expires': '0'
   }
 });
 

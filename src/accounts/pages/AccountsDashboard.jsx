@@ -10,7 +10,7 @@ import {
   ArrowUpRight, ArrowDownRight, Activity, Users,
   PieChart as PieChartIcon, RefreshCw
 } from 'lucide-react';
-import { getAllFees, getSalaries, getExpenses } from '../../api/index';
+import { getAllFees, getSalaries, getExpenses, getStudents } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './AccountsDashboard.css';
 
@@ -29,9 +29,7 @@ const AccountsDashboard = () => {
         getAllFees().catch(() => ({ data: [] })),
         getSalaries().catch(() => ({ data: [] })),
         getExpenses().catch(() => ({ data: [] })),
-        fetch('/api/students', {
-          headers: { Authorization: `Bearer ${accountsSession?.token || sessionStorage.getItem('accounts_token')}` }
-        }).then(res => res.json()).catch(() => [])
+        getStudents().catch(() => ({ data: [] }))
       ]);
       setFees(feesRes.data || []);
       setSalaries(salaryRes.data || []);
