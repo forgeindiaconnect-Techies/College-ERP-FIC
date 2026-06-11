@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '/api', // Proxied by Vite → http://localhost:5000/api
+  baseURL: 'https://college-erp-fic1.onrender.com/api',
   headers: {
     'Content-Type': 'application/json'
   }

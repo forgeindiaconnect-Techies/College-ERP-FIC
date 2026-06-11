@@ -25,7 +25,7 @@ const SubAdminStaff = () => {
     fetchStaff();
     fetchDepartments();
     
-    const socket = io('http://localhost:5000');
+    const socket = io('https://college-erp-fic1.onrender.com');
     socket.on('staffUpdated', () => {
       fetchStaff();
     });
