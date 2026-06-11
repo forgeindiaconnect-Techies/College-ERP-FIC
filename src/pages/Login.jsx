@@ -309,79 +309,7 @@ const UnifiedLogin = () => {
             </div>
           </form>
 
-          <div className="demo-credentials-section">
-            {showHods ? (
-              <>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                  <h4>Select HOD Department</h4>
-                  <button 
-                    type="button" 
-                    onClick={() => setShowHods(false)}
-                    style={{ background: 'none', border: 'none', color: '#6366f1', fontSize: '12px', fontWeight: '600', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
-                  >
-                    ← Back to Roles
-                  </button>
-                </div>
-                <p>Click to sign in instantly as specific department head</p>
-                <div className="demo-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
-                  {[
-                    { name: 'CSE HOD', email: 'csehod@gmail.com', icon: Award, color: '#10b981' },
-                    { name: 'ECE HOD', email: 'ecehod@gmail.com', icon: Award, color: '#10b981' },
-                    { name: 'EEE HOD', email: 'eeehod@gmail.com', icon: Award, color: '#10b981' },
-                    { name: 'MECH HOD', email: 'mechhod@gmail.com', icon: Award, color: '#10b981' },
-                    { name: 'BCA HOD', email: 'bcahod@gmail.com', icon: Award, color: '#10b981' },
-                    { name: 'MBA HOD', email: 'mbahod@gmail.com', icon: Award, color: '#10b981' }
-                  ].map((role) => (
-                    <button
-                      key={role.name}
-                      type="button"
-                      className="demo-btn"
-                      onClick={() => handleDemoLogin(role.email)}
-                      style={{ '--hover-color': role.color, padding: '12px 8px' }}
-                    >
-                      <role.icon size={16} className="demo-btn-icon" />
-                      <span>{role.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <>
-                <h4>Quick Demo Access</h4>
-                <p>Select a role to pre-fill credentials and sign in instantly</p>
-                <div className="demo-grid">
-                  {[
-                    { name: 'Admin', email: 'admin@college.edu', icon: Shield, color: '#3b82f6' },
-                    { name: 'Principal', email: 'principal@college.edu', icon: Award, color: '#0284c7' },
 
-                    { name: 'HODs (6 Depts)', email: 'csehod@gmail.com', icon: Award, color: '#10b981', isSelector: true },
-                    { name: 'Staff', email: 'karthik@college.edu', icon: BookOpen, color: '#6366F1' },
-                    { name: 'Student', email: 'john@college.edu', icon: GraduationCap, color: '#f59e0b' },
-                    { name: 'Parent', email: 'parent_john@college.edu', icon: Users, color: '#ec4899' },
-                    { name: 'Accounts', email: 'accounts@college.edu', icon: Briefcase, color: '#ef4444' },
-                    { name: 'Driver', email: 'suresh@gmail.com', icon: Shield, color: '#6366f1' }
-                  ].map((role) => (
-                    <button
-                      key={role.name}
-                      type="button"
-                      className="demo-btn"
-                      onClick={() => {
-                        if (role.isSelector) {
-                          setShowHods(true);
-                        } else {
-                          handleDemoLogin(role.email);
-                        }
-                      }}
-                      style={{ '--hover-color': role.color }}
-                    >
-                      <role.icon size={16} className="demo-btn-icon" />
-                      <span>{role.name}</span>
-                    </button>
-                  ))}
-                </div>
-              </>
-            )}
-          </div>
         </div>
       </div>
     </div>
