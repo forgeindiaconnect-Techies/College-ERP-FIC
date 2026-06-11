@@ -15,6 +15,7 @@ import {
 } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StudentDashboard.css';
+import { DEPT_SUBJECTS } from '../../pages/departments/DepartmentData';
 
 // Fallbacks
 const DEFAULT_STUDENT = {
@@ -195,7 +196,14 @@ const StudentDashboard = () => {
               todayClasses = scheduleData.filter(s => 
                 s.day.toLowerCase() === todayName.toLowerCase()
               ).sort((a, b) => Number(a.period) - Number(b.period));
-            }
+          }
+          if (todayClasses.length === 0 && todayName !== 'Sunday' && todayName !== 'Saturday') {
+            const fallbackSubjects = DEPT_SUBJECTS[targetDept] || DEPT_SUBJECTS['Information Technology'] || ['Core Subject 1', 'Core Subject 2'];
+            todayClasses = [
+              { dept: targetDept, day: todayName, period: 1, subject: fallbackSubjects[0 % fallbackSubjects.length], faculty: 'Assigned Faculty', classroom: 'Main Block LH-1' },
+              { dept: targetDept, day: todayName, period: 2, subject: fallbackSubjects[1 % fallbackSubjects.length], faculty: 'Assigned Faculty', classroom: 'Main Block LH-1' },
+              { dept: targetDept, day: todayName, period: 3, subject: fallbackSubjects[2 % fallbackSubjects.length], faculty: 'Assigned Faculty', classroom: 'Main Block LH-2' }
+            ];
           }
           setTodaySchedule(todayClasses);
         } catch (err) {

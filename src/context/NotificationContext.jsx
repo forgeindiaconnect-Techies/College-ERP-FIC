@@ -33,9 +33,9 @@ export const NotificationProvider = ({ children }) => {
 
   const markAsRead = async (id) => {
     try {
-      await markNotificationAsRead(id);
       setNotifications(prev => prev.map(n => n._id === id ? { ...n, isRead: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
+      await markNotificationAsRead(id);
     } catch (error) {
       console.error('Error marking as read:', error);
     }
@@ -43,9 +43,9 @@ export const NotificationProvider = ({ children }) => {
 
   const markAllAsRead = async () => {
     try {
-      await markAllNotificationsAsRead();
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
       setUnreadCount(0);
+      await markAllNotificationsAsRead();
     } catch (error) {
       console.error('Error marking all as read:', error);
     }

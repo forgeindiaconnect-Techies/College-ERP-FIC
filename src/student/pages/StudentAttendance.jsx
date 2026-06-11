@@ -48,7 +48,12 @@ const StudentAttendance = () => {
       const res = await getAttendanceByStudent(finalId);
       // Merge with localStorage
       const localAttendance = JSON.parse(localStorage.getItem('erp_attendance') || '[]');
-      const localRecords = localAttendance.filter(r => r.studentId === finalId);
+      const finalName = studentSession?.name ? studentSession.name.toLowerCase() : '';
+      const localRecords = localAttendance.filter(r => 
+        r.studentId === finalId || 
+        r.studentId === studentId || 
+        (r.studentName && finalName && r.studentName.toLowerCase() === finalName)
+      );
       
       const allRecords = [...(res?.data || []), ...localRecords];
       // Deduplicate by _id
