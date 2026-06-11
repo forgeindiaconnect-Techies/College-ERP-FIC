@@ -11,7 +11,23 @@ const DEPARTMENTS = [
   'Cyber Security', 'Biomedical Engineering', 'Aeronautical Engineering', 'Automobile Engineering',
   'Robotics Engineering', 'Chemical Engineering', 'Biotechnology Engineering'
 ];
-const SUBJECTS = ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'Circuits', 'Thermodynamics', 'Fluid Mechanics', 'Structural Analysis'];
+const DEPT_SUBJECTS = {
+  'Computer Science Engineering': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI', 'Cloud Computing', 'Cryptography'],
+  'Information Technology': ['Web Technologies', 'Software Engineering', 'DBMS', 'Cyber Security', 'Data Science', 'IoT'],
+  'Electronics & Communication Engineering': ['Circuits', 'Signals and Systems', 'Microprocessors', 'Digital Logic', 'VLSI Design', 'Antenna Theory'],
+  'Electrical & Electronics Engineering': ['Power Systems', 'Control Systems', 'Machines', 'Power Electronics', 'High Voltage Engineering'],
+  'Mechanical Engineering': ['Thermodynamics', 'Fluid Mechanics', 'Kinematics', 'Machine Design', 'Robotics', 'Heat Transfer'],
+  'Civil Engineering': ['Structural Analysis', 'Concrete Technology', 'Geotechnical Engineering', 'Surveying', 'Fluid Mechanics'],
+  'Artificial Intelligence & Data Science': ['Machine Learning', 'Deep Learning', 'Big Data', 'Data Mining', 'Python Programming', 'NLP'],
+  'Artificial Intelligence & Machine Learning': ['Neural Networks', 'AI Ethics', 'Computer Vision', 'Pattern Recognition', 'Robotics', 'Algorithms'],
+  'Cyber Security': ['Network Security', 'Cryptography', 'Ethical Hacking', 'Forensics', 'Malware Analysis'],
+  'Biomedical Engineering': ['Biomechanics', 'Biomaterials', 'Medical Imaging', 'Biosensors', 'Human Anatomy'],
+  'Aeronautical Engineering': ['Aerodynamics', 'Propulsion', 'Flight Mechanics', 'Aircraft Structures', 'Avionics'],
+  'Automobile Engineering': ['Vehicle Dynamics', 'Engine Systems', 'Automotive Electronics', 'Chassis Design'],
+  'Robotics Engineering': ['Kinematics', 'Sensors and Actuators', 'Control Systems', 'AI for Robotics', 'Machine Vision'],
+  'Chemical Engineering': ['Fluid Mechanics', 'Mass Transfer', 'Heat Transfer', 'Chemical Reaction Engineering', 'Process Control'],
+  'Biotechnology Engineering': ['Genetics', 'Cell Biology', 'Bioprocess Engineering', 'Immunology', 'Bioinformatics']
+};
 
 const MOCK_STAFF = [
   { id: 'STF001', name: 'Dr. Ananya Rao', email: 'ananya@college.edu', phone: '9876543210', dept: 'Computer Science', designation: 'Professor', subjects: ['Data Structures', 'DBMS'], workload: 18, attendance: 97, status: 'Active' },
@@ -278,12 +294,16 @@ const StaffManagement = () => {
               <div className="form-group" style={{ marginTop: '1rem' }}>
                 <label><BookOpen size={13} /> Subjects (select all that apply)</label>
                 <div className="subjects-picker">
-                  {SUBJECTS.map(sub => (
-                    <button type="button" key={sub}
-                      className={`subject-pick-btn ${form.subjects.includes(sub) ? 'selected' : ''}`}
-                      onClick={() => toggleSubject(sub)}
-                    >{sub}</button>
-                  ))}
+                  {!form.dept ? (
+                    <span className="text-muted" style={{ fontSize: '0.85rem' }}>Please select a department first</span>
+                  ) : (
+                    (DEPT_SUBJECTS[form.dept] || []).map(sub => (
+                      <button type="button" key={sub}
+                        className={`subject-pick-btn ${form.subjects.includes(sub) ? 'selected' : ''}`}
+                        onClick={() => toggleSubject(sub)}
+                      >{sub}</button>
+                    ))
+                  )}
                 </div>
               </div>
               <div className="modal-actions">

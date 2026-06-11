@@ -589,45 +589,82 @@ const HodStudents = () => {
 
                   <div className="sm-form-section-title">Transport & Hostel</div>
 
-                  {/* Hostel Required */}
-                  <div className={`fld ${formErrors.hostelRequired ? 'fld-error' : ''}`}>
-                    <label>Hostel Required? <span className="req">*</span></label>
-                    <select {...field('hostelRequired')}>
-                      <option value="">— Select —</option>
-                      <option value="No">No</option>
-                      <option value="Yes">Yes</option>
-                    </select>
-                    {formErrors.hostelRequired && <span className="err-msg">{formErrors.hostelRequired}</span>}
+                  {/* Hostel & Transport Required Row */}
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                    <div className={`fld ${formErrors.hostelRequired ? 'fld-error' : ''}`}>
+                      <label>Hostel Required? <span className="req">*</span></label>
+                      <select {...field('hostelRequired')}>
+                        <option value="">— Select —</option>
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                      {formErrors.hostelRequired && <span className="err-msg">{formErrors.hostelRequired}</span>}
+                    </div>
+
+                    <div className={`fld ${formErrors.transportRequired ? 'fld-error' : ''}`}>
+                      <label>Transport Required? <span className="req">*</span></label>
+                      <select {...field('transportRequired')}>
+                        <option value="">— Select —</option>
+                        <option value="No">No</option>
+                        <option value="Yes">Yes</option>
+                      </select>
+                      {formErrors.transportRequired && <span className="err-msg">{formErrors.transportRequired}</span>}
+                    </div>
                   </div>
 
-                  {/* Room Number */}
-                  <div className="fld">
-                    <label>Room Number</label>
-                    <input type="text" placeholder="e.g. A-102" disabled={form.hostelRequired === 'No' || !form.hostelRequired} {...field('roomNumber')} />
-                  </div>
+                  {/* Hostel Details */}
+                  {form.hostelRequired === 'Yes' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                      <div className="fld">
+                        <label>Hostel Name</label>
+                        <input type="text" placeholder="e.g. Boys Hostel A" {...field('hostelName')} />
+                      </div>
+                      <div className="fld">
+                        <label>Room Number</label>
+                        <input type="text" placeholder="e.g. A-102" {...field('roomNumber')} />
+                      </div>
+                      <div className="fld">
+                        <label>Hostel Fee Amount (₹) <span className="req">*</span></label>
+                        <input type="number" placeholder="e.g. 25000" {...field('hostelFeeAmount')} />
+                      </div>
+                      <div className="fld">
+                        <label>Hostel Fee Status <span className="req">*</span></label>
+                        <select {...field('hostelFeeStatus')}>
+                          <option value="">— Select —</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Paid">Paid</option>
+                        </select>
+                      </div>
+                    </div>
+                  )}
 
-                  {/* Bus Route */}
-                  <div className={`fld ${formErrors.busRoute ? 'fld-error' : ''}`}>
-                    <label>Bus Route <span className="req">*</span></label>
-                    <input type="text" placeholder="e.g. Route 4 (or N/A)" {...field('busRoute')} />
-                    {formErrors.busRoute && <span className="err-msg">{formErrors.busRoute}</span>}
-                  </div>
-
-                  {/* Pickup Point */}
-                  <div className="fld">
-                    <label>Pickup Point</label>
-                    <input type="text" placeholder="e.g. City Center" {...field('pickupPoint')} />
-                  </div>
-
-                  {/* Transport Fee Status */}
-                  <div className={`fld ${formErrors.transportFeeStatus ? 'fld-error' : ''}`}>
-                    <label>Transport Fee Status <span className="req">*</span></label>
-                    <select {...field('transportFeeStatus')}>
-                      <option value="">— Select —</option>
-                      {FEE_STATUS.map(f => <option key={f}>{f}</option>)}
-                    </select>
-                    {formErrors.transportFeeStatus && <span className="err-msg">{formErrors.transportFeeStatus}</span>}
-                  </div>
+                  {/* Transport Details */}
+                  {form.transportRequired === 'Yes' && (
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                      <div className={`fld ${formErrors.busRoute ? 'fld-error' : ''}`}>
+                        <label>Bus Route <span className="req">*</span></label>
+                        <input type="text" placeholder="e.g. ROUTE-5" {...field('busRoute')} />
+                        {formErrors.busRoute && <span className="err-msg">{formErrors.busRoute}</span>}
+                      </div>
+                      <div className="fld">
+                        <label>Pickup Point</label>
+                        <input type="text" placeholder="e.g. BARGUR" {...field('pickupPoint')} />
+                      </div>
+                      <div className="fld">
+                        <label>Transport Fee Amount (₹) <span className="req">*</span></label>
+                        <input type="number" placeholder="e.g. 15000" {...field('transportFeeAmount')} />
+                      </div>
+                      <div className={`fld ${formErrors.transportFeeStatus ? 'fld-error' : ''}`}>
+                        <label>Transport Fee Status <span className="req">*</span></label>
+                        <select {...field('transportFeeStatus')}>
+                          <option value="">— Select —</option>
+                          <option value="Pending">Pending</option>
+                          <option value="Paid">Paid</option>
+                        </select>
+                        {formErrors.transportFeeStatus && <span className="err-msg">{formErrors.transportFeeStatus}</span>}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

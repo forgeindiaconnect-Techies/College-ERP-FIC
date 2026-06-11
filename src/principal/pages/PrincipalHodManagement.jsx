@@ -189,7 +189,7 @@ export default function PrincipalHodManagement() {
         </div>
 
         {/* Side Panel */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.2rem', position: 'sticky', top: 0, alignSelf: 'flex-start' }}>
           {selected ? (
             <div className="glass-card animate-fade-in" style={{ padding: '1.5rem', borderRadius: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>

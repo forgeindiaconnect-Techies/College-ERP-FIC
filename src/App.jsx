@@ -1,5 +1,6 @@
 import React, { useState, useEffect, createContext } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import ScrollToTop from './components/ScrollToTop';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -275,6 +276,7 @@ function App() {
     <ErrorBoundary>
       <ThemeContext.Provider value={{ theme, toggleTheme }}>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<UnifiedLogin />} />
