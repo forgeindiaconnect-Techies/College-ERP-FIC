@@ -13,6 +13,12 @@ export default function StaffPlacements() {
   const [tab, setTab] = useState('eligible');
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [toastMsg, setToastMsg] = useState('');
+
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(''), 3000);
+  };
   
   const [myDept, setMyDept] = useState('');
   const [students, setStudents] = useState([]);
@@ -143,7 +149,7 @@ export default function StaffPlacements() {
                   <td style={{ fontWeight: 700, color: '#3b82f6' }}>{s.cgpa || 'N/A'}</td>
                   <td>{0 /* Mock arrears as 0 */}</td>
                   <td><span style={{ color: '#10b981', fontWeight: 700 }}>Eligible</span></td>
-                  <td><button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.75rem' }}>Verify Record</button></td>
+                  <td><button className="btn-secondary" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={() => showToast(`Record verified for ${s.name}`)}>Verify Record</button></td>
                 </tr>
               ))}
               {filtered.length === 0 && (
@@ -287,7 +293,7 @@ export default function StaffPlacements() {
                   <td style={{ fontWeight: 600 }}>{i.date ? new Date(i.date).toLocaleDateString() : ''}</td>
                   <td>{i.time}</td>
                   <td>{i.mode === 'Online' ? <span className="text-blue-500 font-bold">Online Link</span> : i.venue}</td>
-                  <td><button className="btn-primary" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={() => alert('Students have been successfully notified about this interview schedule via their portal.')}>Notify Students</button></td>
+                  <td><button className="btn-primary" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={() => showToast('Students have been notified via portal!')}>Notify Students</button></td>
                 </tr>
               ))}
               {interviews.length === 0 && (
@@ -361,6 +367,18 @@ export default function StaffPlacements() {
       {tab === 'training' && renderTrainingPrograms()}
       {tab === 'applications' && renderApplications()}
       {tab === 'interviews' && renderInterviews()}
+
+      {/* Toast Notification */}
+      {toastMsg && (
+        <div style={{
+          position: 'fixed', bottom: '20px', right: '20px', background: '#10b981', color: 'white',
+          padding: '12px 24px', borderRadius: '8px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+          fontWeight: 'bold', zIndex: 9999, animation: 'fadeIn 0.3s ease-out'
+        }}>
+          <CheckCircle size={18} style={{ display: 'inline', marginRight: '8px', verticalAlign: 'text-bottom' }} />
+          {toastMsg}
+        </div>
+      )}
     </div>
   );
 }

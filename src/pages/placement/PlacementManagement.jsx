@@ -44,6 +44,8 @@ const PlacementManagement = () => {
 
   const [showSelectionModal, setShowSelectionModal] = useState(false);
   const [selectionForm, setSelectionForm] = useState({ student: '', regNo: '', company: '', role: '', ctc: '', date: '' });
+  
+  const [reportPreview, setReportPreview] = useState(null); // { title: string, headers: string[], rows: any[][] }
 
   // Eligibility tracker state
   const [selectedEligibleJob, setSelectedEligibleJob] = useState('');
@@ -184,27 +186,16 @@ const PlacementManagement = () => {
     };
   }, [selections]);
 
-  const downloadCSV = (filename, rows) => {
-    const csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", filename);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const downloadNIRFReport = () => {
+  const viewNIRFReport = () => {
     const headers = ["Registration Number", "Student Name", "Placed Company", "Role", "Package (CTC)"];
     const rows = selections.map(sel => [sel.regNo, sel.student, sel.company, sel.role, sel.ctc]);
-    downloadCSV("NIRF_Placement_Report.csv", [headers, ...rows]);
+    setReportPreview({ title: "NIRF Placement Report", headers, rows });
   };
 
-  const downloadDepartmentSummary = () => {
+  const viewDepartmentSummary = () => {
     const headers = ["Company Name", "Sector", "Location", "Active Drives"];
-    const rows = companies.map(comp => [comp.name, comp.sector, comp.location, comp.drives]);
-    downloadCSV("Department_Placement_Summary.csv", [headers, ...rows]);
+    const rows = companies.map(comp => [comp.name, comp.sector, comp.location, comp.drives || 1]);
+    setReportPreview({ title: "Department Placement Summary", headers, rows });
   };
 
   const TABS = [
@@ -456,22 +447,27 @@ const PlacementManagement = () => {
                     <td className="font-bold text-primary">{app.company}</td>
                     <td>{app.role}</td>
                     <td>
+                      <span className={`text-xs font-bold px-2 py-1 rounded ${
+                        app.status === 'Shortlisted' ? 'bg-green-100 text-green-700' : 
+                        app.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
+                        app.status === 'Selected' ? 'bg-indigo-100 text-indigo-700' : 
+                        app.status === 'Waitlisted' ? 'bg-yellow-100 text-yellow-700' :
+                        'bg-blue-100 text-blue-700'
+                      }`}>
+                        {app.status}
+                      </span>
+                    </td>
+                    <td>
                       <select 
                         value={app.status} 
                         onChange={(e) => handleUpdateAppStatus(app._id, e.target.value)}
-                        className={`text-xs font-bold px-2 py-1 rounded cursor-pointer outline-none border-none ${
-                          app.status === 'Shortlisted' ? 'bg-green-100 text-green-700' : 
-                          app.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
-                          app.status === 'Selected' ? 'bg-indigo-100 text-indigo-700' : 
-                          app.status === 'Waitlisted' ? 'bg-yellow-100 text-yellow-700' :
-                          'bg-blue-100 text-blue-700'
-                        }`}
+                        className="text-xs font-bold px-2 py-1 rounded cursor-pointer outline-none border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800"
                       >
-                        <option value="Applied" className="text-black bg-white">Applied</option>
-                        <option value="Shortlisted" className="text-black bg-white">Shortlisted</option>
-                        <option value="Selected" className="text-black bg-white">Selected</option>
-                        <option value="Waitlisted" className="text-black bg-white">Waitlisted</option>
-                        <option value="Rejected" className="text-black bg-white">Rejected</option>
+                        <option value="Applied">Applied</option>
+                        <option value="Shortlisted">Shortlisted</option>
+                        <option value="Selected">Selected</option>
+                        <option value="Waitlisted">Waitlisted</option>
+                        <option value="Rejected">Rejected</option>
                       </select>
                     </td>
                   </tr>
@@ -647,8 +643,8 @@ const PlacementManagement = () => {
           <h2 className="text-xl font-bold mb-2">Placement Data Export</h2>
           <p className="text-muted max-w-md mb-6">Export NIRF placement data, company-wise selections, and department-wise statistics.</p>
           <div className="flex gap-4">
-            <button className="btn-primary flex items-center gap-2" onClick={downloadNIRFReport}><Download size={16}/> NIRF Report</button>
-            <button className="btn-secondary flex items-center gap-2" onClick={downloadDepartmentSummary}><Download size={16}/> Department Summary</button>
+            <button className="btn-primary flex items-center gap-2" onClick={viewNIRFReport}><FileText size={16}/> NIRF Report</button>
+            <button className="btn-secondary flex items-center gap-2" onClick={viewDepartmentSummary}><FileText size={16}/> Department Summary</button>
           </div>
         </div>
       )}
@@ -869,6 +865,50 @@ const PlacementManagement = () => {
                 <button type="submit" className="btn-primary">Add Selection</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Report Preview Modal */}
+      {reportPreview && (
+        <div className="modal-overlay" style={{ zIndex: 1000, position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }}>
+          <div className="modal-content glass-card" style={{ maxWidth: '800px', width: '90%', maxHeight: '90vh', display: 'flex', flexDirection: 'column' }}>
+            <div className="modal-header" style={{ display: 'flex', justifyContent: 'space-between', padding: '1rem', borderBottom: '1px solid var(--border-color)' }}>
+              <h2>{reportPreview.title}</h2>
+              <button className="close-btn" onClick={() => setReportPreview(null)}><XCircle size={20}/></button>
+            </div>
+            <div className="p-4 overflow-auto flex-1">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-gray-100 dark:bg-gray-800">
+                    {reportPreview.headers.map((h, i) => <th key={i} className="p-2 border-b dark:border-gray-700 font-bold">{h}</th>)}
+                  </tr>
+                </thead>
+                <tbody>
+                  {reportPreview.rows.map((row, i) => (
+                    <tr key={i} className="border-b dark:border-gray-800">
+                      {row.map((cell, j) => <td key={j} className="p-2 text-sm">{cell}</td>)}
+                    </tr>
+                  ))}
+                  {reportPreview.rows.length === 0 && (
+                    <tr><td colSpan={reportPreview.headers.length} className="p-4 text-center text-muted">No data available for this report.</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+            <div className="p-4 flex justify-end gap-2 border-t border-gray-200 dark:border-gray-800">
+              <button className="btn-secondary flex items-center gap-2" onClick={() => {
+                const csvContent = "data:text/csv;charset=utf-8," + [reportPreview.headers, ...reportPreview.rows].map(e => e.join(",")).join("\n");
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `${reportPreview.title.replace(/\s+/g, '_')}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}><Download size={16}/> Download CSV</button>
+              <button className="btn-primary flex items-center gap-2" onClick={() => window.print()}><FileText size={16}/> Print</button>
+            </div>
           </div>
         </div>
       )}
