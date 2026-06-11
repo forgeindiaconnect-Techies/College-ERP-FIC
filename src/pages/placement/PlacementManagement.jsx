@@ -140,9 +140,6 @@ const PlacementManagement = () => {
       alert('Failed to update status');
     }
   };
-      console.error('Failed to update app status', error);
-    }
-  };
 
   const handleAddInterview = async (e) => {
     e.preventDefault();
