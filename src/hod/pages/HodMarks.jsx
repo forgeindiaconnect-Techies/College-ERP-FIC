@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Search, Filter, Trophy, AlertTriangle, TrendingUp, Edit2, X, CheckCircle, Percent, Hash } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getStudents, updateStudent } from '../../api/index';
+import { getStudents, updateStudent, getAllMarks } from '../../api/index';
 import './HodMarks.css';
 
 // Try to grab logged in HOD session
@@ -55,20 +55,40 @@ const HodMarks = () => {
 
   const fetchMarksData = async () => {
     try {
-      const res = await getStudents();
+      const [studRes, marksRes] = await Promise.all([
+        getStudents().catch(() => ({ data: [] })),
+        getAllMarks().catch(() => ({ data: [] }))
+      ]);
+      
+      const allMarks = marksRes?.data || [];
+
       // Backend auto-scopes to HOD's dept. Map Student model data to marks display format.
-      const mapped = res.data.map(s => ({
-        id: s.id,
-        name: s.name,
-        dept: s.dept,
-        sem: s.sem,
-        internal: 40, // default since Student model doesn't store per-subject marks
-        external: 70, // default
-        gpa: s.cgpa != null ? s.cgpa : 0,
-        cgpa: s.cgpa != null ? s.cgpa : 0,
-        arrears: 0,
-        trend: [s.cgpa != null ? s.cgpa : 0]
-      }));
+      const mapped = studRes.data.map(s => {
+        // Find all marks for this student
+        const studentMarks = allMarks.filter(m => m.studentId === (s.id || s._id));
+        
+        let avgInternal = 0;
+        let avgExternal = 0;
+        if (studentMarks.length > 0) {
+          const totalInternal = studentMarks.reduce((sum, m) => sum + (m.internalMarks || 0), 0);
+          const totalExternal = studentMarks.reduce((sum, m) => sum + (m.semesterMarks || 0), 0);
+          avgInternal = Math.round(totalInternal / studentMarks.length);
+          avgExternal = Math.round(totalExternal / studentMarks.length);
+        }
+
+        return {
+          id: s.id,
+          name: s.name,
+          dept: s.dept,
+          sem: s.sem,
+          internal: avgInternal,
+          external: avgExternal,
+          gpa: s.cgpa != null ? s.cgpa : 0,
+          cgpa: s.cgpa != null ? s.cgpa : 0,
+          arrears: s.arrears || 0,
+          trend: [s.cgpa != null ? s.cgpa : 0]
+        };
+      });
       setMarks(mapped.length > 0 ? mapped : MOCK_MARKS_FALLBACK.filter(m => m.dept === HOD_DEPT));
       setLoading(false);
     } catch (err) {

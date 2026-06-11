@@ -3,7 +3,7 @@ import {
   Bus, Users, Navigation, Plus, Search, Download, 
   CreditCard, UserCheck, ShieldCheck, FileText, BarChart, Clock
 } from 'lucide-react';
-import { getTransportRoutes, getTransportDrivers, getTransportStudents } from '../../api/index';
+import { getTransportRoutes, getTransportDrivers, getTransportStudents, getStudents } from '../../api/index';
 import {
   XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, AreaChart, Area
@@ -107,14 +107,42 @@ const TransportManagement = () => {
 
   const fetchTransportData = async () => {
     try {
-      const [routesRes, driversRes, studentsRes] = await Promise.all([
+      const [routesRes, driversRes, studentsRes, allStudentsRes] = await Promise.all([
         getTransportRoutes(),
         getTransportDrivers(),
-        getTransportStudents()
+        getTransportStudents(),
+        getStudents().catch(() => ({ data: [] }))
       ]);
       setRoutes(routesRes.data);
       setDrivers(driversRes.data);
-      setStudents(studentsRes.data);
+      
+      let combinedTransportStudents = [...studentsRes.data];
+
+      // Merge from main students db
+      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const allDbStudents = [...(allStudentsRes.data || [])];
+      erpStudents.forEach(ls => {
+        if (!allDbStudents.find(cs => cs.id === ls.id || cs.rollNo === ls.rollNo)) {
+          allDbStudents.push(ls);
+        }
+      });
+
+      const registeredTransport = allDbStudents.filter(s => s.transportRequired?.toLowerCase() === 'yes');
+      registeredTransport.forEach(s => {
+        if (!combinedTransportStudents.find(ts => ts.studentId === s.id)) {
+          combinedTransportStudents.push({
+            _id: s.id,
+            studentId: s.id,
+            name: s.name,
+            routeId: s.busRoute || 'Unassigned',
+            pickupPoint: s.pickupPoint || 'Not specified',
+            feeStatus: (s.transportFeeStatus || 'Pending').charAt(0).toUpperCase() + (s.transportFeeStatus || 'Pending').slice(1),
+            amount: s.transportFeeAmount || 0
+          });
+        }
+      });
+
+      setStudents(combinedTransportStudents);
 
       // Fetch all driver attendance logs from localStorage
       const logs = [];

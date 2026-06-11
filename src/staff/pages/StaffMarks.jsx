@@ -15,9 +15,30 @@ const DEFAULT_SESSION = {
   role: 'Staff'
 };
 
-
-
 const AVATAR_COLORS = ['bg-gradient-blue', 'bg-gradient-purple', 'bg-gradient-orange', 'bg-gradient-green', 'bg-gradient-teal'];
+
+const DEPT_SUBJECTS = {
+  'Computer Science Engineering': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI', 'Cloud Computing', 'Cryptography'],
+  'Information Technology': ['Web Technologies', 'Software Engineering', 'DBMS', 'Cyber Security', 'Data Science', 'IoT'],
+  'Electronics & Communication Engineering': ['Circuits', 'Signals and Systems', 'Microprocessors', 'Digital Logic', 'VLSI Design', 'Antenna Theory'],
+  'Electrical & Electronics Engineering': ['Power Systems', 'Control Systems', 'Machines', 'Power Electronics', 'High Voltage Engineering'],
+  'Mechanical Engineering': ['Thermodynamics', 'Fluid Mechanics', 'Kinematics', 'Machine Design', 'Robotics', 'Heat Transfer'],
+  'Civil Engineering': ['Structural Analysis', 'Concrete Technology', 'Geotechnical Engineering', 'Surveying', 'Fluid Mechanics'],
+  'Artificial Intelligence & Data Science': ['Machine Learning', 'Deep Learning', 'Big Data', 'Data Mining', 'Python Programming', 'NLP'],
+  'Artificial Intelligence & Machine Learning': ['Neural Networks', 'AI Ethics', 'Computer Vision', 'Pattern Recognition', 'Robotics', 'Algorithms'],
+  'Cyber Security': ['Network Security', 'Cryptography', 'Ethical Hacking', 'Forensics', 'Malware Analysis'],
+  'Biomedical Engineering': ['Biomechanics', 'Biomaterials', 'Medical Imaging', 'Biosensors', 'Human Anatomy'],
+  'Aeronautical Engineering': ['Aerodynamics', 'Propulsion', 'Flight Mechanics', 'Aircraft Structures', 'Avionics'],
+  'Automobile Engineering': ['Vehicle Dynamics', 'Engine Systems', 'Automotive Electronics', 'Chassis Design'],
+  'Robotics Engineering': ['Kinematics', 'Sensors and Actuators', 'Control Systems', 'AI for Robotics', 'Machine Vision'],
+  'Chemical Engineering': ['Fluid Mechanics', 'Mass Transfer', 'Heat Transfer', 'Chemical Reaction Engineering', 'Process Control'],
+  'Biotechnology Engineering': ['Genetics', 'Cell Biology', 'Bioprocess Engineering', 'Immunology', 'Bioinformatics'],
+  // Shorthands
+  'Computer Science': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI'],
+  'Electronics & Comm.': ['Circuits', 'Signals and Systems', 'Microprocessors'],
+  'Electrical Engg.': ['Power Systems', 'Control Systems', 'Machines'],
+  'Mechanical Engg.': ['Thermodynamics', 'Fluid Mechanics', 'Kinematics']
+};
 
 const StaffMarks = () => {
   const navigate = useNavigate();
@@ -108,6 +129,12 @@ const StaffMarks = () => {
     // Filter by department AND semester!
     const deptSubs = allSubs.filter(sub => sub.dept === staffDept && sub.sem === s.sem);
     availableSubjects = [...new Set(deptSubs.map(sub => sub.name))];
+    
+    // Fallback to static DEPT_SUBJECTS mapping if no master subjects are found
+    if (availableSubjects.length === 0) {
+      const fallback = DEPT_SUBJECTS[staffDept] || DEPT_SUBJECTS[staffDept + ' Engineering'] || [];
+      availableSubjects = fallback;
+    }
     
     // If no subjects defined for this semester yet, give an empty array
     if (availableSubjects.length === 0) {

@@ -16,6 +16,29 @@ const DEFAULT_SESSION = {
   subjects: ['Data Structures', 'DBMS']
 };
 
+const DEPT_SUBJECTS = {
+  'Computer Science Engineering': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI', 'Cloud Computing', 'Cryptography'],
+  'Information Technology': ['Web Technologies', 'Software Engineering', 'DBMS', 'Cyber Security', 'Data Science', 'IoT'],
+  'Electronics & Communication Engineering': ['Circuits', 'Signals and Systems', 'Microprocessors', 'Digital Logic', 'VLSI Design', 'Antenna Theory'],
+  'Electrical & Electronics Engineering': ['Power Systems', 'Control Systems', 'Machines', 'Power Electronics', 'High Voltage Engineering'],
+  'Mechanical Engineering': ['Thermodynamics', 'Fluid Mechanics', 'Kinematics', 'Machine Design', 'Robotics', 'Heat Transfer'],
+  'Civil Engineering': ['Structural Analysis', 'Concrete Technology', 'Geotechnical Engineering', 'Surveying', 'Fluid Mechanics'],
+  'Artificial Intelligence & Data Science': ['Machine Learning', 'Deep Learning', 'Big Data', 'Data Mining', 'Python Programming', 'NLP'],
+  'Artificial Intelligence & Machine Learning': ['Neural Networks', 'AI Ethics', 'Computer Vision', 'Pattern Recognition', 'Robotics', 'Algorithms'],
+  'Cyber Security': ['Network Security', 'Cryptography', 'Ethical Hacking', 'Forensics', 'Malware Analysis'],
+  'Biomedical Engineering': ['Biomechanics', 'Biomaterials', 'Medical Imaging', 'Biosensors', 'Human Anatomy'],
+  'Aeronautical Engineering': ['Aerodynamics', 'Propulsion', 'Flight Mechanics', 'Aircraft Structures', 'Avionics'],
+  'Automobile Engineering': ['Vehicle Dynamics', 'Engine Systems', 'Automotive Electronics', 'Chassis Design'],
+  'Robotics Engineering': ['Kinematics', 'Sensors and Actuators', 'Control Systems', 'AI for Robotics', 'Machine Vision'],
+  'Chemical Engineering': ['Fluid Mechanics', 'Mass Transfer', 'Heat Transfer', 'Chemical Reaction Engineering', 'Process Control'],
+  'Biotechnology Engineering': ['Genetics', 'Cell Biology', 'Bioprocess Engineering', 'Immunology', 'Bioinformatics'],
+  // Shorthands
+  'Computer Science': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI'],
+  'Electronics & Comm.': ['Circuits', 'Signals and Systems', 'Microprocessors'],
+  'Electrical Engg.': ['Power Systems', 'Control Systems', 'Machines'],
+  'Mechanical Engg.': ['Thermodynamics', 'Fluid Mechanics', 'Kinematics']
+};
+
 const MOCK_ASSIGNMENTS = [
   { id: '1', subject: 'Data Structures', class: 'Sem 3', title: 'Implement Binary Search Tree', description: 'Write a Java program to implement a BST with insert, delete, and search operations.', dueDate: '2026-05-28', submissionsCount: 12, faculty: 'Dr. Ananya Rao' },
   { id: '2', subject: 'DBMS', class: 'Sem 6', title: 'SQL Join Queries Practice', description: 'Complete the SQL exercises sheet on nested queries and multi-table joins.', dueDate: '2026-05-25', submissionsCount: 8, faculty: 'Dr. Ananya Rao' }
@@ -74,7 +97,11 @@ const StaffAssignments = () => {
     }
     
     if (!deptInitialized && dynSubjects.length === 0) {
-      dynSubjects = activeStaff.subjects && activeStaff.subjects.length > 0 ? activeStaff.subjects : ['General Course'];
+      dynSubjects = activeStaff.subjects && activeStaff.subjects.length > 0 ? activeStaff.subjects : [];
+      if (dynSubjects.length === 0) {
+        const fallback = DEPT_SUBJECTS[activeStaff.dept] || DEPT_SUBJECTS[activeStaff.dept + ' Engineering'] || [];
+        dynSubjects = fallback;
+      }
     }
 
     if (dynSubjects.length === 0) {
@@ -297,7 +324,7 @@ const StaffAssignments = () => {
       {/* NEW ASSIGNMENT MODAL */}
       {modalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-card glass-card" onClick={e => e.stopPropagation()}>
+          <div className="modal-card glass-card" onClick={e => e.stopPropagation()} style={{ maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <div>
                 <h2>Create New Assignment</h2>

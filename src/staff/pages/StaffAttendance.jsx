@@ -28,6 +28,29 @@ const getTodayDateStr = () => {
 const AVATAR_COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ec4899', '#6366F1'];
 const getInitials = (name) => name.replace('Dr. ', '').replace('Prof. ', '').split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
 
+const DEPT_SUBJECTS = {
+  'Computer Science Engineering': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI', 'Cloud Computing', 'Cryptography'],
+  'Information Technology': ['Web Technologies', 'Software Engineering', 'DBMS', 'Cyber Security', 'Data Science', 'IoT'],
+  'Electronics & Communication Engineering': ['Circuits', 'Signals and Systems', 'Microprocessors', 'Digital Logic', 'VLSI Design', 'Antenna Theory'],
+  'Electrical & Electronics Engineering': ['Power Systems', 'Control Systems', 'Machines', 'Power Electronics', 'High Voltage Engineering'],
+  'Mechanical Engineering': ['Thermodynamics', 'Fluid Mechanics', 'Kinematics', 'Machine Design', 'Robotics', 'Heat Transfer'],
+  'Civil Engineering': ['Structural Analysis', 'Concrete Technology', 'Geotechnical Engineering', 'Surveying', 'Fluid Mechanics'],
+  'Artificial Intelligence & Data Science': ['Machine Learning', 'Deep Learning', 'Big Data', 'Data Mining', 'Python Programming', 'NLP'],
+  'Artificial Intelligence & Machine Learning': ['Neural Networks', 'AI Ethics', 'Computer Vision', 'Pattern Recognition', 'Robotics', 'Algorithms'],
+  'Cyber Security': ['Network Security', 'Cryptography', 'Ethical Hacking', 'Forensics', 'Malware Analysis'],
+  'Biomedical Engineering': ['Biomechanics', 'Biomaterials', 'Medical Imaging', 'Biosensors', 'Human Anatomy'],
+  'Aeronautical Engineering': ['Aerodynamics', 'Propulsion', 'Flight Mechanics', 'Aircraft Structures', 'Avionics'],
+  'Automobile Engineering': ['Vehicle Dynamics', 'Engine Systems', 'Automotive Electronics', 'Chassis Design'],
+  'Robotics Engineering': ['Kinematics', 'Sensors and Actuators', 'Control Systems', 'AI for Robotics', 'Machine Vision'],
+  'Chemical Engineering': ['Fluid Mechanics', 'Mass Transfer', 'Heat Transfer', 'Chemical Reaction Engineering', 'Process Control'],
+  'Biotechnology Engineering': ['Genetics', 'Cell Biology', 'Bioprocess Engineering', 'Immunology', 'Bioinformatics'],
+  // Shorthands
+  'Computer Science': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI'],
+  'Electronics & Comm.': ['Circuits', 'Signals and Systems', 'Microprocessors'],
+  'Electrical Engg.': ['Power Systems', 'Control Systems', 'Machines'],
+  'Mechanical Engg.': ['Thermodynamics', 'Fluid Mechanics', 'Kinematics']
+};
+
 const StaffAttendance = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -103,7 +126,13 @@ const StaffAttendance = () => {
         if (dynSubjects.length === 0 && activeStaff.subjects && activeStaff.subjects.length > 0) {
           dynSubjects = activeStaff.subjects;
         } else if (dynSubjects.length === 0) {
-          dynSubjects = ['No Master Subjects Defined'];
+          // Fallback to department subjects
+          const fallback = DEPT_SUBJECTS[activeStaff.dept] || DEPT_SUBJECTS[activeStaff.dept + ' Engineering'] || [];
+          if (fallback.length > 0) {
+            dynSubjects = fallback;
+          } else {
+            dynSubjects = ['No Master Subjects Defined'];
+          }
         }
       }
       setSubjectsList(dynSubjects);

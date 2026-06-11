@@ -81,7 +81,9 @@ const StaffManagement = () => {
   };
 
   const filtered = staff.filter(s => {
-    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) || s.id.toLowerCase().includes(search.toLowerCase());
+    const isHod = s.designation === 'HOD' || (s.id && s.id.startsWith('HOD')) || (s.role === 'HOD');
+    if (isHod) return false;
+    const matchSearch = s.name.toLowerCase().includes(search.toLowerCase()) || (s.id && s.id.toLowerCase().includes(search.toLowerCase()));
     const matchDept = deptFilter === 'All' || s.dept === deptFilter;
     return matchSearch && matchDept;
   });
