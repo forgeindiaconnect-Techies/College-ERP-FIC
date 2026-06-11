@@ -338,7 +338,7 @@ const StaffMarks = () => {
       {/* EDIT MODAL */}
       {modalOpen && (
         <div className="modal-overlay" onClick={closeModal}>
-          <div className="modal-card glass-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px' }}>
+          <div className="modal-card glass-card" onClick={e => e.stopPropagation()} style={{ maxWidth: '700px', maxHeight: '90vh', overflowY: 'auto' }}>
             <div className="modal-header">
               <div>
                 <h2>{form.name} - Marks Entry</h2>

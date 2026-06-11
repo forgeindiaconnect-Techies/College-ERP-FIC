@@ -52,14 +52,27 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
 
     getDepartments()
       .then(res => {
-        if (res.data && res.data.length > 0) {
+        if (res?.data && res.data.length > 0) {
           // If backend has real departments, use them instead of fallback
           // setDepartments(res.data); 
-          // Note: Keeping fallback for UI consistency based on user request unless backend is heavily populated
         }
       })
-      .catch(err => console.error('Failed to load navbar departments:', err));
+      .catch(() => {
+        // Silently catch 403/401 to prevent console errors when user lacks permission
+      });
   }, [role]);
+
+  const [messages, setMessages] = useState([
+    { id: 1, sender: 'System Admin', message: 'Welcome to the new ERP Portal!', time: '10:00 AM', isRead: false },
+    { id: 2, sender: 'IT Support', message: 'Scheduled maintenance this weekend.', time: 'Yesterday', isRead: false },
+    { id: 3, sender: 'HR Dept', message: 'Please review the updated holiday list.', time: 'Mon', isRead: false },
+  ]);
+
+  const unreadMessagesCount = messages.filter(m => !m.isRead).length;
+
+  const markMessagesRead = () => {
+    setMessages(messages.map(m => ({ ...m, isRead: true })));
+  };
 
   return (
     <header className="navbar glass-card">
@@ -89,40 +102,30 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
         <div className="message-wrapper" style={{ position: 'relative' }}>
           <button className="icon-btn" onClick={() => setShowMessages(!showMessages)}>
             <MessageSquare size={20} />
-            <span className="badge">3</span>
+            {unreadMessagesCount > 0 && <span className="badge">{unreadMessagesCount}</span>}
           </button>
           
           {showMessages && (
             <div className="notification-dropdown glass-card animate-fade-in" style={{ right: 0 }}>
               <div className="dropdown-header">
                 <h3>Messages</h3>
-                <button className="text-xs text-primary font-bold">Mark all read</button>
+                <button className="text-xs text-primary font-bold" onClick={markMessagesRead}>Mark all read</button>
               </div>
               <div className="notification-list">
-                <div className="notification-item unread">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-bold text-sm text-blue-500">System Admin</span>
-                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  </div>
-                  <p className="text-xs text-muted mb-1">Welcome to the new ERP Portal!</p>
-                  <span className="text-xs text-muted opacity-70">10:00 AM</span>
-                </div>
-                <div className="notification-item unread">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-bold text-sm text-blue-500">IT Support</span>
-                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  </div>
-                  <p className="text-xs text-muted mb-1">Scheduled maintenance this weekend.</p>
-                  <span className="text-xs text-muted opacity-70">Yesterday</span>
-                </div>
-                <div className="notification-item unread">
-                  <div className="flex justify-between items-start mb-1">
-                    <span className="font-bold text-sm text-blue-500">HR Dept</span>
-                    <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-                  </div>
-                  <p className="text-xs text-muted mb-1">Please review the updated holiday list.</p>
-                  <span className="text-xs text-muted opacity-70">Mon</span>
-                </div>
+                {messages.length === 0 ? (
+                  <div className="p-4 text-center text-muted text-sm">No new messages</div>
+                ) : (
+                  messages.map(msg => (
+                    <div key={msg.id} className={`notification-item ${!msg.isRead ? 'unread' : ''}`}>
+                      <div className="flex justify-between items-start mb-1">
+                        <span className="font-bold text-sm text-blue-500">{msg.sender}</span>
+                        {!msg.isRead && <span className="w-2 h-2 rounded-full bg-blue-500"></span>}
+                      </div>
+                      <p className="text-xs text-muted mb-1">{msg.message}</p>
+                      <span className="text-xs text-muted opacity-70">{msg.time}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

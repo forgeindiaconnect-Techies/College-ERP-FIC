@@ -121,9 +121,9 @@ const Salary = () => {
 
       {/* Add Entry Modal */}
       {showForm && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm overflow-y-auto flex justify-center items-start pt-12 pb-12 px-4">
-          <div className="glass-card p-6 w-full max-w-3xl rounded-2xl border border-[var(--border-color)] shadow-2xl relative">
-            <div className="flex justify-between items-center mb-5">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-center items-center px-4">
+          <div className="glass-card p-6 w-full max-w-3xl rounded-2xl border border-[var(--border-color)] shadow-2xl relative" style={{ maxHeight: '90vh', overflowY: 'auto' }}>
+            <div className="flex justify-between items-center mb-5 sticky top-0 bg-[var(--bg-primary)] z-10 p-2 -mx-2 rounded-lg shadow-sm border border-[var(--border-color)]">
               <h2 className="text-xl font-bold text-[var(--text-main)]">Generate Payroll: {form.staffName}</h2>
               <button onClick={() => setShowForm(false)} className="p-1 hover:bg-[var(--hover-bg)] rounded-lg"><X size={20} /></button>
             </div>

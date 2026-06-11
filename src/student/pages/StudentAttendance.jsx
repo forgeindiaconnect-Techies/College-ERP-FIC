@@ -46,8 +46,22 @@ const StudentAttendance = () => {
       }
       
       const res = await getAttendanceByStudent(finalId);
-      if (res?.data && res.data.length > 0) {
-        const records = res.data;
+      // Merge with localStorage
+      const localAttendance = JSON.parse(localStorage.getItem('erp_attendance') || '[]');
+      const localRecords = localAttendance.filter(r => r.studentId === finalId);
+      
+      const allRecords = [...(res?.data || []), ...localRecords];
+      // Deduplicate by _id
+      const records = [];
+      const seenIds = new Set();
+      allRecords.forEach(r => {
+        if (!seenIds.has(r._id)) {
+          seenIds.add(r._id);
+          records.push(r);
+        }
+      });
+
+      if (records.length > 0) {
         
         // Basic Analytics
         const totalDays = records.length;

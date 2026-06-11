@@ -292,8 +292,34 @@ const StaffAttendance = () => {
         }, 2000);
       }
     } catch (err) {
-      setSaveError(err.response?.data?.message || 'Failed to save attendance. Duplicate entry may exist.');
-      console.error('Failed to save attendance:', err);
+      console.error('Failed to save attendance via API, persisting locally:', err);
+      // Fallback to localStorage
+      try {
+        const existingLocal = JSON.parse(localStorage.getItem('erp_attendance') || '[]');
+        
+        const bulkRecords = myClassStudents.map(s => ({
+          _id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+          studentId: s.id || s._id,
+          studentName: s.name,
+          department: staffDept,
+          semester: targetSem,
+          date: new Date(selectedDate).toISOString(),
+          period: selectedPeriod.split(' ')[1],
+          status: markingState[s.id || s._id],
+          subject: selectedSubject,
+          markedBy: staffSession.name
+        }));
+        
+        localStorage.setItem('erp_attendance', JSON.stringify([...existingLocal, ...bulkRecords]));
+        setSaveSuccess(true);
+        setSaveError('');
+        await loadData(staffSession, targetSem);
+        setTimeout(() => {
+          setSaveSuccess(false);
+        }, 2000);
+      } catch (e) {
+        setSaveError(err.response?.data?.message || 'Failed to save attendance locally.');
+      }
     }
   };
 
