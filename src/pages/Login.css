@@ -14,7 +14,7 @@
 .login-visual-section {
   position: relative;
   width: 45%;
-  background: radial-gradient(circle at 0% 0%, #1e1b4b 0%, #0f172a 100%);
+  background: radial-gradient(circle at 0% 0%, #1e1b4b 0%, #f1f5f9 100%);
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -45,13 +45,13 @@
   padding: 16px;
   border-radius: 16px;
   background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0.2) 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   margin-bottom: 30px;
   box-shadow: 0 8px 32px rgba(99, 102, 241, 0.2);
 }
 
 .logo-icon {
-  color: #818cf8;
+  color: #2563eb;
 }
 
 .brand-headline {
@@ -66,7 +66,7 @@
 }
 
 .brand-description {
-  color: #94a3b8;
+  color: #475569;
   font-size: 16px;
   line-height: 1.6;
   margin-bottom: 40px;
@@ -113,7 +113,7 @@
   background: rgba(17, 24, 39, 0.6);
   backdrop-filter: blur(20px);
   border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   padding: 48px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
   animation: cardFadeIn 0.6s ease-out;
@@ -150,7 +150,7 @@
 .input-group label {
   font-size: 13px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #475569;
   letter-spacing: 0.5px;
   text-transform: uppercase;
 }
@@ -173,7 +173,7 @@
   width: 100%;
   padding: 14px 16px 14px 48px;
   background-color: rgba(15, 23, 42, 0.8);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 12px;
   color: #ffffff;
   font-size: 15px;
@@ -208,7 +208,7 @@
 }
 
 .pwd-toggle-btn:hover {
-  color: #94a3b8;
+  color: #475569;
 }
 
 .login-error-msg {
@@ -243,7 +243,7 @@
 .login-submit-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 30px rgba(99, 102, 241, 0.5);
-  background: linear-gradient(135deg, #818cf8 0%, #6366f1 100%);
+  background: linear-gradient(135deg, #2563eb 0%, #6366f1 100%);
 }
 
 .login-submit-btn:active:not(:disabled) {
@@ -259,7 +259,7 @@
 .demo-credentials-section {
   margin-top: 36px;
   padding-top: 24px;
-  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  border-top: 1px solid rgba(0, 0, 0, 0.04);
 }
 
 .demo-credentials-section h4 {
@@ -283,7 +283,7 @@
 
 .demo-btn {
   background-color: rgba(15, 23, 42, 0.6);
-  border: 1px solid rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.04);
   border-radius: 10px;
   padding: 10px 8px;
   display: flex;
@@ -293,7 +293,7 @@
   gap: 6px;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  color: #94a3b8;
+  color: #475569;
 }
 
 .demo-btn-icon {
@@ -308,7 +308,7 @@
 }
 
 .demo-btn:hover {
-  background-color: rgba(255, 255, 255, 0.02);
+  background-color: rgba(0, 0, 0, 0.04);
   border-color: var(--hover-color);
   color: #ffffff;
   transform: translateY(-2px);
