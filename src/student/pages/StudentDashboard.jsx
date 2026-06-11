@@ -15,7 +15,14 @@ import {
 } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StudentDashboard.css';
-import { DEPT_SUBJECTS } from '../../pages/departments/DepartmentData';
+
+const DEPT_SUBJECTS = {
+  'Computer Science Engineering': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI', 'Cloud Computing', 'Cryptography'],
+  'Information Technology': ['Web Technologies', 'Software Engineering', 'DBMS', 'Cyber Security', 'Data Science', 'IoT'],
+  'Electronics & Communication Engineering': ['Circuits', 'Signals and Systems', 'Microprocessors', 'Digital Logic', 'VLSI Design', 'Antenna Theory'],
+  'Cyber Security': ['Network Security', 'Cryptography', 'Ethical Hacking', 'Cyber Forensics', 'Malware Analysis'],
+  'Artificial Intelligence & Data Science': ['Machine Learning', 'Deep Learning', 'Data Mining', 'Big Data Analytics', 'NLP']
+};
 
 // Fallbacks
 const DEFAULT_STUDENT = {
@@ -196,7 +203,9 @@ const StudentDashboard = () => {
               todayClasses = scheduleData.filter(s => 
                 s.day.toLowerCase() === todayName.toLowerCase()
               ).sort((a, b) => Number(a.period) - Number(b.period));
+            }
           }
+          
           if (todayClasses.length === 0 && todayName !== 'Sunday' && todayName !== 'Saturday') {
             const fallbackSubjects = DEPT_SUBJECTS[targetDept] || DEPT_SUBJECTS['Information Technology'] || ['Core Subject 1', 'Core Subject 2'];
             todayClasses = [
