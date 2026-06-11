@@ -122,10 +122,10 @@ const UnifiedLogin = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [selectedRole, setSelectedRole] = useState('');
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showHods, setShowHods] = useState(false);
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
@@ -224,11 +224,16 @@ const UnifiedLogin = () => {
               <label>User Role</label>
               <div className="input-wrapper">
                 <Users size={18} className="form-icon" />
-                <select>
+                <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} required>
                   <option value="">Select Role</option>
-                  <option value="student">Student</option>
-                  <option value="staff">Faculty/Staff</option>
-                  <option value="admin">Administrator</option>
+                  <option value="Admin">Admin</option>
+                  <option value="Principal">Principal</option>
+                  <option value="HOD">HOD</option>
+                  <option value="Staff">Staff</option>
+                  <option value="Student">Student</option>
+                  <option value="Parent">Parent</option>
+                  <option value="Accounts">Accounts</option>
+                  <option value="Driver">Driver</option>
                 </select>
               </div>
             </div>
