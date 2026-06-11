@@ -209,10 +209,8 @@ const UnifiedLogin = () => {
       <div className="login-form-section">
         <div className="login-card-container">
           <div className="login-card-header" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-            <div style={{ padding: '16px', border: '1px solid #e2e8f0', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 21h18"></path><path d="M9 8h1"></path><path d="M9 12h1"></path><path d="M9 16h1"></path><path d="M14 8h1"></path><path d="M14 12h1"></path><path d="M14 16h1"></path><path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
-              </svg>
+            <div style={{ padding: '16px 24px', background: '#1e293b', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
+              <img src="/logo.svg" alt="ERPSYS Logo" style={{ width: '140px', height: 'auto', display: 'block' }} />
             </div>
             <h2>Welcome Back!</h2>
             <p>Login to your ERP account</p>
