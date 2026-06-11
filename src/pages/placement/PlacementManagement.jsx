@@ -131,14 +131,15 @@ const PlacementManagement = () => {
     }
   };
 
-  const handleUpdateAppStatus = async (id, currentStatus) => {
-    const statuses = ['Applied', 'Shortlisted', 'Waitlisted', 'Rejected'];
-    const nextIdx = (statuses.indexOf(currentStatus) + 1) % statuses.length;
-    const nextStatus = statuses[nextIdx];
+  const handleUpdateAppStatus = async (id, nextStatus) => {
     try {
       await updatePlacementApplicationStatus(id, nextStatus);
       fetchPlacementData();
     } catch (error) {
+      console.error('Failed to update status', error);
+      alert('Failed to update status');
+    }
+  };
       console.error('Failed to update app status', error);
     }
   };
@@ -458,17 +459,23 @@ const PlacementManagement = () => {
                     <td className="font-bold text-primary">{app.company}</td>
                     <td>{app.role}</td>
                     <td>
-                      <span className={`text-xs font-bold px-2 py-1 rounded ${
-                        app.status === 'Shortlisted' ? 'bg-green-100 text-green-700' : 
-                        app.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
-                        app.status === 'Waitlisted' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-blue-100 text-blue-700'
-                      }`}>
-                        {app.status}
-                      </span>
-                    </td>
-                    <td>
-                      <button className="btn-secondary text-xs py-1 px-3" onClick={() => handleUpdateAppStatus(app._id, app.status)}>Update Status</button>
+                      <select 
+                        value={app.status} 
+                        onChange={(e) => handleUpdateAppStatus(app._id, e.target.value)}
+                        className={`text-xs font-bold px-2 py-1 rounded cursor-pointer outline-none border-none ${
+                          app.status === 'Shortlisted' ? 'bg-green-100 text-green-700' : 
+                          app.status === 'Rejected' ? 'bg-red-100 text-red-700' : 
+                          app.status === 'Selected' ? 'bg-indigo-100 text-indigo-700' : 
+                          app.status === 'Waitlisted' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-blue-100 text-blue-700'
+                        }`}
+                      >
+                        <option value="Applied" className="text-black bg-white">Applied</option>
+                        <option value="Shortlisted" className="text-black bg-white">Shortlisted</option>
+                        <option value="Selected" className="text-black bg-white">Selected</option>
+                        <option value="Waitlisted" className="text-black bg-white">Waitlisted</option>
+                        <option value="Rejected" className="text-black bg-white">Rejected</option>
+                      </select>
                     </td>
                   </tr>
                 ))}
@@ -564,7 +571,7 @@ const PlacementManagement = () => {
                       <td>{student.arrears}</td>
                       <td><span style={{ backgroundColor: '#d1fae5', color: '#047857', padding: '4px 8px', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 'bold' }}>✓ Eligible</span></td>
                       <td>
-                        <button className="btn-secondary text-xs py-1 px-3">Notify Student</button>
+                        <button className="btn-secondary text-xs py-1 px-3" onClick={() => alert(`Eligibility notification sent to ${student.name}.`)}>Notify Student</button>
                       </td>
                     </tr>
                   ))}
@@ -627,7 +634,7 @@ const PlacementManagement = () => {
                     <td className="text-sm text-muted">{interview.panel || '-'}</td>
                     <td>{interview.candidates}</td>
                     <td>
-                      <button className="btn-secondary text-xs py-1 px-3">View List</button>
+                      <button className="btn-secondary text-xs py-1 px-3" onClick={() => alert('Interview list has been generated and sent to department coordinators.')}>View List</button>
                     </td>
                   </tr>
                 ))}

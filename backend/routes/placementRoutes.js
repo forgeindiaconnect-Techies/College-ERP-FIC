@@ -167,10 +167,32 @@ router.get('/jobs/:id/eligible-students', protect, async (req, res) => {
 
       // Check Department
       if (job.eligibleDepartments && job.eligibleDepartments.length > 0 && job.eligibleDepartments[0] !== '') {
+        const deptAbbreviations = {
+          'computer science': 'cse',
+          'computer science engineering': 'cse',
+          'information technology': 'it',
+          'electronics & communication engineering': 'ece',
+          'electronics and communication engineering': 'ece',
+          'electrical & electronics engineering': 'eee',
+          'electrical and electronics engineering': 'eee',
+          'mechanical engin': 'mech',
+          'mechanical engineering': 'mech',
+          'civil engineering': 'civil',
+          'bachelor of computer app': 'bca',
+          'master of business admin': 'mba',
+          'artificial intelligence': 'ai',
+          'cyber security': 'csc',
+          'aeronautical engineering': 'aero'
+        };
+
         const matchesDept = job.eligibleDepartments.some(d => {
-          const sDept = (student.dept || '').toLowerCase().replace(/\s+/g, '');
+          const sDeptOriginal = (student.dept || '').toLowerCase().trim();
+          const sDeptAbbr = deptAbbreviations[sDeptOriginal] || deptAbbreviations[sDeptOriginal.replace('.', '')] || sDeptOriginal;
+          
+          const sDept = sDeptOriginal.replace(/\s+/g, '');
           const jDept = d.toLowerCase().replace(/\s+/g, '');
-          return sDept.includes(jDept) || sDept === jDept;
+          
+          return sDept.includes(jDept) || sDept === jDept || sDeptAbbr.includes(jDept) || sDeptAbbr === jDept;
         });
         if (!matchesDept) {
           isEligible = false;

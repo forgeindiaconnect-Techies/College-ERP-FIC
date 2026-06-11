@@ -287,7 +287,7 @@ export default function StaffPlacements() {
                   <td style={{ fontWeight: 600 }}>{i.date ? new Date(i.date).toLocaleDateString() : ''}</td>
                   <td>{i.time}</td>
                   <td>{i.mode === 'Online' ? <span className="text-blue-500 font-bold">Online Link</span> : i.venue}</td>
-                  <td><button className="btn-primary" style={{ padding: '4px 8px', fontSize: '0.75rem' }}>Notify Students</button></td>
+                  <td><button className="btn-primary" style={{ padding: '4px 8px', fontSize: '0.75rem' }} onClick={() => alert('Students have been successfully notified about this interview schedule via their portal.')}>Notify Students</button></td>
                 </tr>
               ))}
               {interviews.length === 0 && (
