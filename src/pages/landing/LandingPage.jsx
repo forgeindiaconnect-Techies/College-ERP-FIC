@@ -36,12 +36,14 @@ const STATS = [
 ];
 
 const LOGIN_PORTALS = [
-  { role: 'Admin',      path: '/login', icon: '🔑', color: 'var(--primary)', desc: 'Full system access' },
-  { role: 'HOD',        path: '/login', icon: '👨‍🏫', color: '#4F46E5', desc: 'Department control' },
-  { role: 'Staff',      path: '/login', icon: '📚', color: '#2563eb', desc: 'Class management' },
-  { role: 'Student',    path: '/login', icon: '🎓', color: '#059669', desc: 'Academic portal' },
-  { role: 'Parent',     path: '/login', icon: '👨‍👩‍👧', color: '#d97706', desc: 'Track ward progress' },
-  { role: 'Accounts',   path: '/login', icon: '💰', color: '#dc2626', desc: 'Finance & fees' },
+  { role: 'Admin',      path: '/login?role=Admin', icon: '🔑', color: 'var(--primary)', desc: 'Full system access' },
+  { role: 'Principal',  path: '/login?role=Principal', icon: '🏛️', color: '#8b5cf6', desc: 'Institution head' },
+  { role: 'HOD',        path: '/login?role=HOD', icon: '👨‍🏫', color: '#4F46E5', desc: 'Department control' },
+  { role: 'Staff',      path: '/login?role=Staff', icon: '📚', color: '#2563eb', desc: 'Class management' },
+  { role: 'Student',    path: '/login?role=Student', icon: '🎓', color: '#059669', desc: 'Academic portal' },
+  { role: 'Parent',     path: '/login?role=Parent', icon: '👨‍👩‍👧', color: '#d97706', desc: 'Track ward progress' },
+  { role: 'Accounts',   path: '/login?role=Accounts', icon: '💰', color: '#dc2626', desc: 'Finance & fees' },
+  { role: 'Driver',     path: '/login?role=Driver', icon: '🚌', color: '#f59e0b', desc: 'Transport portal' },
 ];
 
 const ANNOUNCEMENTS = [

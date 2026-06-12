@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { GraduationCap, Lock, Mail, Eye, EyeOff, ArrowRight, Shield, Award, Users, BookOpen, Briefcase } from 'lucide-react';
 import { loginUser } from '../api/index';
 import './Login.css';
@@ -120,9 +120,13 @@ const applySession = (userData) => {
 
 const UnifiedLogin = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const initialRole = queryParams.get('role');
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRole, setSelectedRole] = useState(initialRole || '');
   const [showPwd, setShowPwd] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -212,28 +216,30 @@ const UnifiedLogin = () => {
             <div style={{ padding: '16px 24px', background: '#1e293b', borderRadius: '16px', marginBottom: '20px', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
               <img src="/logo.svg" alt="ERPSYS Logo" style={{ width: '140px', height: 'auto', display: 'block' }} />
             </div>
-            <h2>Welcome Back!</h2>
-            <p>Login to your ERP account</p>
+            <h2>{initialRole ? `${initialRole} Login` : 'Welcome Back!'}</h2>
+            <p>{initialRole ? `Login to your ${initialRole} account` : 'Login to your ERP account'}</p>
           </div>
 
           <form onSubmit={handleLogin} className="unified-form">
-            <div className="input-group">
-              <label>User Role</label>
-              <div className="input-wrapper">
-                <Users size={18} className="form-icon" />
-                <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} required>
-                  <option value="">Select Role</option>
-                  <option value="Admin">Admin</option>
-                  <option value="Principal">Principal</option>
-                  <option value="HOD">HOD</option>
-                  <option value="Staff">Staff</option>
-                  <option value="Student">Student</option>
-                  <option value="Parent">Parent</option>
-                  <option value="Accounts">Accounts</option>
-                  <option value="Driver">Driver</option>
-                </select>
+            {!initialRole && (
+              <div className="input-group">
+                <label>User Role</label>
+                <div className="input-wrapper">
+                  <Users size={18} className="form-icon" />
+                  <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} required>
+                    <option value="">Select Role</option>
+                    <option value="Admin">Admin</option>
+                    <option value="Principal">Principal</option>
+                    <option value="HOD">HOD</option>
+                    <option value="Staff">Staff</option>
+                    <option value="Student">Student</option>
+                    <option value="Parent">Parent</option>
+                    <option value="Accounts">Accounts</option>
+                    <option value="Driver">Driver</option>
+                  </select>
+                </div>
               </div>
-            </div>
+            )}
 
             <div className="input-group">
               <label>Username</label>
