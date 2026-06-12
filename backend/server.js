@@ -661,7 +661,7 @@ app.get('/', (req, res) => {
 const startServer = async () => {
   try {
     const mongoUri = process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/college_erp';
-    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 30000 });
+    await mongoose.connect(mongoUri, { serverSelectionTimeoutMS: 5000 });
     console.log('✅ Connected to MongoDB Database');
   } catch (err) {
     console.log('⚠️ MongoDB connection failed. Falling back to In-Memory Database...', err.message);
