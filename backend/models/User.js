@@ -15,12 +15,16 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Student', 'Parent', 'Accounts'],
+    enum: ['Super Admin', 'Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Student', 'Parent', 'Accounts', 'Driver'],
     required: true
   },
   name: {
     type: String,
     required: true
+  },
+  tenantId: {
+    type: String,
+    default: null // Will link users to a specific College (e.g. 'COL123')
   },
   phone: {
     type: String,

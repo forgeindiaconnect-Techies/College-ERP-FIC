@@ -1,0 +1,100 @@
+import React, { useState, useContext } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
+import Navbar from '../../components/layout/Navbar';
+import { ThemeContext } from '../../App';
+import '../../components/layout/Layout.css';
+import { 
+  Building2,
+  Settings, 
+  CreditCard,
+  BarChart,
+  ShieldAlert,
+  Crown,
+  X
+} from 'lucide-react';
+
+const SuperAdminSidebar = ({ isOpen, onClose }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const navItems = [
+    { name: 'Dashboard', path: '/superadmin/dashboard', icon: <BarChart size={20} /> },
+    { name: 'Colleges', path: '/superadmin/colleges', icon: <Building2 size={20} /> },
+    { name: 'Subscriptions', path: '/superadmin/subscriptions', icon: <Crown size={20} /> },
+    { name: 'Trials', path: '/superadmin/trials', icon: <ShieldAlert size={20} /> },
+    { name: 'Payments', path: '/superadmin/payments', icon: <CreditCard size={20} /> },
+    { name: 'Reports', path: '/superadmin/reports', icon: <BarChart size={20} /> },
+    { name: 'Settings', path: '/superadmin/settings', icon: <Settings size={20} /> }
+  ];
+
+  return (
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
+      <div className="sidebar-header" style={{ justifyContent: 'space-between' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+          <span style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 700, border: '1px solid rgba(239, 68, 68, 0.2)' }}>SUPER ADMIN</span>
+        </div>
+        <button className="sidebar-close-btn" onClick={onClose}>
+          <X size={20} />
+        </button>
+      </div>
+
+      <nav className="sidebar-nav">
+        <ul>
+          {navItems.map((item) => {
+            const isActive = location.pathname.includes(item.path);
+            return (
+              <li key={item.name}>
+                <div
+                  className={`nav-link ${isActive ? 'active' : ''}`}
+                  onClick={() => {
+                    navigate(item.path);
+                    if (window.innerWidth <= 768) onClose();
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
+                  {item.icon}
+                  <span>{item.name}</span>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+    </aside>
+  );
+};
+
+const SuperAdminLayout = () => {
+  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const { theme } = useContext(ThemeContext);
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!isSidebarOpen);
+  };
+
+  return (
+    <div className={`layout-container ${theme}`} style={{
+      '--primary': '#4f46e5',
+      '--primary-gradient': 'linear-gradient(135deg, #4338ca, #6366f1)',
+      '--shadow-glow': '0 4px 14px 0 rgba(79, 70, 229, 0.25)'
+    }}>
+      <SuperAdminSidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
+      
+      {isSidebarOpen && (
+        <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
+      )}
+      
+      <div className="main-wrapper">
+        <Navbar role="Super Admin" onMenuToggle={toggleSidebar} />
+        <main className="main-content">
+          <div className="page-content">
+            <Outlet />
+          </div>
+        </main>
+      </div>
+    </div>
+  );
+};
+
+export default SuperAdminLayout;

@@ -6,7 +6,8 @@ let subscriberCount = 0;
 
 const getSocket = () => {
   if (!sharedSocket || sharedSocket.disconnected) {
-    sharedSocket = io('https://college-erp-fic1.onrender.com', {
+    const backendUrl = import.meta.env.VITE_API_URL ? import.meta.env.VITE_API_URL.replace('/api', '') : 'http://localhost:5000';
+    sharedSocket = io(backendUrl, {
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: 1000,

@@ -9,11 +9,13 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 dotenv.config({ path: join(__dirname, '../.env') });
 import Student from '../models/Student.js';
+import College from '../models/College.js';
 import Staff from '../models/Staff.js';
 import Department from '../models/Department.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 import bcrypt from 'bcryptjs';
 import ActivityLog from '../models/ActivityLog.js';
+import Subscription from '../models/Subscription.js';
 
 const router = express.Router();
 
@@ -44,6 +46,32 @@ router.post('/login', async (req, res) => {
         ip: req.ip || req.connection.remoteAddress
       }).catch(err => console.error('Failed to log login activity', err));
 
+      // Fetch College Subscription
+      let subscriptionDetails = null;
+      if (user.tenantId) {
+        const college = await College.findOne({ tenantId: user.tenantId });
+        if (college) {
+          subscriptionDetails = {
+            plan: college.subscriptionPlan,
+            status: college.subscriptionStatus,
+            trialEndDate: college.trialEndDate
+          };
+          
+          // Auto-expire trial if past end date
+          if (college.subscriptionPlan === 'Trial' && new Date() > college.trialEndDate) {
+            college.subscriptionStatus = 'Expired';
+            await college.save();
+            subscriptionDetails.status = 'Expired';
+          }
+        }
+      }
+
+      let collegeName = null;
+      if (user.tenantId && user.tenantId !== 'system') {
+        const college = await College.findOne({ tenantId: user.tenantId });
+        if (college) collegeName = college.name;
+      }
+
       res.json({
         _id: user._id,
         name: user.name,
@@ -55,6 +83,9 @@ router.post('/login', async (req, res) => {
         parentOf: user.parentOf || null,
         subjects: user.subjects || [],
         permissions: user.permissions || [],
+        tenantId: user.tenantId || null,
+        subscription: subscriptionDetails,
+        collegeName: collegeName,
         token: generateToken(user._id),
       });
     } else {
@@ -83,14 +114,147 @@ router.post('/forgot-password', async (req, res) => {
   }
 });
 
+// Register College (SaaS Onboarding)
+router.post('/register-college', async (req, res) => {
+  const { collegeName, adminName, email, phone, password } = req.body;
+  try {
+    const existingCollege = await College.findOne({ email: email?.trim().toLowerCase() });
+    if (existingCollege) {
+      return res.status(400).json({ message: 'A college is already registered with this email.' });
+    }
+
+    const existingUser = await User.findOne({ email: email?.trim().toLowerCase() });
+    if (existingUser) {
+      return res.status(400).json({ message: 'This email is already in use by a user.' });
+    }
+
+    // Generate Tenant ID safely
+    const lastCollege = await College.findOne({}, {}, { sort: { 'createdAt': -1 } });
+    let nextNum = 1;
+    if (lastCollege && lastCollege.tenantId && lastCollege.tenantId.startsWith('COL')) {
+      const lastNum = parseInt(lastCollege.tenantId.replace('COL', ''), 10);
+      if (!isNaN(lastNum)) {
+        nextNum = lastNum + 1;
+      }
+    }
+    // Also add randomness to absolutely prevent race conditions or dupes
+    const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+    const tenantId = `COL${String(nextNum).padStart(3, '0')}-${randomSuffix}`;
+
+    const trialStartDate = new Date();
+    const trialEndDate = new Date();
+    trialEndDate.setDate(trialStartDate.getDate() + 1); // 1-Day Free Trial
+
+    const newCollege = new College({
+      name: collegeName,
+      adminName,
+      email: email.trim().toLowerCase(),
+      phone,
+      tenantId,
+      subscriptionPlan: 'Trial',
+      subscriptionStatus: 'Active',
+      trialStartDate,
+      trialEndDate
+    });
+    await newCollege.save();
+
+    const newAdmin = new User({
+      name: adminName,
+      email: email.trim().toLowerCase(),
+      password,
+      role: 'Admin',
+      phone,
+      tenantId
+    });
+    await newAdmin.save();
+
+    res.status(201).json({
+      message: 'Your 1-day free trial has been activated successfully.',
+      tenantId
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Verify Payment and Update Subscription
+router.post('/verify-payment', protect, async (req, res) => {
+  const { paymentId, planName, amount } = req.body;
+  
+  try {
+    const college = await College.findOne({ tenantId: req.user.tenantId });
+    if (!college) {
+      return res.status(404).json({ message: 'College not found.' });
+    }
+
+    const now = new Date();
+    const endDate = new Date(now);
+    // Subscription lasts for 30 days
+    endDate.setDate(endDate.getDate() + 30);
+
+    college.subscriptionPlan = planName;
+    college.subscriptionStatus = 'Active';
+    // Let's reuse trialEndDate for actual end date since we don't have planEndDate in schema yet
+    college.trialEndDate = endDate;
+    await college.save();
+
+    const subscription = new Subscription({
+      tenantId: college.tenantId,
+      collegeId: college._id,
+      planName,
+      amount,
+      startDate: now,
+      endDate: endDate,
+      paymentStatus: 'Success',
+      transactionId: paymentId
+    });
+
+    await subscription.save();
+
+    res.json({ message: 'Your subscription has been activated successfully.', subscription });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Get all colleges (Super Admin only)
+router.get('/colleges', protect, async (req, res) => {
+  try {
+    if (req.user.role !== 'Super Admin') {
+      return res.status(403).json({ message: 'Not authorized as Super Admin' });
+    }
+    
+    const colleges = await College.find().sort({ createdAt: -1 });
+    
+    const collegesWithStats = await Promise.all(colleges.map(async (college) => {
+      const userCount = await User.countDocuments({ collegeId: college._id });
+      return {
+        ...college.toObject(),
+        totalUsers: userCount
+      };
+    }));
+    
+    res.json(collegesWithStats);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 // Get Current User
-router.get('/me', protect, (req, res) => {
+router.get('/me', protect, async (req, res) => {
+  let collegeName = null;
+  if (req.user.tenantId && req.user.tenantId !== 'system') {
+    const college = await College.findOne({ tenantId: req.user.tenantId });
+    if (college) collegeName = college.name;
+  }
+
   res.json({
     _id: req.user._id,
     name: req.user.name,
     email: req.user.email,
     role: req.user.role,
     department: req.user.department,
+    collegeName: collegeName,
     referenceId: req.user.referenceId
   });
 });
@@ -147,6 +311,16 @@ router.get('/check-users', async (req, res) => {
   try {
     const users = await User.find({ email: /pooja|gowtham/i });
     res.json(users);
+  } catch(err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/clean-pooja', async (req, res) => {
+  try {
+    await College.deleteMany({ email: { $in: ['pooja@gmail.com', 'gowtham@gmail.com'] } });
+    await User.deleteMany({ email: { $in: ['pooja@gmail.com', 'gowtham@gmail.com'] } });
+    res.json({ message: 'Test emails cleared from both College and User.' });
   } catch(err) {
     res.status(500).json({ error: err.message });
   }
@@ -281,11 +455,30 @@ router.get('/users', protect, async (req, res) => {
 router.post('/users', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
   try {
     const { name, email, password, role, department, referenceId, parentOf, studentId, subjects, phone } = req.body;
+    
+    // Check Tenant Limits if applicable
+    const tenantId = req.user.tenantId;
+    if (tenantId) {
+      const college = await College.findOne({ tenantId });
+      if (college && college.subscriptionPlan === 'Trial' && college.subscriptionStatus === 'Active') {
+        if (role === 'HOD') {
+          const hodCount = await User.countDocuments({ tenantId, role: 'HOD' });
+          if (hodCount >= 1) return res.status(403).json({ message: 'Trial Limit Exceeded: Maximum 1 HOD allowed.' });
+        }
+        if (role === 'Student') {
+          const studentCount = await User.countDocuments({ tenantId, role: 'Student' });
+          if (studentCount >= 2) return res.status(403).json({ message: 'Trial Limit Exceeded: Maximum 2 Students allowed.' });
+        }
+      } else if (college && college.subscriptionStatus === 'Expired') {
+        return res.status(403).json({ message: 'Subscription Expired. Please upgrade to create users.' });
+      }
+    }
+
     const existing = await User.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: 'User with this email already exists' });
     }
-    const user = new User({ name, email, password, role, department, referenceId, parentOf, studentId, subjects, phone });
+    const user = new User({ name, email, password, role, department, referenceId, parentOf, studentId, subjects, phone, tenantId });
     const saved = await user.save();
     const response = saved.toObject();
     delete response.password;

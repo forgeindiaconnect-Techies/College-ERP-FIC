@@ -29,6 +29,7 @@ const STATS = [
 ];
 
 const LOGIN_PORTALS = [
+  { role: 'Super Admin', path: '/login?role=Super Admin', icon: '👑', color: '#10b981', desc: 'Global SaaS management' },
   { role: 'Admin',      path: '/login?role=Admin', icon: '🔑', color: 'var(--primary)', desc: 'Full system access' },
   { role: 'Principal',  path: '/login?role=Principal', icon: '🏛️', color: '#8b5cf6', desc: 'Institution head' },
   { role: 'HOD',        path: '/login?role=HOD', icon: '👨‍🏫', color: '#4F46E5', desc: 'Department control' },
@@ -135,7 +136,7 @@ const LandingPage = () => {
 
           <div className="landing-nav-actions">
             <button className="landing-btn-outline" onClick={() => navigate('/login')}>Login</button>
-            <button className="landing-btn-primary" onClick={() => navigate('/login')}>
+            <button className="landing-btn-primary" onClick={() => navigate('/get-access')}>
               Get Access <ChevronRight size={16} />
             </button>
             <button className="landing-hamburger" onClick={() => setMobileMenuOpen(o => !o)}>
@@ -152,7 +153,8 @@ const LandingPage = () => {
                 {link.charAt(0).toUpperCase() + link.slice(1)}
               </button>
             ))}
-            <button className="landing-btn-primary w-full mt-2" onClick={() => navigate('/login')}>Login to ERP</button>
+            <button className="landing-btn-outline w-full mt-2" onClick={() => navigate('/login')}>Login to ERP</button>
+            <button className="landing-btn-primary w-full mt-2" onClick={() => navigate('/get-access')}>Get Access</button>
           </div>
         )}
       </nav>
@@ -177,11 +179,11 @@ const LandingPage = () => {
             placements, hostel, library, and transport — all in one unified platform.
           </p>
           <div className="hero-cta">
-            <button className="landing-btn-primary hero-btn" onClick={() => navigate('/login')}>
-              <GraduationCap size={18} /> Launch ERP Portal
+            <button className="landing-btn-primary hero-btn" onClick={() => navigate('/get-access')}>
+              <GraduationCap size={18} /> Get Access
             </button>
-            <button className="landing-btn-outline hero-btn" onClick={() => scrollTo('features')}>
-              Explore Features <ChevronDown size={16} />
+            <button className="landing-btn-outline hero-btn" onClick={() => navigate('/login')}>
+              Launch ERP Portal <ChevronRight size={16} />
             </button>
           </div>
 

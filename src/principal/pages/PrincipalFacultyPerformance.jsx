@@ -182,7 +182,7 @@ export default function PrincipalFacultyPerformance() {
     fetchFacultyData();
     
     // Auto-refresh when staff is updated elsewhere
-    const socket = io('https://college-erp-fic1.onrender.com');
+    const socket = io('http://localhost:5000');
     socket.on('staffUpdated', () => {
       fetchFacultyData();
     });

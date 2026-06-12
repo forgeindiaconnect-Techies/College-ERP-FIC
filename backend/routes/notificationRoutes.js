@@ -16,11 +16,22 @@ router.get('/', protect, async (req, res) => {
     let query = {
       $or: [
         { recipient: req.user._id },
-        { targetRoles: req.user.role }
+        { targetRoles: { $in: [req.user.role, req.user.role.toLowerCase(), 'Admin', 'admin'] } }
       ]
     };
-    if (req.user.role === 'Admin') {
-       query = {}; // Admin sees all system notifications
+    
+    // Add tenant restriction if user belongs to a tenant
+    if (req.user.tenantId && req.user.tenantId !== 'system') {
+      query = {
+        $and: [
+          { $or: [{ tenantId: req.user.tenantId }, { tenantId: { $exists: false } }, { tenantId: null }] },
+          query
+        ]
+      };
+    }
+
+    if (req.user.role === 'Super Admin') {
+       query = {}; // Super Admin sees all system notifications
     } else if (req.user._id === 'mock-id') {
        query = {}; // Mock users see all notifications
     }

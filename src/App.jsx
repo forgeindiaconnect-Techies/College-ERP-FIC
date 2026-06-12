@@ -41,6 +41,7 @@ import FeesManagement from './pages/fees/FeesManagement';
 import TimetableManagement from './pages/TimetableManagement';
 import Settings from './pages/Settings';
 import ReportsManagement from './pages/reports/ReportsManagement';
+import GetAccess from './pages/GetAccess';
 import UnifiedLogin from './pages/Login';
 import ForgotPassword from './pages/ForgotPassword';
 import HodManagement from './pages/hod/HodManagement';
@@ -62,6 +63,16 @@ import AIAssistant from './pages/ai/AIAssistant';
 import SettingsSecurity from './pages/settings/SettingsSecurity';
 import LandingPage from './pages/landing/LandingPage';
 import AcademicStructure from './pages/academic/AcademicStructure';
+
+// Super Admin Layout & Pages
+import SuperAdminLayout from './superadmin/components/SuperAdminLayout';
+import SuperAdminDashboard from './superadmin/pages/SuperAdminDashboard';
+import SuperAdminColleges from './superadmin/pages/SuperAdminColleges';
+import SuperAdminSubscriptions from './superadmin/pages/SuperAdminSubscriptions';
+import SuperAdminTrials from './superadmin/pages/SuperAdminTrials';
+import SuperAdminPayments from './superadmin/pages/SuperAdminPayments';
+import SuperAdminReports from './superadmin/pages/SuperAdminReports';
+import SuperAdminSettings from './superadmin/pages/SuperAdminSettings';
 
 import PrincipalLayout from './principal/components/PrincipalLayout';
 import PrincipalDashboard from './principal/pages/PrincipalDashboard';
@@ -154,6 +165,9 @@ import ParentNotifications from './parent/pages/ParentNotifications';
 import ParentLeaves from './parent/pages/ParentLeaves';
 import ParentTimetable from './parent/pages/ParentTimetable';
 
+import UpgradePlan from './pages/UpgradePlan';
+import AdminSubscription from './pages/AdminSubscription';
+
 import PaymentHistory from './accounts/pages/PaymentHistory';
 import Expenses from './accounts/pages/Expenses';
 import Scholarships from './accounts/pages/Scholarships';
@@ -188,8 +202,15 @@ import './index.css';
 export const ThemeContext = createContext();
 
 const hasAnyOtherSession = (excludeKey) => {
-  const keys = ['admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
+  const keys = ['superadmin_session', 'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
   return keys.some(key => key !== excludeKey && sessionStorage.getItem(key));
+};
+
+const SuperAdminGuard = ({ children }) => {
+  const session = sessionStorage.getItem('superadmin_session');
+  if (session) return children;
+  if (hasAnyOtherSession('superadmin_session')) return <Navigate to="/unauthorized" replace />;
+  return <Navigate to="/login" replace />;
 };
 
 const AdminGuard = ({ children }) => {
@@ -278,10 +299,13 @@ function App() {
         <BrowserRouter>
           <ScrollToTop />
           <Routes>
+            {/* Public Routes */}
             <Route path="/" element={<LandingPage />} />
             <Route path="/login" element={<UnifiedLogin />} />
+            <Route path="/get-access" element={<GetAccess />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
+            <Route path="/upgrade-plan" element={<AdminGuard><UpgradePlan /></AdminGuard>} />
 
             {/* Redirect old login pages to unified login */}
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />
@@ -291,6 +315,19 @@ function App() {
             <Route path="/student/login" element={<Navigate to="/login" replace />} />
             <Route path="/parent/login" element={<Navigate to="/login" replace />} />
             <Route path="/accounts/login" element={<Navigate to="/login" replace />} />
+            <Route path="/superadmin/login" element={<Navigate to="/login" replace />} />
+
+            {/* ── SUPER ADMIN ROUTES ── */}
+            <Route path="/superadmin" element={<SuperAdminGuard><SuperAdminLayout /></SuperAdminGuard>}>
+              <Route index element={<Navigate to="/superadmin/dashboard" replace />} />
+              <Route path="dashboard" element={<SuperAdminDashboard />} />
+              <Route path="colleges" element={<SuperAdminColleges />} />
+              <Route path="subscriptions" element={<SuperAdminSubscriptions />} />
+              <Route path="trials" element={<SuperAdminTrials />} />
+              <Route path="payments" element={<SuperAdminPayments />} />
+              <Route path="reports" element={<SuperAdminReports />} />
+              <Route path="settings" element={<SuperAdminSettings />} />
+            </Route>
 
             {/* ── ADMIN ROUTES ── */}
             <Route path="/admin" element={<AdminGuard><Layout /></AdminGuard>}>
@@ -324,6 +361,7 @@ function App() {
               <Route path="settings"      element={<SettingsSecurity />} />
               <Route path="activity-logs" element={<ActivityLogs />} />
               <Route path="analytics"     element={<SystemAnalytics />} />
+              <Route path="subscription"  element={<AdminSubscription />} />
             </Route>
 
 

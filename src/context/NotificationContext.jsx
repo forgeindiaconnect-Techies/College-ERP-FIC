@@ -26,8 +26,8 @@ export const NotificationProvider = ({ children }) => {
   useEffect(() => {
     fetchNotifications();
     // In a real app, we might use WebSockets here for live updates.
-    // For now, we poll every 60 seconds.
-    const interval = setInterval(fetchNotifications, 60000);
+    // For now, we poll every 30 seconds.
+    const interval = setInterval(fetchNotifications, 30000);
     return () => clearInterval(interval);
   }, [user]);
 

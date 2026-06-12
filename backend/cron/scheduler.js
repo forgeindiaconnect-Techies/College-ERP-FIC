@@ -1,0 +1,63 @@
+import cron from 'node-cron';
+import College from '../models/College.js';
+import Notification from '../models/Notification.js';
+
+// Run every day at 9:00 AM
+export const initCronJobs = () => {
+  cron.schedule('0 9 * * *', async () => {
+    console.log('Running daily subscription & trial check...');
+    try {
+      const today = new Date();
+      const tomorrow = new Date(today);
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const nextWeek = new Date(today);
+      nextWeek.setDate(nextWeek.getDate() + 7);
+
+      // 1. Check Trials expiring tomorrow
+      const expiringTrials = await College.find({
+        subscriptionPlan: 'Trial',
+        trialEndDate: { 
+          $gte: today, 
+          $lte: tomorrow 
+        }
+      });
+
+      for (const college of expiringTrials) {
+        // Find admin user for this college
+        // Since Notification model uses recipient (userId) or targetRoles
+        // We can target role 'Admin' for the specific tenant
+        await Notification.create({
+          tenantId: college.tenantId, // we need to add tenantId support to Notification model if not present
+          targetRoles: ['Admin'],
+          title: 'Trial Expiring Soon',
+          message: 'Your free trial expires tomorrow. Please upgrade your plan to continue using the services.',
+          type: 'System'
+        });
+        console.log(`Created trial expiry notification for ${college.tenantId}`);
+      }
+
+      // 2. Check Subscriptions expiring in 7 days
+      const expiringSubs = await College.find({
+        subscriptionPlan: { $ne: 'Trial' },
+        trialEndDate: { 
+          $gte: today, 
+          $lte: nextWeek 
+        }
+      });
+
+      for (const college of expiringSubs) {
+        await Notification.create({
+          tenantId: college.tenantId,
+          targetRoles: ['Admin'],
+          title: 'Subscription Renewal Due',
+          message: `Your ${college.subscriptionPlan} subscription expires in 7 days. Please renew to avoid service interruption.`,
+          type: 'System'
+        });
+        console.log(`Created sub expiry notification for ${college.tenantId}`);
+      }
+
+    } catch (error) {
+      console.error('Error in daily cron job:', error);
+    }
+  });
+};

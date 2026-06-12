@@ -12,6 +12,7 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
   const { notifications, unreadCount, markAsRead, markAllAsRead } = useContext(NotificationContext);
   const [userName, setUserName] = useState('User');
   const [userRole, setUserRole] = useState(role);
+  const [collegeName, setCollegeName] = useState(null);
   const [showNotifications, setShowNotifications] = useState(false);
   const [showMessages, setShowMessages] = useState(false);
   const [showProfileDropdown, setShowProfileDropdown] = useState(false);
@@ -43,8 +44,25 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
     if (sessionData) {
       try {
         const parsed = JSON.parse(sessionData);
-        setUserName(parsed.name || 'User');
+        let name = parsed.name || 'User';
+        if (role === 'Super Admin') name = 'Super Admin';
+        setUserName(name);
         setUserRole(parsed.role || role);
+        if (parsed.collegeName) {
+          setCollegeName(parsed.collegeName);
+        } else if (parsed.role === 'Admin' || parsed.role === 'Sub Admin' || parsed.role === 'Principal') {
+          // If collegeName is missing from legacy session, fetch it
+          import('../../api/index').then(({ getMyProfile }) => {
+            getMyProfile().then(res => {
+              if (res.data && res.data.collegeName) {
+                setCollegeName(res.data.collegeName);
+                // Update session storage so we don't fetch next time
+                parsed.collegeName = res.data.collegeName;
+                sessionStorage.setItem(sessionKey, JSON.stringify(parsed));
+              }
+            }).catch(() => {});
+          });
+        }
       } catch (e) {
         console.error('Error parsing session data', e);
       }
@@ -62,12 +80,7 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
       });
   }, [role]);
 
-  const [messages, setMessages] = useState([
-    { id: 1, sender: 'System Admin', message: 'Welcome to the new ERP Portal!', time: '10:00 AM', isRead: false },
-    { id: 2, sender: 'IT Support', message: 'Scheduled maintenance this weekend.', time: 'Yesterday', isRead: false },
-    { id: 3, sender: 'HR Dept', message: 'Please review the updated holiday list.', time: 'Mon', isRead: false },
-  ]);
-
+  const [messages, setMessages] = useState([]);
   const unreadMessagesCount = messages.filter(m => !m.isRead).length;
 
   const markMessagesRead = () => {
@@ -106,7 +119,7 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
           </button>
           
           {showMessages && (
-            <div className="notification-dropdown glass-card animate-fade-in" style={{ right: 0 }}>
+            <div className="notification-dropdown animate-fade-in" style={{ right: 0, background: 'var(--bg-card, #ffffff)' }}>
               <div className="dropdown-header">
                 <h3>Messages</h3>
                 <button className="text-xs text-primary font-bold" onClick={markMessagesRead}>Mark all read</button>
@@ -130,14 +143,14 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
             </div>
           )}
         </div>
-        <div className="notification-wrapper">
+        <div className="notification-wrapper" style={{ position: 'relative' }}>
           <button className="icon-btn" onClick={() => setShowNotifications(!showNotifications)}>
             <Bell size={20} />
             {unreadCount > 0 && <span className="badge">{unreadCount}</span>}
           </button>
           
           {showNotifications && (
-            <div className="notification-dropdown glass-card animate-fade-in">
+            <div className="notification-dropdown animate-fade-in" style={{ right: 0, background: 'var(--bg-card, #ffffff)' }}>
               <div className="dropdown-header">
                 <h3>Notifications</h3>
                 <button onClick={markAllAsRead} className="text-xs text-primary font-bold">Mark all read</button>
@@ -173,13 +186,15 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
             <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4f46e5&color=fff`} alt="Profile" className="profile-img" />
             <div className="profile-info">
               <span className="profile-name">{userName}</span>
-              <span className="profile-role">{userRole}</span>
+              <span className="profile-role">
+                {userRole} {collegeName ? ` • ${collegeName}` : ''}
+              </span>
             </div>
             <ChevronDown size={16} className="text-muted" />
           </div>
 
           {showProfileDropdown && (
-            <div className="profile-dropdown glass-card animate-fade-in">
+            <div className="profile-dropdown animate-fade-in" style={{ background: 'var(--bg-card, #ffffff)' }}>
               <div className="dropdown-item" onClick={() => { setShowProfileDropdown(false); navigate(`/${role.toLowerCase().replace(/\s+/g, '')}/settings`); }}>
                 <User size={16} /> My Profile
               </div>

@@ -7,6 +7,7 @@ import './Login.css';
 // ── Offline Mock Auth (used when backend is unreachable) ──────────────────────
 // Mirrors the exact seed data in backend/server.js so demo login always works.
 const MOCK_USERS = {
+  'superadmin@erp.com':       { name: 'Global Super Admin', role: 'Super Admin', token: 'mock-superadmin-token', _id: 'mock0' },
   'admin@college.edu':        { name: 'System Admin',     role: 'Admin',     token: 'mock-admin-token',     _id: 'mock1' },
   'principal@college.edu':   { name: 'Dr. Suresh Kumar', role: 'Principal', token: 'mock-principal-token', _id: 'mock2' },
 
@@ -77,14 +78,15 @@ const mockLogin = (email, password) => {
 const applySession = (userData) => {
   // Normalize role to Title Case to match destinations dictionary
   const roleMap = {
+    'super admin': 'Super Admin', 'superadmin': 'Super Admin',
     'admin': 'Admin', 'sub admin': 'Sub Admin', 'subadmin': 'Sub Admin',
     'principal': 'Principal', 'hod': 'HOD', 'staff': 'Staff',
     'student': 'Student', 'parent': 'Parent', 'accounts': 'Accounts', 'accountant': 'Accounts', 'driver': 'Driver'
   };
   const role = roleMap[userData.role?.toLowerCase()] || userData.role;
   const roleKey = role.toLowerCase().replace(/\s+/g, '');
-  const allKeys = ['admin_token','subadmin_token','principal_token','hod_token','staff_token','student_token','parent_token','accounts_token','driver_token',
-                   'admin_session','subadmin_session','principal_session','hod_session','staff_session','student_session','parent_session','accounts_session','driver_session'];
+  const allKeys = ['superadmin_token','admin_token','subadmin_token','principal_token','hod_token','staff_token','student_token','parent_token','accounts_token','driver_token',
+                   'superadmin_session','admin_session','subadmin_session','principal_session','hod_session','staff_session','student_session','parent_session','accounts_session','driver_session'];
   allKeys.forEach(k => sessionStorage.removeItem(k));
 
   sessionStorage.setItem(`${roleKey}_token`, userData.token);
@@ -93,7 +95,9 @@ const applySession = (userData) => {
     _id: userData._id, name: userData.name, email: userData.email,
     role, department: userData.department || null,
     referenceId: userData.referenceId || null,
-    permissions: userData.permissions || []
+    permissions: userData.permissions || [],
+    tenantId: userData.tenantId || null,
+    subscription: userData.subscription || null
   };
   if (role === 'HOD' || role === 'Staff') {
     sessionPayload.dept = userData.department;
@@ -109,6 +113,7 @@ const applySession = (userData) => {
   sessionStorage.setItem(`${roleKey}_session`, JSON.stringify(sessionPayload));
 
   const destinations = {
+    'Super Admin': '/superadmin/dashboard',
     'Admin': '/admin/dashboard', 'Sub Admin': '/subadmin/dashboard',
     'Principal': '/principal/dashboard', 'HOD': '/hod',
     'Staff': '/staff/dashboard', 'Student': '/student/dashboard',
@@ -140,6 +145,14 @@ const UnifiedLogin = () => {
       // Try backend first
       const res = await loginUser({ email, password });
       const userData = res.data;
+      
+      // If subscription is expired, redirect to upgrade
+      if (userData.subscription && userData.subscription.status === 'Expired') {
+        applySession(userData); // Save session so we know who is logged in
+        navigate('/upgrade-plan');
+        return;
+      }
+      
       const dest = applySession(userData);
       if (dest) { navigate(dest); return; }
       setError('Unknown role. Cannot redirect.');
@@ -228,6 +241,7 @@ const UnifiedLogin = () => {
                   <Users size={18} className="form-icon" />
                   <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} required>
                     <option value="">Select Role</option>
+                    <option value="Super Admin">Super Admin</option>
                     <option value="Admin">Admin</option>
                     <option value="Principal">Principal</option>
                     <option value="HOD">HOD</option>

@@ -40,6 +40,11 @@ import expenseRoutes from './routes/expenseRoutes.js';
 import welfareRoutes from './routes/welfareRoutes.js';
 import staffSupportRoutes from './routes/staffSupportRoutes.js';
 import hodSupportRoutes from './routes/hodSupportRoutes.js';
+import superadminRoutes from './routes/superadminRoutes.js';
+import adminRoutes from './routes/adminRoutes.js';
+
+// Import Cron Jobs
+import { initCronJobs } from './cron/scheduler.js';
 
 // Import Models for auto-seeding
 import Approval from './models/Approval.js';
@@ -645,6 +650,8 @@ app.use('/api/expenses', expenseRoutes);
 app.use('/api/welfare', welfareRoutes);
 app.use('/api/staff-support', staffSupportRoutes);
 app.use('/api/hod-support', hodSupportRoutes);
+app.use('/api/superadmin', superadminRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get('/', (req, res) => {
   res.send('College ERP API is running...');
@@ -701,6 +708,9 @@ const startServer = async () => {
     console.log(`🚀 Server is running on port ${PORT}`);
     console.log(`🌐 API ready at http://localhost:${PORT}`);
     console.log(`⚡ WebSocket server is active`);
+    
+    // Initialize Automated Cron Jobs
+    initCronJobs();
   });
 };
 

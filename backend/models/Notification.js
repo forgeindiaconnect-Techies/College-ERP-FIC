@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 
 const notificationSchema = new mongoose.Schema({
+  tenantId: { type: String }, // Optional, to target a specific college tenant
   recipient: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Optional if targetRoles is used
   targetRoles: { type: [String], default: [] }, // e.g. ['Admin', 'Principal']
   title: { type: String, required: true },

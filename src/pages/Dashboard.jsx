@@ -19,7 +19,8 @@ import {
   Clock,
   Activity,
   Heart,
-  Inbox
+  Inbox,
+  Crown
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -170,13 +171,119 @@ const Dashboard = () => {
     { semester: 'Sem 5', avg: 7.9, top: 9.6 }
   ];
 
+  const sessionStr = sessionStorage.getItem('admin_session');
+  let sessionData = null;
+  let remainingHours = 0;
+  let isTrial = false;
+  let isActivePlan = false;
+  let activePlanName = '';
+  let daysToRenew = 0;
+
+  try {
+    if (sessionStr) {
+      sessionData = JSON.parse(sessionStr);
+      if (sessionData.subscription && sessionData.subscription.plan === 'Trial') {
+        isTrial = true;
+        const endDate = new Date(sessionData.subscription.trialEndDate);
+        const diffMs = endDate - new Date();
+        remainingHours = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60)));
+      } else if (sessionData.subscription && sessionData.subscription.status === 'Active') {
+        isActivePlan = true;
+        activePlanName = sessionData.subscription.plan;
+        const endDate = new Date(sessionData.subscription.trialEndDate);
+        const diffMs = endDate - new Date();
+        daysToRenew = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
+      }
+    }
+  } catch (e) {
+    console.error('Error parsing admin session', e);
+  }
+
   return (
     <div className="dashboard animate-fade-in">
+      {isTrial && (
+        <div style={{
+          background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 12px rgba(239,68,68,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 600 }}>
+            <Activity size={20} />
+            <span>Trial Version</span>
+          </div>
+          <div style={{ fontSize: '14px', fontWeight: 500 }}>
+            Your free trial will expire in {remainingHours} hours. Trial limits: 1 HOD, 2 Students.
+          </div>
+          <button 
+            onClick={() => navigate('/upgrade-plan')}
+            style={{
+              background: 'rgba(255,255,255,0.2)',
+              border: '1px solid rgba(255,255,255,0.4)',
+              color: 'white',
+              padding: '6px 16px',
+              borderRadius: '20px',
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: '13px',
+              transition: 'all 0.2s'
+            }}>
+            Upgrade Plan
+          </button>
+        </div>
+      )}
+
+      {!isTrial && isActivePlan && (
+        <div style={{
+          background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 12px rgba(99,102,241,0.2)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 600 }}>
+            <Crown size={20} />
+            <span>{activePlanName} Plan Active</span>
+          </div>
+          <div style={{ fontSize: '14px', fontWeight: 500 }}>
+            {daysToRenew <= 7 
+              ? `Your subscription expires in ${daysToRenew} days. Please renew soon!`
+              : `Your subscription is active for ${daysToRenew} more days.`}
+          </div>
+          {daysToRenew <= 7 && (
+            <button 
+              onClick={() => navigate('/upgrade-plan')}
+              style={{
+                background: 'rgba(255,255,255,0.2)',
+                border: '1px solid rgba(255,255,255,0.4)',
+                color: 'white',
+                padding: '6px 16px',
+                borderRadius: '20px',
+                cursor: 'pointer',
+                fontWeight: 600,
+                fontSize: '13px',
+                transition: 'all 0.2s'
+              }}>
+              Renew Plan
+            </button>
+          )}
+        </div>
+      )}
+
       {/* Dashboard Welcome Header */}
       <div className="dashboard-header">
         <div>
-          <h1>Super Admin Console</h1>
-          <p className="text-muted">Unrestricted global access. Manage all departments, users, and configurations globally.</p>
+          <h1>College Admin Console</h1>
+          <p className="text-muted">Manage your institution, departments, and users.</p>
         </div>
         <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, color: '#10b981' }}>

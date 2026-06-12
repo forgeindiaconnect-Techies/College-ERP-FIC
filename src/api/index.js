@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'https://college-erp-fic1.onrender.com/api',
+  baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',
@@ -18,6 +18,8 @@ api.interceptors.request.use(
       const path = window.location.pathname;
       if (path.startsWith('/admin')) {
         token = sessionStorage.getItem('admin_token');
+      } else if (path.startsWith('/superadmin')) {
+        token = sessionStorage.getItem('superadmin_token');
       } else if (path.startsWith('/subadmin')) {
         token = sessionStorage.getItem('subadmin_token');
       } else if (path.startsWith('/principal')) {
@@ -34,7 +36,8 @@ api.interceptors.request.use(
         token = sessionStorage.getItem('accounts_token');
       } else {
         // Fallback: Check all in priority
-        token = sessionStorage.getItem('admin_token')
+        token = sessionStorage.getItem('superadmin_token')
+          || sessionStorage.getItem('admin_token')
           || sessionStorage.getItem('subadmin_token')
           || sessionStorage.getItem('principal_token')
           || sessionStorage.getItem('hod_token')
@@ -70,7 +73,7 @@ api.interceptors.response.use(
       
       // Do not redirect if using a mock token (fallback mode)
       let isMock = false;
-      const allTokens = ['admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token'];
+      const allTokens = ['superadmin_token', 'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token'];
       for (const k of allTokens) {
         const t = sessionStorage.getItem(k);
         if (t && t.startsWith('mock-')) isMock = true;
@@ -82,8 +85,8 @@ api.interceptors.response.use(
       
       console.warn('Session expired or unauthorized! Clearing session storage and redirecting to login...');
       const keys = [
-        'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token',
-        'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session', 'driver_session'
+        'superadmin_token', 'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token',
+        'superadmin_session', 'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session', 'driver_session'
       ];
       keys.forEach(k => sessionStorage.removeItem(k));
       
@@ -283,7 +286,7 @@ export const getNotifications = () => api.get('/notifications').catch(() => ({ d
         createdAt: e.dateTime || new Date().toISOString()
       }));
       if (!res.data) res.data = [];
-      res.data = [...activeEvents, ...res.data];
+      res.data = [...res.data, ...activeEvents];
     }
   } catch(e) { console.error(e); }
   return res;
@@ -309,6 +312,7 @@ export const getAnalytics = () => api.get('/analytics');
 
 // Dynamic User Management Endpoints (Admin Permissions/Parents management)
 export const getUsers = () => api.get('/auth/users');
+export const registerCollege = (data) => api.post('/auth/register-college', data);
 export const createUser = (userData) => api.post('/auth/users', userData);
 export const updateUser = (id, userData) => api.put(`/auth/users/${id}`, userData);
 export const deleteUser = (id) => api.delete(`/auth/users/${id}`);
@@ -337,6 +341,38 @@ export const issueLibraryBook = (id) => api.put(`/library/transactions/${id}/iss
 export const manualIssueLibraryBook = (data) => api.post('/library/transactions/manual-issue', data);
 export const returnLibraryBook = (id) => api.put(`/library/transactions/${id}/return`);
 export const rejectLibraryRequest = (id) => api.put(`/library/transactions/${id}/reject`);
+
+// Super Admin Subscriptions
+export const getSuperAdminSubscriptions = () => api.get('/superadmin/subscriptions');
+export const getSuperAdminSubscriptionById = (id) => api.get(`/superadmin/subscriptions/${id}`);
+export const upgradeSubscription = (id, planName) => api.put(`/superadmin/subscriptions/${id}/upgrade`, { planName });
+export const renewSubscription = (id) => api.put(`/superadmin/subscriptions/${id}/renew`);
+export const cancelSubscription = (id) => api.put(`/superadmin/subscriptions/${id}/cancel`);
+
+// Super Admin Trials
+export const getSuperAdminTrials = () => api.get('/superadmin/trials');
+export const getSuperAdminTrialById = (id) => api.get(`/superadmin/trials/${id}`);
+export const extendTrial = (id) => api.put(`/superadmin/trials/${id}/extend`);
+export const expireTrial = (id) => api.put(`/superadmin/trials/${id}/expire`);
+export const convertTrialToPaid = (id) => api.put(`/superadmin/trials/${id}/convert-to-paid`);
+export const sendTrialReminder = (id) => api.post(`/superadmin/trials/${id}/remind`);
+
+// Super Admin Payments
+export const getSuperAdminPayments = () => api.get('/superadmin/payments');
+export const getSuperAdminPaymentById = (id) => api.get(`/superadmin/payments/${id}`);
+export const verifyPayment = (paymentId) => api.post('/superadmin/payments/verify', { paymentId });
+export const downloadInvoice = (paymentId) => api.get(`/superadmin/payments/invoice/${paymentId}`);
+
+// Super Admin Reports
+export const getSuperAdminReportOverview = () => api.get('/superadmin/reports/overview');
+export const getSuperAdminReportRevenue = () => api.get('/superadmin/reports/revenue');
+export const getSuperAdminReportSubscriptions = () => api.get('/superadmin/reports/subscriptions');
+export const getSuperAdminReportTrials = () => api.get('/superadmin/reports/trials');
+export const exportSuperAdminReport = (format) => api.get(`/superadmin/reports/export?format=${format}`);
+
+// Super Admin Settings
+export const getSuperAdminSettings = () => api.get('/superadmin/settings');
+export const updateSuperAdminSettings = (data) => api.put('/superadmin/settings', data);
 
 export default api;
 
