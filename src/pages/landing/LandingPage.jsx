@@ -8,14 +8,7 @@ import {
 } from 'lucide-react';
 import './LandingPage.css';
 
-const DEPARTMENTS = [
-  { code: 'CSE',  name: 'Computer Science & Engineering',  icon: '💻', students: 450, intake: 120 },
-  { code: 'ECE',  name: 'Electronics & Communication Engg', icon: '📡', students: 380, intake: 90  },
-  { code: 'EEE',  name: 'Electrical & Electronics Engg',   icon: '⚡', students: 320, intake: 90  },
-  { code: 'MECH', name: 'Mechanical Engineering',          icon: '⚙️', students: 360, intake: 90  },
-  { code: 'BCA',  name: 'Bachelor of Computer Applications', icon: '🖥️', students: 180, intake: 60  },
-  { code: 'MBA',  name: 'Master of Business Administration', icon: '📊', students: 120, intake: 60  },
-];
+
 
 const FEATURES = [
   { icon: <Users size={28} />,      title: 'Student Management',      desc: 'Complete student lifecycle from admission to alumni.', color: '#3b82f6' },
@@ -46,12 +39,7 @@ const LOGIN_PORTALS = [
   { role: 'Driver',     path: '/login?role=Driver', icon: '🚌', color: '#f59e0b', desc: 'Transport portal' },
 ];
 
-const ANNOUNCEMENTS = [
-  { title: 'Mid-Semester Examinations Schedule Released', date: 'May 26, 2026', tag: 'Exams' },
-  { title: 'Microsoft Campus Placement Drive — June 10', date: 'May 25, 2026', tag: 'Placement' },
-  { title: 'Annual Sports Day Registrations Open', date: 'May 24, 2026', tag: 'Events' },
-  { title: 'Hostel Fee Payment Deadline: June 1, 2026', date: 'May 23, 2026', tag: 'Finance' },
-];
+
 
 // Animated counter hook
 const useCounter = (target, isVisible) => {
@@ -101,7 +89,7 @@ const LandingPage = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = ['home', 'features', 'departments', 'announcements', 'contact'];
+      const sections = ['home', 'features', 'contact'];
       for (const sec of sections) {
         const el = document.getElementById(sec);
         if (el) {
@@ -119,7 +107,7 @@ const LandingPage = () => {
     setMobileMenuOpen(false);
   };
 
-  const NAV_LINKS = ['home', 'features', 'departments', 'announcements', 'contact'];
+  const NAV_LINKS = ['home', 'features', 'contact'];
 
   return (
     <div className="landing-root">
@@ -287,49 +275,7 @@ const LandingPage = () => {
         </div>
       </section>
 
-      {/* ──── DEPARTMENTS ──── */}
-      <section id="departments" className="departments-section">
-        <div className="section-header">
-          <div className="section-badge"><Building size={14} /> Academic Departments</div>
-          <h2 className="section-title">Our Departments</h2>
-          <p className="section-subtitle">Six specialized departments offering world-class engineering and management education.</p>
-        </div>
-        <div className="departments-grid">
-          {DEPARTMENTS.map((d, i) => (
-            <div key={i} className="dept-landing-card">
-              <div className="dept-landing-icon">{d.icon}</div>
-              <div className="dept-code-badge">{d.code}</div>
-              <h3 className="dept-landing-name">{d.name}</h3>
-              <div className="dept-landing-stats">
-                <span><Users size={13}/> {d.students} Students</span>
-                <span><Award size={13}/> Intake: {d.intake}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
-      {/* ──── ANNOUNCEMENTS ──── */}
-      <section id="announcements" className="announcements-section">
-        <div className="section-header">
-          <div className="section-badge"><Bell size={14} /> Latest Updates</div>
-          <h2 className="section-title">Announcements</h2>
-        </div>
-        <div className="announcements-list">
-          {ANNOUNCEMENTS.map((a, i) => (
-            <div key={i} className="announcement-card">
-              <div className="announcement-left">
-                <span className="announcement-tag">{a.tag}</span>
-                <h3 className="announcement-title">{a.title}</h3>
-              </div>
-              <div className="announcement-right">
-                <span className="announcement-date"><Calendar size={13}/> {a.date}</span>
-                <button className="announcement-read-btn">Read More <ChevronRight size={14}/></button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
 
       {/* ──── CONTACT ──── */}
       <section id="contact" className="contact-section">
@@ -351,8 +297,11 @@ const LandingPage = () => {
               <input type="email" placeholder="Email Address" className="contact-input" />
             </div>
             <select className="contact-input w-full">
-              <option>Select Department</option>
-              {DEPARTMENTS.map(d => <option key={d.code}>{d.name}</option>)}
+              <option>Select Subject</option>
+              <option>General Inquiry</option>
+              <option>Admissions</option>
+              <option>Fees & Finance</option>
+              <option>Technical Support</option>
             </select>
             <textarea className="contact-input w-full" rows={4} placeholder="Your message..."></textarea>
             <button type="submit" className="landing-btn-primary w-full justify-center">
