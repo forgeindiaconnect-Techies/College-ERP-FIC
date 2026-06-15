@@ -65,6 +65,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { name: 'Analytics', path: '/admin/analytics', icon: <PieChart size={18} /> },
     { name: 'Announcements', path: '/admin/announcements', icon: <Megaphone size={18} /> },
     { name: 'Activity Logs', path: '/admin/activity-logs', icon: <Activity size={18} /> },
+    { name: 'System Credentials', path: '/admin/system-users', icon: <ShieldCheck size={18} style={{ color: '#6366f1' }} /> },
     { name: 'Settings & Security', path: '/admin/settings', icon: <ShieldCheck size={18} className="text-red-500" /> },
     { name: 'My Subscription', path: '/admin/subscription', icon: <Wallet size={18} style={{ color: '#f59e0b' }} /> },
   ];
