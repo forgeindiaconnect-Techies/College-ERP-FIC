@@ -14,6 +14,6 @@ const systemSettingSchema = new mongoose.Schema({
   currency: { type: String, default: 'INR (₹)' },
   institutionName: { type: String, default: 'Antigravity College of Engineering' },
   timezone: { type: String, default: 'Asia/Kolkata (IST)' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('SystemSetting', systemSettingSchema);

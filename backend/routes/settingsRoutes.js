@@ -1,14 +1,14 @@
 import express from 'express';
 import SystemSetting from '../models/SystemSetting.js';
 import LoginLog from '../models/LoginLog.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // @desc    Get system settings
 // @route   GET /api/settings
 // @access  Private/Admin
-router.get('/', protect, authorize('Admin', 'Sub Admin'), async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin'), collegeScope, async (req, res) => {
   try {
     let settings = await SystemSetting.findOne({ key: 'global_config' });
     if (!settings) {
@@ -23,7 +23,7 @@ router.get('/', protect, authorize('Admin', 'Sub Admin'), async (req, res) => {
 // @desc    Update system settings
 // @route   PUT /api/settings
 // @access  Private/Admin
-router.put('/', protect, authorize('Admin'), async (req, res) => {
+router.put('/', protect, authorize('Admin'), collegeScope, async (req, res) => {
   try {
     const settings = await SystemSetting.findOneAndUpdate(
       { key: 'global_config' },
@@ -39,7 +39,7 @@ router.put('/', protect, authorize('Admin'), async (req, res) => {
 // @desc    Get login logs
 // @route   GET /api/settings/logs
 // @access  Private/Admin
-router.get('/logs', protect, authorize('Admin', 'Sub Admin'), async (req, res) => {
+router.get('/logs', protect, authorize('Admin', 'Sub Admin'), collegeScope, async (req, res) => {
   try {
     const logs = await LoginLog.find({}).sort({ createdAt: -1 });
     res.json(logs);

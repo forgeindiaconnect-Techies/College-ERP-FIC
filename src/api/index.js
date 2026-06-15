@@ -125,6 +125,7 @@ export const deleteStaff = (id) => api.delete(`/staff/${id}`);
 
 // Timetable Endpoints
 export const getTimetable = (dept, sem) => api.get(`/timetable?dept=${encodeURIComponent(dept)}&sem=${encodeURIComponent(sem)}`);
+export const getAllTimetables = () => api.get('/timetable/all');
 export const publishTimetable = (timetableData) => api.post('/timetable', timetableData);
 
 // Department Endpoints
@@ -183,31 +184,15 @@ export const approveScholarship = (id, data) => api.put(`/welfare/${id}/approve-
 
 export const getPendingFeesReport = () => api.get('/reports/pending-fees');
 export const getDepartmentsReport = () => api.get('/reports/departments');
+export const getActivityLogs = () => api.get('/reports/activity-logs');
 
 // Library Management (Old exports removed, new ones at bottom)
 
-// Offline Mock Data Fallbacks (Synced with legacy Backend data)
-const MOCK_ROUTES = [
-  { _id: '1', routeId: 'R001', name: 'City Center Express', vehicle: 'TN-01-AB-1234', driver: 'Rajesh Kumar', capacity: 40, occupied: 35, points: ['College', 'Main Junction', 'City Mall', 'Central Station'] },
-  { _id: '2', routeId: 'R002', name: 'North Suburb Route', vehicle: 'TN-02-XY-9876', driver: 'Suresh Singh', capacity: 40, occupied: 40, points: ['College', 'North Gate', 'Tech Park', 'Airport Road'] },
-  { _id: '3', routeId: 'R003', name: 'South Colony Direct', vehicle: 'TN-05-MN-5566', driver: 'Murugan T.', capacity: 30, occupied: 12, points: ['College', 'South Avenue', 'Beach Road'] },
-];
-const MOCK_DRIVERS = [
-  { driverId: 'D001', name: 'Rajesh Kumar', license: 'DL-123456', experience: '8 Years', phone: '9876543210', status: 'Active', routeId: 'R001', vehicleId: 'TN-01-AB-1234' },
-  { driverId: 'D002', name: 'Suresh Singh', license: 'DL-987654', experience: '5 Years', phone: '9988776655', status: 'Active', routeId: 'R002', vehicleId: 'TN-02-XY-9876' },
-  { driverId: 'D003', name: 'Murugan T.', license: 'DL-456123', experience: '12 Years', phone: '9123456780', status: 'On Leave', routeId: 'R003', vehicleId: 'TN-05-MN-5566' }
-];
-const MOCK_TRANS_STUDENTS = [
-  { _id: '1', studentId: 'CS2022001', name: 'John Doe', routeId: 'R001', pickupPoint: 'City Mall', feeStatus: 'Paid', amount: 15000 },
-  { _id: '2', studentId: 'EE2022001', name: 'Alice Smith', routeId: 'R002', pickupPoint: 'Tech Park', feeStatus: 'Pending', amount: 18000 },
-  { _id: '3', studentId: 'EC2022001', name: 'Vikram Seth', routeId: 'R001', pickupPoint: 'Main Junction', feeStatus: 'Paid', amount: 12000 },
-];
-
 // Transport Management
-export const getTransportRoutes = () => api.get('/transport/routes').catch(() => ({ data: MOCK_ROUTES }));
-export const getTransportDrivers = () => api.get('/transport/drivers').catch(() => ({ data: MOCK_DRIVERS }));
+export const getTransportRoutes = () => api.get('/transport/routes').catch(() => ({ data: [] }));
+export const getTransportDrivers = () => api.get('/transport/drivers').catch(() => ({ data: [] }));
 export const updateTransportDriver = (id, data) => api.put(`/transport/drivers/${id}`, data);
-export const getTransportStudents = () => api.get('/transport/students').catch(() => ({ data: MOCK_TRANS_STUDENTS }));
+export const getTransportStudents = () => api.get('/transport/students').catch(() => ({ data: [] }));
 
 // Driver Operations
 export const getDriverAttendance = (params) => api.get('/transport/attendance', { params });
@@ -275,7 +260,22 @@ export const getLoginLogs = () => api.get('/settings/logs');
 // Notifications
 export const getNotifications = () => api.get('/notifications').catch(() => ({ data: [] })).then(res => {
   try {
-    const rawEvents = localStorage.getItem('principal_meetings_events');
+    // Find active tenantId from session
+    let tenantId = 'default';
+    const SESSION_KEYS = ['admin_session', 'subadmin_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
+    for (const key of SESSION_KEYS) {
+      const sessionData = sessionStorage.getItem(key);
+      if (sessionData) {
+        try {
+          const parsed = JSON.parse(sessionData);
+          if (parsed.tenantId) {
+            tenantId = parsed.tenantId;
+            break;
+          }
+        } catch(e) {}
+      }
+    }
+    const rawEvents = localStorage.getItem(`principal_meetings_events_${tenantId}`);
     if (rawEvents) {
       const events = JSON.parse(rawEvents);
       const activeEvents = events.filter(e => e.status !== 'Cancelled').map(e => ({

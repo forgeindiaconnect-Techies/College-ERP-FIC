@@ -18,7 +18,7 @@ const PendingFees = () => {
       const fees = feeRes.data || [];
       const backendStudents = studRes.data || [];
       
-      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       const students = [...backendStudents];
       erpStudents.forEach(ls => {
         if (!students.find(cs => cs.id === ls.id || cs._id === ls.id)) {

@@ -73,7 +73,7 @@ const HodTimetable = () => {
     }
 
     // Load subjects for the select dropdown
-    const savedSubjects = localStorage.getItem('erp_subjects');
+    const savedSubjects = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (savedSubjects) {
       const allSubs = JSON.parse(savedSubjects);
       const deptSubs = allSubs.filter(s => s.dept === HOD_DEPT && s.sem === selectedSem).map(s => s.name);

@@ -1,13 +1,13 @@
 import express from 'express';
 import Attendance from '../models/Attendance.js';
 import Student from '../models/Student.js';
-import { protect, authorize, departmentScope, requirePermission } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope, requirePermission, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 const updateStudentAttendancePercentage = async (studentId) => {
   try {
-    const records = await Attendance.find({ studentId });
+    const records = await Attendance.find({ collegeId: req.collegeId || 'unassigned_college',  });
     if (records.length === 0) return;
     const presentDays = records.filter(r => r.status === 'Present').length;
     const percentage = Math.round((presentDays / records.length) * 100);
@@ -18,7 +18,7 @@ const updateStudentAttendancePercentage = async (studentId) => {
 };
 
 // Get all attendance records
-router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), departmentScope, collegeScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
     const query = dept ? { department: dept } : {};
@@ -30,14 +30,14 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'St
 });
 
 // Get attendance for a specific student
-router.get('/student/:studentId', protect, async (req, res) => {
+router.get('/student/:studentId', protect, collegeScope, async (req, res) => {
   try {
     console.log(`[GET /student/:studentId] Request for: ${req.params.studentId}. User role: ${req.user.role}, Ref ID: ${req.user.referenceId}`);
     if ((req.user.role === 'Student' || req.user.role === 'Parent') && req.user.referenceId !== req.params.studentId) {
       console.log('=> 403 Forbidden: Unauthorized');
       return res.status(403).json({ message: 'Unauthorized to view this record' });
     }
-    const records = await Attendance.find({ studentId: req.params.studentId }).sort({ date: -1 });
+    const records = await Attendance.find({ collegeId: req.collegeId || 'unassigned_college',  }).sort({ date: -1 });
     console.log(`=> Found ${records.length} records`);
     res.json(records);
   } catch (err) {
@@ -47,7 +47,7 @@ router.get('/student/:studentId', protect, async (req, res) => {
 });
 
 // Record new attendance (Single or Bulk)
-router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), collegeScope, async (req, res) => {
   try {
     console.log(`[POST /attendance] Received payload:`, JSON.stringify(req.body));
     if (Array.isArray(req.body)) {
@@ -127,7 +127,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
 });
 
 // Update attendance record
-router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), collegeScope, async (req, res) => {
   try {
     const updatedRecord = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (updatedRecord) {
@@ -141,7 +141,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 
 });
 
 // Delete attendance record
-router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), collegeScope, async (req, res) => {
   try {
     const record = await Attendance.findById(req.params.id);
     if (record) {

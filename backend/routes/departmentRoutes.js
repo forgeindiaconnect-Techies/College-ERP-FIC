@@ -1,13 +1,13 @@
 import express from 'express';
 import Department from '../models/Department.js';
-import { protect, authorize, requirePermission } from '../middleware/authMiddleware.js';
+import { protect, authorize, requirePermission, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Get all departments
-router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), collegeScope, async (req, res) => {
   try {
-    const departments = await Department.find();
+    const departments = await Department.find({ collegeId: req.collegeId || 'unassigned_college' });
     res.json(departments);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -15,7 +15,7 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePe
 });
 
 // Create new department
-router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), collegeScope, async (req, res) => {
   const department = new Department(req.body);
   try {
     const newDepartment = await department.save();
@@ -27,7 +27,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requireP
 });
 
 // Update department
-router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), collegeScope, async (req, res) => {
   try {
     const updatedDepartment = await Department.findOneAndUpdate(
       { id: req.params.id },
@@ -42,7 +42,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requir
 });
 
 // Delete department
-router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), collegeScope, async (req, res) => {
   try {
     await Department.findOneAndDelete({ id: req.params.id });
     req.app.get('io').emit('dataUpdated', { module: 'departments', action: 'deleted' });

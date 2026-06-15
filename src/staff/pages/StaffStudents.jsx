@@ -56,12 +56,12 @@ const StaffStudents = () => {
           setStudents(res.data);
         } else {
           // Fallback to local storage if API is restricted or empty
-          const localStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const localStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           setStudents(localStudents);
         }
       } catch (err) {
         console.error('Failed to load students:', err);
-        const localStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+        const localStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
         setStudents(localStudents);
       } finally {
         setLoading(false);
@@ -72,7 +72,7 @@ const StaffStudents = () => {
     // 3. Load dynamically assigned subjects
     let dynSubjects = [];
     let deptInitialized = false;
-    const savedSubjects = localStorage.getItem('erp_subjects');
+    const savedSubjects = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (savedSubjects) {
       const allSubs = JSON.parse(savedSubjects);
       const deptSubs = allSubs.filter(s => s.dept === activeStaff.dept);

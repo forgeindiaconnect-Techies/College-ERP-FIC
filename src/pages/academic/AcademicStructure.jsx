@@ -47,14 +47,14 @@ const AcademicStructure = () => {
         setDepartments(DEFAULT_DEPARTMENTS);
       }
 
-      const savedSubs = localStorage.getItem('erp_subjects');
+      const savedSubs = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
       if (savedSubs) {
         let parsed = JSON.parse(savedSubs);
         // Normalize semesters for the structure
         parsed = parsed.map(s => ({...s, sem: s.sem.startsWith('Sem ') ? s.sem.replace('Sem ', 'Semester ') : s.sem}));
         setSubjects(parsed);
       } else {
-        localStorage.setItem('erp_subjects', JSON.stringify(DEFAULT_SUBJECTS));
+        localStorage.setItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(DEFAULT_SUBJECTS));
         setSubjects(DEFAULT_SUBJECTS);
       }
     } catch (err) {

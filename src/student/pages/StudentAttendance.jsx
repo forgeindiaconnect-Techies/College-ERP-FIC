@@ -38,7 +38,7 @@ const StudentAttendance = () => {
       // Ensure we are using the correct Register Number (like ST2026010), not a MongoDB _id
       let finalId = studentId;
       if (studentId.length === 24 && /^[0-9a-fA-F]{24}$/.test(studentId)) {
-        const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+        const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
         const match = erpStudents.find(s => s._id === studentId || s.id === studentId);
         if (match && match.id) {
           finalId = match.id;
@@ -47,7 +47,7 @@ const StudentAttendance = () => {
       
       const res = await getAttendanceByStudent(finalId);
       // Merge with localStorage
-      const localAttendance = JSON.parse(localStorage.getItem('erp_attendance') || '[]');
+      const localAttendance = JSON.parse(localStorage.getItem(`erp_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       const finalName = studentSession?.name ? studentSession.name.toLowerCase() : '';
       const localRecords = localAttendance.filter(r => 
         r.studentId === finalId || 
@@ -129,7 +129,7 @@ const StudentAttendance = () => {
 
       } else {
         // Fallbacks for empty database
-        const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+        const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
         const localMatch = erpStudents.find(s => s.rollNo === studentId || s.id === studentId);
         if (localMatch && localMatch.attendance) {
           const parsed = parseInt(String(localMatch.attendance).replace('%', '').trim());

@@ -112,7 +112,7 @@ const FeesCollection = () => {
       const fees = feeRes.data || [];
 
       // Combine with localStorage mock students to ensure full visibility
-      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       const combinedStudents = [...backendStudents];
       erpStudents.forEach(ls => {
         if (!combinedStudents.find(cs => cs.id === ls.id || cs._id === ls.id)) {
@@ -178,7 +178,7 @@ const FeesCollection = () => {
       
       let foundScholarship = null;
       try {
-        const savedScholars = localStorage.getItem('erp_scholarships');
+        const savedScholars = localStorage.getItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
         if (savedScholars) {
           const scholarsList = JSON.parse(savedScholars);
           foundScholarship = scholarsList.find(sch => sch.studentId === (s.id || s._id) && sch.status === 'Active');

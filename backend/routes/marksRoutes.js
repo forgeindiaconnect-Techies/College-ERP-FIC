@@ -1,7 +1,7 @@
 import express from 'express';
 import Mark from '../models/Mark.js';
 import Student from '../models/Student.js';
-import { protect, authorize, departmentScope } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -62,7 +62,7 @@ const processMarkPayload = (data) => {
 };
 
 // Get all marks
-router.get('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), departmentScope, collegeScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
     const query = dept ? { department: dept } : {};
@@ -74,7 +74,7 @@ router.get('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), depart
 });
 
 // Get marks for a specific student
-router.get('/student/:studentId', protect, async (req, res) => {
+router.get('/student/:studentId', protect, collegeScope, async (req, res) => {
   try {
     if ((req.user.role === 'Student' || req.user.role === 'Parent') && req.user.referenceId !== req.params.studentId) {
       return res.status(403).json({ message: 'Unauthorized to view this record' });
@@ -87,7 +87,7 @@ router.get('/student/:studentId', protect, async (req, res) => {
 });
 
 // Record new mark (Single or Bulk)
-router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), collegeScope, async (req, res) => {
   try {
     if (Array.isArray(req.body)) {
       const processed = req.body.map(processMarkPayload);
@@ -125,7 +125,7 @@ router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async
 });
 
 // Update mark
-router.put('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), collegeScope, async (req, res) => {
   try {
     const updatedRecord = await Mark.findByIdAndUpdate(
       req.params.id, 
@@ -143,7 +143,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), asy
 });
 
 // Delete mark
-router.delete('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), collegeScope, async (req, res) => {
   try {
     const record = await Mark.findById(req.params.id);
     if (record) {

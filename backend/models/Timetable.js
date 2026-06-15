@@ -26,11 +26,15 @@ const timetableSchema = new mongoose.Schema({
   schedule: {
     type: [slotSchema], // Array of slot objects
     default: []
+  },
+  collegeId: {
+    type: String,
+    required: false
   }
 }, { timestamps: true });
 
-// Ensure unique timetable per department per semester
-timetableSchema.index({ department: 1, semester: 1 }, { unique: true });
+// Ensure unique timetable per department per semester per college
+timetableSchema.index({ department: 1, semester: 1, collegeId: 1 }, { unique: true });
 
 const Timetable = mongoose.model('Timetable', timetableSchema);
 

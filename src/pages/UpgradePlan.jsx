@@ -6,7 +6,7 @@ import './UpgradePlan.css';
 
 const UpgradePlan = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(false);
+  const [loadingPlan, setLoadingPlan] = useState(null);
   const [successModal, setSuccessModal] = useState({ show: false, message: '' });
 
   const handleBack = () => {
@@ -14,7 +14,7 @@ const UpgradePlan = () => {
   };
 
   const handleSubscribe = async (planName, price) => {
-    setLoading(true);
+    setLoadingPlan(planName);
     
     // Simulate Razorpay Payment Gateway integration delay
     setTimeout(() => {
@@ -35,27 +35,14 @@ const UpgradePlan = () => {
             
             setSuccessModal({ show: true, message: res.data.message });
 
-            // Update local session to reflect active plan so dashboard works immediately
-            const sessionKey = 'admin_session'; // Assuming Admin is doing this
-            const sessionStr = sessionStorage.getItem(sessionKey);
-            if (sessionStr) {
-              const sessionObj = JSON.parse(sessionStr);
-              sessionObj.subscription = {
-                plan: planName,
-                status: 'Active',
-                trialEndDate: res.data.subscription.endDate
-              };
-              sessionStorage.setItem(sessionKey, JSON.stringify(sessionObj));
-            }
-
             // Delay redirect so user can read the success message
             setTimeout(() => {
-              navigate('/admin/dashboard');
-            }, 2500);
+              navigate('/admin/subscription');
+            }, 3500);
           } catch (err) {
-            console.error('Payment verification failed:', err);
-            setSuccessModal({ show: true, message: 'Payment was successful but verification failed. Please contact support.', isError: true });
-            setLoading(false);
+            console.error('Payment submission failed:', err);
+            setSuccessModal({ show: true, message: 'Payment submission failed. Please contact support.', isError: true });
+            setLoadingPlan(null);
           }
         },
         prefill: {
@@ -83,18 +70,25 @@ const UpgradePlan = () => {
           display: 'flex',
           alignItems: 'center',
           gap: '8px',
-          background: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.2)',
-          color: 'white',
+          background: '#FFFFFF',
+          border: '1px solid #E2E8F0',
+          color: '#475569',
           padding: '8px 16px',
           borderRadius: '20px',
           cursor: 'pointer',
           fontWeight: 600,
           transition: 'all 0.2s',
+          boxShadow: '0 2px 4px rgba(0,0,0,0.05)',
           zIndex: 100
         }}
-        onMouseOver={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
-        onMouseOut={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+        onMouseOver={(e) => {
+          e.currentTarget.style.background = '#F8FAFC';
+          e.currentTarget.style.color = '#0F172A';
+        }}
+        onMouseOut={(e) => {
+          e.currentTarget.style.background = '#FFFFFF';
+          e.currentTarget.style.color = '#475569';
+        }}
       >
         <ArrowLeft size={16} /> Back to Dashboard
       </button>
@@ -169,9 +163,9 @@ const UpgradePlan = () => {
           <button 
             className="btn-subscribe btn-starter" 
             onClick={(e) => { e.stopPropagation(); handleSubscribe('Starter', 599); }}
-            disabled={loading}
+            disabled={loadingPlan !== null}
           >
-            {loading ? 'Processing...' : 'Subscribe Now'} <ArrowRight size={16} />
+            {loadingPlan === 'Starter' ? 'Processing...' : 'Subscribe Now'} <ArrowRight size={16} />
           </button>
         </div>
 
@@ -197,9 +191,9 @@ const UpgradePlan = () => {
           <button 
             className="btn-subscribe popular-btn"
             onClick={(e) => { e.stopPropagation(); handleSubscribe('Premium', 699); }}
-            disabled={loading}
+            disabled={loadingPlan !== null}
           >
-            {loading ? 'Processing...' : 'Subscribe Now'} <ArrowRight size={16} />
+            {loadingPlan === 'Premium' ? 'Processing...' : 'Subscribe Now'} <ArrowRight size={16} />
           </button>
         </div>
 
@@ -224,9 +218,9 @@ const UpgradePlan = () => {
           <button 
             className="btn-subscribe btn-elite"
             onClick={(e) => { e.stopPropagation(); handleSubscribe('Elite', 999); }}
-            disabled={loading}
+            disabled={loadingPlan !== null}
           >
-            {loading ? 'Processing...' : 'Subscribe Now'} <ArrowRight size={16} />
+            {loadingPlan === 'Elite' ? 'Processing...' : 'Subscribe Now'} <ArrowRight size={16} />
           </button>
         </div>
       </div>

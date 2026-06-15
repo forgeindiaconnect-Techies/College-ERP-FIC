@@ -38,7 +38,7 @@ const ParentAttendance = () => {
       try {
         let studentId = activeSession.parentOf || activeSession.referenceId || activeSession.childId;
         if (studentId && studentId.length === 24 && /^[0-9a-fA-F]{24}$/.test(studentId)) {
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           const match = erpStudents.find(s => s._id === studentId || s.id === studentId);
           if (match && match.id) studentId = match.id;
         }
@@ -63,7 +63,7 @@ const ParentAttendance = () => {
           setAttendanceLogs(logs);
         } else {
           // Fallback to local percentage if no daily logs exist
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           const localMatch = erpStudents.find(s => s.rollNo === studentId || s.id === studentId);
           if (localMatch && localMatch.attendance) {
             const parsed = parseInt(String(localMatch.attendance).replace('%', '').trim());

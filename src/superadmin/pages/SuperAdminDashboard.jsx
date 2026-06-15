@@ -53,7 +53,7 @@ const SuperAdminDashboard = () => {
           <button className="btn-secondary" onClick={() => navigate('/superadmin/colleges')} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-primary)', color: 'var(--text-main)', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Building2 size={16} /> Manage Colleges
           </button>
-          <button className="btn-primary" onClick={() => navigate('/superadmin/colleges/new')} style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--primary)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <button className="btn-primary" onClick={() => navigate('/get-access')} style={{ padding: '8px 16px', borderRadius: '8px', background: 'var(--primary)', color: 'white', border: 'none', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
             + Onboard College
           </button>
         </div>

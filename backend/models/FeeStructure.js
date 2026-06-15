@@ -9,6 +9,6 @@ const feeStructureSchema = new mongoose.Schema({
   transportFee: { type: Number, default: 0 },
   scholarshipAmount: { type: Number, default: 0 },
   scholarshipName: { type: String, default: '' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('FeeStructure', feeStructureSchema);

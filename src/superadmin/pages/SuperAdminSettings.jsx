@@ -90,7 +90,7 @@ const SuperAdminSettings = () => {
           style={{ 
             display: 'flex', alignItems: 'center', gap: '8px', 
             padding: '10px 20px', borderRadius: '8px', border: 'none', 
-            background: 'var(--primary-color)', color: 'white', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600,
+            background: 'var(--primary)', color: 'white', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 600,
             opacity: loading ? 0.7 : 1
           }}>
           <Save size={18} /> {loading ? 'Saving...' : 'Save Settings'}

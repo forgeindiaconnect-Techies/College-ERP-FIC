@@ -41,7 +41,7 @@ const PaymentHistory = () => {
   // Look up scholarship for a student
   const getScholarship = (studentId, studentName) => {
     try {
-      const scholars = JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
+      const scholars = JSON.parse(localStorage.getItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       return scholars.find(s =>
         s.studentId === studentId ||
         (studentName && s.studentName?.toLowerCase() === studentName?.toLowerCase())

@@ -8,6 +8,6 @@ const transportRouteSchema = new mongoose.Schema({
   capacity: { type: Number, required: true, default: 40 },
   occupied: { type: Number, default: 0 },
   points: [{ type: String }]
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('TransportRoute', transportRouteSchema);

@@ -67,7 +67,7 @@ const StaffMarks = () => {
       ]);
 
       let backendStudents = studRes?.data || [];
-      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       const combinedStudents = [...backendStudents];
       erpStudents.forEach(ls => {
         if (!combinedStudents.find(cs => cs.id === ls.id || cs.rollNo === ls.rollNo)) {
@@ -111,7 +111,7 @@ const StaffMarks = () => {
 
   const openEdit = (s) => {
     let availableSubjects = [];
-    const savedSubjects = localStorage.getItem('erp_subjects');
+    const savedSubjects = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     let allSubs = [];
     if (savedSubjects) {
       allSubs = JSON.parse(savedSubjects);
@@ -122,7 +122,7 @@ const StaffMarks = () => {
           { id: 'SUB008', code: 'AI102', name: 'Python Programming', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 3, workload: 4 }
         ];
         allSubs = [...allSubs, ...aiSubs];
-        localStorage.setItem('erp_subjects', JSON.stringify(allSubs));
+        localStorage.setItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(allSubs));
       }
     }
     

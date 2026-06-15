@@ -1,12 +1,12 @@
 import express from 'express';
 import Book from '../models/Book.js';
 import LibraryTransaction from '../models/LibraryTransaction.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Get all books with optional department filtering
-router.get('/books', protect, async (req, res) => {
+router.get('/books', protect, collegeScope, async (req, res) => {
   try {
     const { department } = req.query;
     const query = department ? { department } : {};
@@ -18,7 +18,7 @@ router.get('/books', protect, async (req, res) => {
 });
 
 // Create a new book (Admin/HOD/Librarian)
-router.post('/books', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Principal'), async (req, res) => {
+router.post('/books', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Principal'), collegeScope, async (req, res) => {
   try {
     const { bookId, title, author, category, department, isbn, totalCopies, rackNumber } = req.body;
     
@@ -40,7 +40,7 @@ router.post('/books', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Principal
 });
 
 // Request a book
-router.post('/request', protect, async (req, res) => {
+router.post('/request', protect, collegeScope, async (req, res) => {
   try {
     const { bookId } = req.body; // ObjectId of the Book
     const userId = req.user.referenceId || req.user.id || req.user._id;
@@ -90,7 +90,7 @@ router.post('/request', protect, async (req, res) => {
 });
 
 // Get user's active/past transactions
-router.get('/my-transactions', protect, async (req, res) => {
+router.get('/my-transactions', protect, collegeScope, async (req, res) => {
   try {
     const userId = req.user.referenceId || req.user.id || req.user._id;
     
@@ -116,7 +116,7 @@ router.get('/my-transactions', protect, async (req, res) => {
 });
 
 // Issue a book (Admin/HOD/Staff)
-router.put('/transactions/:id/issue', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), async (req, res) => {
+router.put('/transactions/:id/issue', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), collegeScope, async (req, res) => {
   try {
     const transaction = await LibraryTransaction.findById(req.params.id);
     if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
@@ -140,7 +140,7 @@ router.put('/transactions/:id/issue', protect, authorize('Admin', 'Sub Admin', '
 });
 
 // Return a book (Admin/HOD/Staff)
-router.put('/transactions/:id/return', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), async (req, res) => {
+router.put('/transactions/:id/return', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), collegeScope, async (req, res) => {
   try {
     const transaction = await LibraryTransaction.findById(req.params.id).populate('bookId');
     if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
@@ -179,7 +179,7 @@ router.put('/transactions/:id/return', protect, authorize('Admin', 'Sub Admin', 
 });
 
 // Reject a book request (Admin/HOD/Staff)
-router.put('/transactions/:id/reject', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), async (req, res) => {
+router.put('/transactions/:id/reject', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), collegeScope, async (req, res) => {
   try {
     const transaction = await LibraryTransaction.findById(req.params.id);
     if (!transaction) return res.status(404).json({ message: 'Transaction not found' });
@@ -203,7 +203,7 @@ router.put('/transactions/:id/reject', protect, authorize('Admin', 'Sub Admin', 
 });
 
 // Get all transactions for Admin/HOD
-router.get('/transactions', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), async (req, res) => {
+router.get('/transactions', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Staff'), collegeScope, async (req, res) => {
   try {
     const { department } = req.query;
     
@@ -239,7 +239,7 @@ router.get('/transactions', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Sta
 });
 
 // Manual Issue by Admin
-router.post('/transactions/manual-issue', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Librarian'), async (req, res) => {
+router.post('/transactions/manual-issue', protect, authorize('Admin', 'Sub Admin', 'HOD', 'Librarian'), collegeScope, async (req, res) => {
   try {
     const { bookId, userId, userType, dueDate } = req.body;
     

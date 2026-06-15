@@ -13,6 +13,6 @@ const hostelComplaintSchema = new mongoose.Schema({
   resolutionRemarks: { type: String },
   date: { type: Date, required: true, default: Date.now },
   closedDate: { type: Date }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('HostelComplaint', hostelComplaintSchema);

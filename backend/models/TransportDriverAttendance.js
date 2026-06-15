@@ -8,7 +8,7 @@ const transportDriverAttendanceSchema = new mongoose.Schema({
   checkOutTime: { type: String },
   remarks: { type: String }, // Can be used for "Substitute: Mr. X"
   substituteDriver: { type: String }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 // Ensure one attendance record per driver per day
 transportDriverAttendanceSchema.index({ driverId: 1, date: 1 }, { unique: true });

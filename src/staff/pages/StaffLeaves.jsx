@@ -47,11 +47,11 @@ const StaffLeaves = () => {
     }
 
     // 2. Load leaves
-    const savedLeaves = localStorage.getItem('erp_leave_requests');
+    const savedLeaves = localStorage.getItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (savedLeaves) {
       setLeaves(JSON.parse(savedLeaves));
     } else {
-      localStorage.setItem('erp_leave_requests', JSON.stringify(MOCK_LEAVES));
+      localStorage.setItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(MOCK_LEAVES));
       setLeaves([]);
     }
 
@@ -80,7 +80,7 @@ const StaffLeaves = () => {
 
     const updated = [...leaves, newLeave];
     setLeaves(updated);
-    localStorage.setItem('erp_leave_requests', JSON.stringify(updated));
+    localStorage.setItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
 
     setSuccess(true);
     setForm({ type: 'Casual Leave', startDate: '', endDate: '', reason: '' });

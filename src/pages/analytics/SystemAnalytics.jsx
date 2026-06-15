@@ -38,6 +38,7 @@ import { getAnalytics } from '../../api';
 
 const SystemAnalytics = () => {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [analyticsData, setAnalyticsData] = useState(null);
   const [userContext, setUserContext] = useState({ role: 'Guest', dept: null });
   
@@ -68,18 +69,29 @@ const SystemAnalytics = () => {
     try {
       const { data } = await getAnalytics();
       setAnalyticsData(data);
-    } catch (error) {
-      console.error('Error fetching analytics:', error);
+    } catch (err) {
+      console.error('Error fetching analytics:', err);
+      setError('Failed to fetch analytics data. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !analyticsData) {
+  if (loading) {
     return (
       <div className="analytics-loading">
         <div className="spinner"></div>
         <p>Crunching institutional data...</p>
+      </div>
+    );
+  }
+
+  if (error || !analyticsData) {
+    return (
+      <div className="p-8 text-center text-red-500 bg-red-50 rounded-lg m-4">
+        <h3 className="font-bold mb-2">Error Loading Analytics</h3>
+        <p>{error || 'No data available. Please check backend connection.'}</p>
+        <button onClick={fetchAnalyticsData} className="mt-4 px-4 py-2 bg-primary text-white rounded">Retry</button>
       </div>
     );
   }
@@ -268,8 +280,8 @@ const SystemAnalytics = () => {
       <div className="dashboard-grid mt-4">
         <div className="glass-card chart-card col-span-2">
           <h3>Attendance Analytics Trend</h3>
-          <div className="chart-container">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="chart-container" style={{ minHeight: '250px', height: '250px' }}>
+            <ResponsiveContainer width="100%" height={250}>
               <AreaChart data={MOCK_ATTENDANCE_ANALYTICS} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorAtt" x1="0" y1="0" x2="0" y2="1">
@@ -290,8 +302,8 @@ const SystemAnalytics = () => {
         {!isHOD && (
           <div className="glass-card chart-card">
             <h3>Placement Stats (by Company)</h3>
-            <div className="chart-container">
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="chart-container" style={{ minHeight: '250px', height: '250px' }}>
+              <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={analyticsData.placements} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={30}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                   <XAxis dataKey="_id" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
@@ -307,8 +319,8 @@ const SystemAnalytics = () => {
         {(!isHOD && userContext.role !== 'Sub Admin') && (
           <div className="glass-card chart-card col-span-3">
             <h3>Total Fees Collection Status</h3>
-            <div className="chart-container" style={{ minHeight: '250px' }}>
-              <ResponsiveContainer width="100%" height="100%">
+            <div className="chart-container" style={{ minHeight: '250px', height: '250px' }}>
+              <ResponsiveContainer width="100%" height={250}>
                 <PieChart>
                   <Pie
                     data={[

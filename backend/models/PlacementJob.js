@@ -12,6 +12,6 @@ const placementJobSchema = new mongoose.Schema({
   driveDate: { type: Date }, // Drive Date
   deadline: { type: Date, required: true }, // Last Date to Apply
   applicants: { type: Number, required: true, default: 0 }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('PlacementJob', placementJobSchema);

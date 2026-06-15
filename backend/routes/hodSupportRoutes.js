@@ -2,7 +2,12 @@ import express from 'express';
 import HodSupportRecord from '../models/HodSupportRecord.js';
 import Notification from '../models/Notification.js';
 
+import { protect, collegeScope } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
+
+router.use(protect);
+router.use(collegeScope);
 
 // Get all requests
 router.get('/', async (req, res) => {

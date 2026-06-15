@@ -163,11 +163,11 @@ const HodMarks = () => {
     } catch (err) {
       console.warn('API save failed, persisting locally:', err.message);
       // Also sync with erp_marks localStorage for fallback
-      const studentsSaved = localStorage.getItem('erp_students');
+      const studentsSaved = localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
       if (studentsSaved) {
         const parsedStud = JSON.parse(studentsSaved);
         const updatedStud = parsedStud.map(s => s.id === editTarget ? { ...s, cgpa: +form.cgpa } : s);
-        localStorage.setItem('erp_students', JSON.stringify(updatedStud));
+        localStorage.setItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updatedStud));
       }
     }
 

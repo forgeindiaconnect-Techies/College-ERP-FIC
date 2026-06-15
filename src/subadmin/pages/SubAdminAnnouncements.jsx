@@ -34,11 +34,11 @@ const SubAdminAnnouncements = () => {
 
   const fetchAnnouncements = () => {
     setLoading(true);
-    const saved = localStorage.getItem('erp_announcements');
+    const saved = localStorage.getItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (saved) {
       setAnnouncements(JSON.parse(saved));
     } else {
-      localStorage.setItem('erp_announcements', JSON.stringify(DEFAULT_ANNOUNCEMENTS));
+      localStorage.setItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(DEFAULT_ANNOUNCEMENTS));
       setAnnouncements(DEFAULT_ANNOUNCEMENTS);
     }
     setLoading(false);
@@ -46,7 +46,7 @@ const SubAdminAnnouncements = () => {
 
   const saveAnnouncements = (newList) => {
     setAnnouncements(newList);
-    localStorage.setItem('erp_announcements', JSON.stringify(newList));
+    localStorage.setItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(newList));
   };
 
   const openAdd = () => {

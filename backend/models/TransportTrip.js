@@ -17,6 +17,6 @@ const transportTripSchema = new mongoose.Schema({
     time: String
   }],
   notes: { type: String }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('TransportTrip', transportTripSchema);

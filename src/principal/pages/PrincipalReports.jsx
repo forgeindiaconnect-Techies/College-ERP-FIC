@@ -18,12 +18,12 @@ export default function PrincipalReports() {
       if (res.data && res.data.length > 0) {
         setDbExpenses(res.data);
       } else {
-        const saved = localStorage.getItem('erp_expenses');
+        const saved = localStorage.getItem(`erp_expenses_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
         if (saved && saved !== 'null' && saved !== 'undefined') setDbExpenses(JSON.parse(saved));
       }
     }).catch(err => {
       console.error(err);
-      const saved = localStorage.getItem('erp_expenses');
+      const saved = localStorage.getItem(`erp_expenses_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
       if (saved && saved !== 'null' && saved !== 'undefined') setDbExpenses(JSON.parse(saved));
     });
 

@@ -1,6 +1,6 @@
 import express from 'express';
 import Student from '../models/Student.js';
-import { protect, authorize, departmentScope, requirePermission } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope, requirePermission, collegeScope, checkSubscription } from '../middleware/authMiddleware.js';
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import FeeStructure from '../models/FeeStructure.js';
@@ -8,7 +8,7 @@ import FeeStructure from '../models/FeeStructure.js';
 const router = express.Router();
 
 // Get all students
-router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Accounts'), requirePermission('manage_students'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Accounts'), requirePermission('manage_students'), departmentScope, collegeScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
     const query = dept ? { $or: [{ dept: dept }, { department: dept }] } : {};
@@ -20,7 +20,7 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'St
 });
 
 // Get student by ID
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, collegeScope, async (req, res) => {
   try {
     // If Student or Parent, they can only view their own record
     if ((req.user.role === 'Student' || req.user.role === 'Parent') && req.user.referenceId !== req.params.id) {
@@ -43,7 +43,7 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // Create new student
-router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Accounts'), requirePermission('manage_students'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Accounts'), requirePermission('manage_students'), collegeScope, checkSubscription, async (req, res) => {
   const student = new Student(req.body);
   try {
     const newStudent = await student.save();
@@ -94,7 +94,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'A
 });
 
 // Update student
-router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), collegeScope, checkSubscription, async (req, res) => {
   try {
     const updatedStudent = await Student.findOneAndUpdate(
       { id: req.params.id },
@@ -109,7 +109,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'),
 });
 
 // Delete student
-router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_students'), collegeScope, checkSubscription, async (req, res) => {
   try {
     const studentId = req.params.id;
     await Student.findOneAndDelete({ id: studentId });

@@ -8,6 +8,6 @@ const hostelStudentSchema = new mongoose.Schema({
   room: { type: String, required: true },
   feeStatus: { type: String, enum: ['Paid', 'Pending'], default: 'Pending' },
   amount: { type: Number, required: true }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('HostelStudent', hostelStudentSchema);

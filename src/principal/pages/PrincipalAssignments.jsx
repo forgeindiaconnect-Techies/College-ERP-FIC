@@ -72,7 +72,7 @@ const PrincipalAssignments = () => {
       } catch (err) {
         console.error('Failed to load assignments', err);
         // Fallback to local storage if API fails completely
-        const savedAssignments = localStorage.getItem('erp_assignments');
+        const savedAssignments = localStorage.getItem(`erp_assignments_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
         if (savedAssignments) {
           setAssignments(JSON.parse(savedAssignments));
         }

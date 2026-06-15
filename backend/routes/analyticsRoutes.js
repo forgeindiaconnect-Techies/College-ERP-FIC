@@ -4,14 +4,14 @@ import Department from '../models/Department.js';
 import PlacementSelection from '../models/PlacementSelection.js';
 import Attendance from '../models/Attendance.js';
 import Student from '../models/Student.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // @desc    Get AI predictive analytics and insights
 // @route   GET /api/analytics/ai-insights
 // @access  Private/Principal
-router.get('/ai-insights', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
+router.get('/ai-insights', protect, authorize('Admin', 'Sub Admin', 'Principal'), collegeScope, async (req, res) => {
   try {
     const lowAttCount = await Student.countDocuments({ attendance: { $lt: 75 } });
     const lowCgpaCount = await Student.countDocuments({ cgpa: { $lt: 8.0 } });
@@ -48,7 +48,7 @@ router.get('/ai-insights', protect, authorize('Admin', 'Sub Admin', 'Principal')
 // @desc    Get dashboard analytics
 // @route   GET /api/analytics
 // @access  Private/Admin
-router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), collegeScope, async (req, res) => {
   try {
     // 1. Fee Revenue (Total Paid vs Pending)
     const feeStats = await Fee.aggregate([

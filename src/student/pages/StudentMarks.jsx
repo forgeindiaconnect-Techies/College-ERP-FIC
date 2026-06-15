@@ -48,7 +48,7 @@ const StudentMarks = () => {
       try {
         let finalId = activeStud.referenceId || activeStud.id || activeStud._id;
         if (finalId && finalId.length === 24 && /^[0-9a-fA-F]{24}$/.test(finalId)) {
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           const match = erpStudents.find(s => s._id === finalId || s.id === finalId);
           if (match && match.id) finalId = match.id;
         }

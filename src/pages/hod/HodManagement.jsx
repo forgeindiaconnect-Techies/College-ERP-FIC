@@ -132,19 +132,7 @@ const HodManagement = () => {
         const newHod = { id: newId, ...form, deptCode: deptInfo.code, designation: 'HOD', workload: 12, attendance: 100 };
         const res = await createStaff(newHod);
         
-        // Also create a login account for this HOD
-        try {
-          await createUser({
-            name: form.name,
-            email: form.email,
-            password: 'password123',
-            role: 'HOD',
-            department: form.dept,
-            referenceId: newId
-          });
-        } catch (userErr) {
-          console.warn('User account might already exist or failed to create:', userErr);
-        }
+        // The backend automatically creates a User account during createStaff()
 
         setHods([...hods, res.data]);
       }

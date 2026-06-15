@@ -49,12 +49,12 @@ const StudentSettings = () => {
     sessionStorage.setItem('student_session', JSON.stringify(updatedSession));
 
     // 2. Update erp_students list in localStorage
-    const savedStud = localStorage.getItem('erp_students');
+    const savedStud = localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (savedStud) {
       const updatedList = JSON.parse(savedStud).map(s =>
         s.id === studentSession.id ? { ...s, email } : s
       );
-      localStorage.setItem('erp_students', JSON.stringify(updatedList));
+      localStorage.setItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updatedList));
     }
 
     setSuccess(true);

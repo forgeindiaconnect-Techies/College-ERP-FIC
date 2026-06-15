@@ -39,7 +39,7 @@ const HodReports = () => {
   const [leaves, setLeaves] = useState([]);
 
   useEffect(() => {
-    const sSaved = localStorage.getItem('erp_students');
+    const sSaved = localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const allStu = sSaved ? JSON.parse(sSaved) : [];
     setStudents(allStu.filter(s => s.dept === DEPT));
 
@@ -47,11 +47,11 @@ const HodReports = () => {
     const allStaff = stSaved ? JSON.parse(stSaved) : [];
     setStaff(allStaff.filter(s => s.dept === DEPT));
 
-    const subSaved = localStorage.getItem('erp_subjects');
+    const subSaved = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const allSubs = subSaved ? JSON.parse(subSaved) : [];
     setSubjects(allSubs.filter(s => s.dept === DEPT));
 
-    const lSaved = localStorage.getItem('erp_leave_requests');
+    const lSaved = localStorage.getItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const allLeaves = lSaved ? JSON.parse(lSaved) : [];
     setLeaves(allLeaves.filter(l => l.dept === DEPT));
   }, [DEPT]);

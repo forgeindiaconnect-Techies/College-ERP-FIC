@@ -84,7 +84,7 @@ const StudentDashboard = () => {
         
         // Ensure we are using the correct Register Number (like ST2026010), not a MongoDB _id
         if (studentId && studentId.length === 24 && /^[0-9a-fA-F]{24}$/.test(studentId)) {
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           const match = erpStudents.find(s => s._id === studentId || s.id === studentId);
           if (match && match.id) {
             studentId = match.id;
@@ -119,7 +119,7 @@ const StudentDashboard = () => {
         let dbRecord = studentRes?.data || null;
         if (!dbRecord) {
           // Try to fetch from local storage if backend fails
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           const localMatch = erpStudents.find(s => s.rollNo === activeStud.id || s.id === activeStud.id);
           
           let localAtt = 85;
@@ -269,7 +269,7 @@ const StudentDashboard = () => {
 
       // Check for Scholarships
       try {
-        const scholarships = JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
+        const scholarships = JSON.parse(localStorage.getItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
         const safeLower = str => (str || '').toString().trim().toLowerCase();
         
         const myScholarship = scholarships.find(s => {

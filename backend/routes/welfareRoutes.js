@@ -5,7 +5,12 @@ import Fee from '../models/Fee.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
 
+import { protect, collegeScope } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
+
+router.use(protect);
+router.use(collegeScope);
 
 router.get('/', async (req, res) => {
   try {

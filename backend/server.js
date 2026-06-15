@@ -1,5 +1,7 @@
 import express from 'express';
 import mongoose from 'mongoose';
+import './context.js';
+import { context } from './context.js';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
@@ -103,6 +105,13 @@ io.on('connection', (socket) => {
 
 app.use(cors());
 app.use(express.json());
+
+// Context Middleware for Multi-Tenancy
+app.use((req, res, next) => {
+  context.run(new Map(), () => {
+    next();
+  });
+});
 
 // ── Auto-seed helper ──────────────────────────────────────────────────────────
 // Only seeds when the DB is truly empty — does NOT wipe data on every restart
@@ -276,6 +285,7 @@ const autoSeedIfEmpty = async () => {
 
     // 1. Users (bcrypt hash triggers via pre-save hook)
     const userDocs = await User.create([
+      { name: 'Global Super Admin', email: 'superadmin@erpsaas.com',     password: 'superadmin123', role: 'Super Admin' },
       { name: 'System Admin',     email: 'admin@college.edu',        password: 'password123', role: 'Admin' },
       { name: 'Dr. Suresh Kumar', email: 'principal@college.edu',    password: 'password123', role: 'Principal' },
       { name: 'Sub Admin',        email: 'subadmin@college.edu',     password: 'password123', role: 'Sub Admin', permissions: [

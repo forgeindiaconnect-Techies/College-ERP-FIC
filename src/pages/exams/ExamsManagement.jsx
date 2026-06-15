@@ -71,7 +71,7 @@ const ExamsManagement = () => {
   const fetchData = async () => {
     setLoading(true);
     // Fetch subjects from localStorage
-    const savedSubs = localStorage.getItem('erp_subjects');
+    const savedSubs = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const subsList = savedSubs ? JSON.parse(savedSubs) : [];
     setSubjects(subsList);
 

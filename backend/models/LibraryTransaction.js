@@ -10,9 +10,7 @@ const libraryTransactionSchema = new mongoose.Schema({
   returnDate: { type: Date },
   fineAmount: { type: Number, default: 0 },
   status: { type: String, enum: ['Pending', 'Issued', 'Returned', 'Overdue', 'Rejected'], default: 'Pending' }
-}, {
-  timestamps: true
-});
+, collegeId: { type: String } }, { timestamps: true });
 
 const LibraryTransaction = mongoose.model('LibraryTransaction', libraryTransactionSchema);
 

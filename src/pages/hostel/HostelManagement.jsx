@@ -71,7 +71,7 @@ const HostelManagement = () => {
 
   // Visitor Log State
   const [visitors, setVisitors] = useState(() => {
-    const saved = localStorage.getItem('erp_hostel_visitors');
+    const saved = localStorage.getItem(`erp_hostel_visitors_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     return saved ? JSON.parse(saved) : MOCK_VISITORS;
   });
   const [showAddVisitorModal, setShowAddVisitorModal] = useState(false);
@@ -97,7 +97,7 @@ const HostelManagement = () => {
 
   // Mess Menu State
   const [messMenu, setMessMenu] = useState(() => {
-    const saved = localStorage.getItem('erp_mess_menu');
+    const saved = localStorage.getItem(`erp_mess_menu_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     return saved ? JSON.parse(saved) : MOCK_MESS_MENU;
   });
   const [showEditMenuModal, setShowEditMenuModal] = useState(false);
@@ -105,14 +105,14 @@ const HostelManagement = () => {
 
   // Gate Passes State
   const [gatePasses, setGatePasses] = useState(() => {
-    const saved = localStorage.getItem('erp_hostel_leaves');
+    const saved = localStorage.getItem(`erp_hostel_leaves_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     return saved ? JSON.parse(saved) : [];
   });
 
   const handleEditMenuSubmit = (e) => {
     e.preventDefault();
     setMessMenu(editMenuForm);
-    localStorage.setItem('erp_mess_menu', JSON.stringify(editMenuForm));
+    localStorage.setItem(`erp_mess_menu_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(editMenuForm));
     setShowEditMenuModal(false);
   };
 
@@ -261,7 +261,7 @@ const HostelManagement = () => {
     
     setVisitors(prev => {
       const updated = [newVisitor, ...prev];
-      localStorage.setItem('erp_hostel_visitors', JSON.stringify(updated));
+      localStorage.setItem(`erp_hostel_visitors_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
       return updated;
     });
     
@@ -273,7 +273,7 @@ const HostelManagement = () => {
     const timeNow = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setVisitors(prev => {
       const updated = prev.map(v => v.id === id ? { ...v, outTime: timeNow } : v);
-      localStorage.setItem('erp_hostel_visitors', JSON.stringify(updated));
+      localStorage.setItem(`erp_hostel_visitors_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
       return updated;
     });
   };
@@ -281,7 +281,7 @@ const HostelManagement = () => {
   const handleUpdateGatePass = (id, newStatus) => {
     setGatePasses(prev => {
       const updated = prev.map(p => p.id === id ? { ...p, status: newStatus } : p);
-      localStorage.setItem('erp_hostel_leaves', JSON.stringify(updated));
+      localStorage.setItem(`erp_hostel_leaves_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
       return updated;
     });
     // Trigger storage event so other tabs sync
@@ -293,9 +293,9 @@ const HostelManagement = () => {
 
     // Listen for changes from the HOD tab or Student tab
     const handleStorage = (e) => {
-      if (e?.key === 'erp_students') fetchHostelData();
-      if (e?.key === 'erp_hostel_leaves' || !e?.key) {
-        const saved = localStorage.getItem('erp_hostel_leaves');
+      if (e?.key === `erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) fetchHostelData();
+      if (e?.key === `erp_hostel_leaves_${sessionStorage.getItem('tenantId') || 'mock_college_id'}` || !e?.key) {
+        const saved = localStorage.getItem(`erp_hostel_leaves_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
         if (saved) setGatePasses(JSON.parse(saved));
       }
     };
@@ -337,7 +337,7 @@ const HostelManagement = () => {
         }));
 
       // Pull hostel students created locally via HOD portal
-      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       const localHostelers = erpStudents
         .filter(s => s.hostelerStatus === 'Hosteler' || s.hostelRequired === 'Yes')
         .map(s => ({
@@ -364,7 +364,7 @@ const HostelManagement = () => {
       setBlocks([]);
       setRooms([]);
       
-      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       setStudents(erpStudents
         .filter(s => s.hostelerStatus === 'Hosteler' || s.hostelRequired === 'Yes')
         .map(s => ({ studentId: s.rollNo || s.id, name: s.name, block: 'Pending Allocation', room: s.roomNumber || 'Unassigned' }))
@@ -969,7 +969,7 @@ const HostelManagement = () => {
               </thead>
               <tbody>
                 {blocks.map(block => {
-                  const allAttendances = JSON.parse(localStorage.getItem('erp_hostel_attendance') || '[]');
+                  const allAttendances = JSON.parse(localStorage.getItem(`erp_hostel_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
                   const todayStr = new Date().toISOString().split('T')[0];
                   
                   // Find if any students from this block manually marked attendance today
@@ -1421,7 +1421,7 @@ const HostelManagement = () => {
                 <tbody>
                   {(() => {
                     const todayStr = new Date().toISOString().split('T')[0];
-                    const allAttendances = JSON.parse(localStorage.getItem('erp_hostel_attendance') || '[]');
+                    const allAttendances = JSON.parse(localStorage.getItem(`erp_hostel_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
                     const presentStudents = allAttendances.filter(a => {
                       if (a.date !== todayStr) return false;
                       const blockA = (a.block || '').toLowerCase().replace(/[^a-z0-9]/g, '');

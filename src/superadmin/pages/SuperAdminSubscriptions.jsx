@@ -142,7 +142,6 @@ const SuperAdminSubscriptions = () => {
               <tr><td colSpan="5" style={{ padding: '40px 20px', textAlign: 'center', color: 'var(--text-muted)' }}>No subscriptions found.</td></tr>
             ) : (
               filteredColleges.map((college) => {
-                const isExpired = college.endDate ? new Date(college.endDate) < new Date() : false;
                 const expiryStr = college.endDate ? new Date(college.endDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : 'N/A';
                 
                 return (
@@ -162,10 +161,14 @@ const SuperAdminSubscriptions = () => {
                         borderRadius: '20px', 
                         fontSize: '0.75rem', 
                         fontWeight: 600, 
-                        background: isExpired || college.status === 'Cancelled' ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)', 
-                        color: isExpired || college.status === 'Cancelled' ? '#ef4444' : '#10b981' 
+                        background: college.status === 'Active' ? 'rgba(16,185,129,0.1)' : 
+                                  college.status === 'Grace Period' ? 'rgba(245,158,11,0.1)' : 
+                                  'rgba(239,68,68,0.1)', 
+                        color: college.status === 'Active' ? '#10b981' : 
+                               college.status === 'Grace Period' ? '#f59e0b' : 
+                               '#ef4444' 
                       }}>
-                        {college.status === 'Cancelled' ? 'Cancelled' : (isExpired ? 'Expired' : (college.status || 'Active'))}
+                        {college.status || 'Active'}
                       </span>
                     </td>
                     <td style={{ padding: '16px 20px', color: 'var(--text-muted)' }}>

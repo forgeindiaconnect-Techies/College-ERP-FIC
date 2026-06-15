@@ -1,11 +1,12 @@
 import express from 'express';
 import Approval from '../models/Approval.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // All routes are protected
 router.use(protect);
+router.use(collegeScope);
 
 // GET all approvals (filtered by status or department)
 router.get('/', authorize('Admin', 'Principal', 'HOD'), async (req, res) => {

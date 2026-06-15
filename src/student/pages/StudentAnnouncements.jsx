@@ -19,7 +19,7 @@ const StudentAnnouncements = () => {
 
   const fetchAnnouncements = () => {
     setLoading(true);
-    const saved = localStorage.getItem('erp_announcements');
+    const saved = localStorage.getItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     let allAnns = saved ? JSON.parse(saved) : DEFAULT_ANNOUNCEMENTS;
     
     // Filter for Students: 'All', 'All Roles', 'All Departments', and 'Students'

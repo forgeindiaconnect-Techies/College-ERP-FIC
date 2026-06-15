@@ -1,14 +1,16 @@
 import express from 'express';
 import Exam from '../models/Exam.js';
-import { protect, authorize, departmentScope } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // GET all exams (HOD/Staff scoped by departmentScope, Admin/Principal can view all or filter)
-router.get('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff', 'Student', 'Parent'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff', 'Student', 'Parent'), collegeScope, departmentScope, collegeScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
-    const query = dept ? { dept: dept } : {};
+    const query = {};
+    if (dept) query.dept = dept;
+    if (req.collegeId) query.collegeId = req.collegeId;
     const exams = await Exam.find(query).sort({ date: 1 });
     res.json(exams);
   } catch (err) {
@@ -17,7 +19,7 @@ router.get('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff', 'Studen
 });
 
 // GET exam by ID
-router.get('/:id', protect, async (req, res) => {
+router.get('/:id', protect, collegeScope, async (req, res) => {
   try {
     const exam = await Exam.findById(req.params.id);
     if (!exam) return res.status(404).json({ message: 'Exam slot not found' });
@@ -28,7 +30,7 @@ router.get('/:id', protect, async (req, res) => {
 });
 
 // POST new exam schedule
-router.post('/', protect, authorize('Admin', 'HOD', 'Principal'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'HOD', 'Principal'), collegeScope, async (req, res) => {
   try {
     const exam = new Exam({
       name: req.body.name,
@@ -39,7 +41,8 @@ router.post('/', protect, authorize('Admin', 'HOD', 'Principal'), async (req, re
       time: req.body.time,
       room: req.body.room,
       maxMarks: Number(req.body.maxMarks) || 100,
-      createdBy: req.user.name || 'Staff HOD'
+      createdBy: req.user.name || 'Staff HOD',
+      collegeId: req.collegeId || req.user.tenantId || req.user.collegeId || 'unassigned_college'
     });
     
     const newExam = await exam.save();
@@ -51,7 +54,7 @@ router.post('/', protect, authorize('Admin', 'HOD', 'Principal'), async (req, re
 });
 
 // PUT update exam schedule
-router.put('/:id', protect, authorize('Admin', 'HOD', 'Principal'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'HOD', 'Principal'), collegeScope, async (req, res) => {
   try {
     const updated = await Exam.findByIdAndUpdate(
       req.params.id,
@@ -76,7 +79,7 @@ router.put('/:id', protect, authorize('Admin', 'HOD', 'Principal'), async (req, 
 });
 
 // DELETE exam schedule
-router.delete('/:id', protect, authorize('Admin', 'HOD', 'Principal'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'HOD', 'Principal'), collegeScope, async (req, res) => {
   try {
     const deleted = await Exam.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ message: 'Exam slot not found' });

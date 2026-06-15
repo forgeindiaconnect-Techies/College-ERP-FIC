@@ -40,7 +40,7 @@ const StudentAssignments = () => {
 
       let studentSem = activeStud.sem;
       let studentDept = activeStud.dept;
-      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       const localMatch = erpStudents.find(s => s.id === activeStud.id || s.rollNo === activeStud.id);
       
       if (localMatch) {

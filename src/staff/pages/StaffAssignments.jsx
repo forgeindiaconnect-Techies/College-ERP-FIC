@@ -79,7 +79,7 @@ const StaffAssignments = () => {
 
     let dynSubjects = [];
     let deptInitialized = false;
-    const savedSubjects = localStorage.getItem('erp_subjects');
+    const savedSubjects = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (savedSubjects) {
       const allSubs = JSON.parse(savedSubjects);
       const deptSubs = allSubs.filter(s => s.dept === activeStaff.dept);
@@ -216,7 +216,7 @@ const StaffAssignments = () => {
     if (window.confirm('Delete this assignment posting?')) {
       const updated = assignments.filter(a => a.id !== id);
       setAssignments(updated);
-      localStorage.setItem('erp_assignments', JSON.stringify(updated));
+      localStorage.setItem(`erp_assignments_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
     }
   };
 

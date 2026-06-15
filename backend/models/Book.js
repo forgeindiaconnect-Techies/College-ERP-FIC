@@ -11,7 +11,7 @@ const bookSchema = new mongoose.Schema({
   availableCopies: { type: Number, required: true, default: 1 },
   rackNumber: { type: String },
   status: { type: String, enum: ['Available', 'Out of Stock'], default: 'Available' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 const Book = mongoose.model('Book', bookSchema);
 

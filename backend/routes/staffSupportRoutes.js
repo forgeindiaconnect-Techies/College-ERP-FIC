@@ -3,7 +3,12 @@ import StaffSupportRecord from '../models/StaffSupportRecord.js';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
 
+import { protect, collegeScope } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
+
+router.use(protect);
+router.use(collegeScope);
 
 // Get all requests
 router.get('/', async (req, res) => {

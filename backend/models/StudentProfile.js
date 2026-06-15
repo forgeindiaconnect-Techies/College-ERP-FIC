@@ -12,6 +12,6 @@ const studentProfileSchema = new mongoose.Schema({
   transport: { type: mongoose.Schema.Types.ObjectId, ref: 'TransportStudent', default: null },
   hostel: { type: mongoose.Schema.Types.ObjectId, ref: 'HostelStudent', default: null },
   placements: [{ type: mongoose.Schema.Types.ObjectId, ref: 'PlacementApplication' }]
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('StudentProfile', studentProfileSchema);

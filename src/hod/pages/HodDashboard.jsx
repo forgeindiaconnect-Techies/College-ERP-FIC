@@ -73,7 +73,7 @@ const HodDashboard = () => {
       ]);
       if (studRes?.data) setStudents(studRes.data);
       else {
-        const studRaw = localStorage.getItem('erp_students');
+        const studRaw = localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
         if (studRaw) setStudents(JSON.parse(studRaw));
       }
       if (staffRes?.data) setStaff(staffRes.data);

@@ -2,7 +2,7 @@ import express from 'express';
 import Fee from '../models/Fee.js';
 import Student from '../models/Student.js';
 import FeeStructure from '../models/FeeStructure.js';
-import { protect, authorize, departmentScope } from '../middleware/authMiddleware.js';
+import { protect, authorize, departmentScope, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -48,7 +48,7 @@ const updateStudentFeeStatus = async (studentId) => {
 };
 
 // Get all fees
-router.get('/', protect, authorize('Admin', 'Principal', 'Accounts', 'HOD'), departmentScope, async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Principal', 'Accounts', 'HOD'), departmentScope, collegeScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
     const query = dept ? { department: dept } : {};
@@ -60,7 +60,7 @@ router.get('/', protect, authorize('Admin', 'Principal', 'Accounts', 'HOD'), dep
 });
 
 // Get fees for a specific student
-router.get('/student/:studentId', protect, async (req, res) => {
+router.get('/student/:studentId', protect, collegeScope, async (req, res) => {
   try {
     if ((req.user.role === 'Student' || req.user.role === 'Parent') && req.user.referenceId !== req.params.studentId) {
       return res.status(403).json({ message: 'Unauthorized to view this record' });
@@ -73,7 +73,7 @@ router.get('/student/:studentId', protect, async (req, res) => {
 });
 
 // Get fee structure for a specific student
-router.get('/structure/:studentId', protect, async (req, res) => {
+router.get('/structure/:studentId', protect, collegeScope, async (req, res) => {
   try {
     let structure = await FeeStructure.findOne({ studentId: req.params.studentId });
     // If not found, return default structure based on student preferences
@@ -95,7 +95,7 @@ router.get('/structure/:studentId', protect, async (req, res) => {
 });
 
 // Record new fee transaction
-router.post('/', protect, authorize('Admin', 'Principal', 'Accounts', 'Student'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Principal', 'Accounts', 'Student'), collegeScope, async (req, res) => {
   try {
     if (Array.isArray(req.body)) {
       const processed = req.body.map(processFeePayload);
@@ -120,7 +120,7 @@ router.post('/', protect, authorize('Admin', 'Principal', 'Accounts', 'Student')
 });
 
 // Update fee status (e.g. Pending -> Paid)
-router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts', 'Student'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts', 'Student'), collegeScope, async (req, res) => {
   try {
     const updatedFee = await Fee.findByIdAndUpdate(
       req.params.id, 
@@ -138,7 +138,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts', 'Student
 });
 
 // Delete fee record
-router.delete('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     const record = await Fee.findById(req.params.id);
     if (record) {

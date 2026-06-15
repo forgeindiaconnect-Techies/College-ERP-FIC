@@ -107,24 +107,24 @@ const StaffDashboard = () => {
     loadDashboardData();
 
     // Timetable Setup
-    const timetableRaw = localStorage.getItem('erp_timetable');
+    const timetableRaw = localStorage.getItem(`erp_timetable_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (timetableRaw) setTimetable(JSON.parse(timetableRaw));
 
     // Assignments Setup
-    const assignRaw = localStorage.getItem('erp_assignments');
+    const assignRaw = localStorage.getItem(`erp_assignments_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (assignRaw) {
       setAssignments(JSON.parse(assignRaw));
     } else {
-      localStorage.setItem('erp_assignments', JSON.stringify(MOCK_ASSIGNMENTS));
+      localStorage.setItem(`erp_assignments_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(MOCK_ASSIGNMENTS));
       setAssignments([]);
     }
 
     // Leaves Setup
-    const leaveRaw = localStorage.getItem('erp_leave_requests');
+    const leaveRaw = localStorage.getItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (leaveRaw) {
       setLeaves(JSON.parse(leaveRaw));
     } else {
-      localStorage.setItem('erp_leave_requests', JSON.stringify(MOCK_LEAVES));
+      localStorage.setItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(MOCK_LEAVES));
       setLeaves([]);
     }
 
@@ -159,7 +159,7 @@ const StaffDashboard = () => {
     } else {
       // Fallback to local storage if needed
       let deptInitialized = false;
-      const savedSubjects = localStorage.getItem('erp_subjects');
+      const savedSubjects = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
       if (savedSubjects) {
         const allSubs = JSON.parse(savedSubjects);
         const deptSubs = allSubs.filter(s => s.dept === staffDept);
@@ -243,7 +243,7 @@ const StaffDashboard = () => {
     };
     const updatedLeaves = [...leaves, newLeave];
     setLeaves(updatedLeaves);
-    localStorage.setItem('erp_leave_requests', JSON.stringify(updatedLeaves));
+    localStorage.setItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updatedLeaves));
     setLeaveSuccess(true);
     setTimeout(() => {
       setLeaveModalOpen(false);

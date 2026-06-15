@@ -3,16 +3,7 @@ import { Plus, Search, Edit2, Trash2, X, BookOpen, User, Hash, Percent, Award, C
 import { getStaff, getDepartments } from '../../api/index';
 import './SubjectsManagement.css';
 
-const DEFAULT_SUBJECTS = [
-  { id: 'SUB001', code: 'CS301', name: 'Data Structures', dept: 'Computer Science Engineering', sem: 'Sem 3', teacher: 'Dr. Ananya Rao', credits: 4, workload: 4 },
-  { id: 'SUB002', code: 'CS302', name: 'DBMS', dept: 'Computer Science Engineering', sem: 'Sem 3', teacher: 'Dr. Ananya Rao', credits: 4, workload: 4 },
-  { id: 'SUB003', code: 'CS401', name: 'Operating Systems', dept: 'Computer Science Engineering', sem: 'Sem 4', teacher: 'Prof. Karthik S.', credits: 4, workload: 4 },
-  { id: 'SUB004', code: 'CS501', name: 'Machine Learning', dept: 'Computer Science Engineering', sem: 'Sem 5', teacher: 'Prof. Karthik S.', credits: 3, workload: 3 },
-  { id: 'SUB005', code: 'EE201', name: 'Circuits & Networks', dept: 'Electrical & Electronics Engineering', sem: 'Sem 2', teacher: 'Prof. Rajan Iyer', credits: 4, workload: 4 },
-  { id: 'SUB006', code: 'ME301', name: 'Thermodynamics', dept: 'Mechanical Engineering', sem: 'Sem 3', teacher: 'Dr. Priya Nair', credits: 4, workload: 4 },
-  { id: 'SUB007', code: 'AI101', name: 'Introduction to AI', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 4, workload: 4 },
-  { id: 'SUB008', code: 'AI102', name: 'Python Programming', dept: 'Artificial Intelligence & Data Science', sem: 'Sem 1', teacher: 'KARTHIK', credits: 3, workload: 4 }
-];
+const DEFAULT_SUBJECTS = [];
 
 const DEPARTMENTS = [
   'Computer Science Engineering',
@@ -55,17 +46,17 @@ const SubjectsManagement = () => {
       const staffRes = await getStaff().catch(() => ({ data: [] }));
       setStaff(staffRes?.data || []);
       
-      const saved = localStorage.getItem('erp_subjects');
+      const saved = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
       if (saved) {
         let parsed = JSON.parse(saved);
         // Force inject the AI subjects if they are missing so Karthik can test it without resetting localstorage
         if (!parsed.find(s => s.code === 'AI101')) {
           parsed = [...parsed, ...DEFAULT_SUBJECTS.slice(6)];
-          localStorage.setItem('erp_subjects', JSON.stringify(parsed));
+          localStorage.setItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(parsed));
         }
         setSubjects(parsed);
       } else {
-        localStorage.setItem('erp_subjects', JSON.stringify(DEFAULT_SUBJECTS));
+        localStorage.setItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(DEFAULT_SUBJECTS));
         setSubjects(DEFAULT_SUBJECTS);
       }
     } catch (err) {
@@ -77,7 +68,7 @@ const SubjectsManagement = () => {
 
   const saveSubjects = (newList) => {
     setSubjects(newList);
-    localStorage.setItem('erp_subjects', JSON.stringify(newList));
+    localStorage.setItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(newList));
   };
 
   const openAdd = () => {

@@ -107,19 +107,27 @@
 .login-form-section {
   width: 50%;
   height: calc(100vh - 40px);
-  display: flex;
-  justify-content: center;
-  align-items: center;
   padding: 40px;
   background-color: #ffffff;
   border-radius: 0 24px 24px 0;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.login-form-section::before,
+.login-form-section::after {
+  content: '';
+  flex: 1;
 }
 
 .login-card-container {
   width: 100%;
   max-width: 420px;
+  margin: 0 auto;
+  flex-shrink: 0;
+  padding: 20px 0;
   animation: cardFadeIn 0.6s ease-out;
 }
 
@@ -201,6 +209,8 @@
 .pwd-toggle-btn {
   position: absolute;
   right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
   background: none;
   border: none;
   color: #94a3b8;

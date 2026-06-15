@@ -14,6 +14,6 @@ const markSchema = new mongoose.Schema({
   gpa: { type: Number },
   cgpa: { type: Number },
   arrearStatus: { type: String }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('Mark', markSchema);

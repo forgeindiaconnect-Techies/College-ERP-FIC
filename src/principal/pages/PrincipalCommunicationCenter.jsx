@@ -59,11 +59,11 @@ export default function PrincipalCommunicationCenter() {
     }
 
     // Sync database / LocalStorage logs
-    const saved = localStorage.getItem('erp_communication_logs');
+    const saved = localStorage.getItem(`erp_communication_logs_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (saved) {
       setLogs(JSON.parse(saved));
     } else {
-      localStorage.setItem('erp_communication_logs', JSON.stringify(INITIAL_LOGS));
+      localStorage.setItem(`erp_communication_logs_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(INITIAL_LOGS));
       setLogs(INITIAL_LOGS);
     }
   }, []);
@@ -75,7 +75,7 @@ export default function PrincipalCommunicationCenter() {
 
   const saveLogs = (newLogs) => {
     setLogs(newLogs);
-    localStorage.setItem('erp_communication_logs', JSON.stringify(newLogs));
+    localStorage.setItem(`erp_communication_logs_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(newLogs));
   };
 
   // Safe blocker modal for IT Super Admin permissions

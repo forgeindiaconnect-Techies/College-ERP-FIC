@@ -9,6 +9,6 @@ const departmentSchema = new mongoose.Schema({
   staff: { type: Number, default: 0 },
   established: { type: Number },
   status: { type: String, default: 'Active' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('Department', departmentSchema);

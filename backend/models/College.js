@@ -30,7 +30,7 @@ const collegeSchema = new mongoose.Schema({
   },
   subscriptionStatus: {
     type: String,
-    enum: ['Active', 'Expired', 'Cancelled'],
+    enum: ['Active', 'Expired', 'Cancelled', 'Grace Period'],
     default: 'Active'
   },
   trialStartDate: {
@@ -44,7 +44,12 @@ const collegeSchema = new mongoose.Schema({
   convertedToPaid: {
     type: Boolean,
     default: false
-  }
+  },
+  adminPassword: { 
+    type: String,
+    default: null
+  },
+  collegeId: { type: String } 
 }, { timestamps: true });
 
 export default mongoose.model('College', collegeSchema);

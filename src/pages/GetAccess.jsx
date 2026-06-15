@@ -79,7 +79,7 @@ const GetAccess = () => {
 
       {/* Right form section */}
       <div className="login-form-section" style={{ overflowY: 'auto' }}>
-        <div className="login-card-container" style={{ maxWidth: '500px', margin: '2rem auto' }}>
+        <div className="login-card-container" style={{ maxWidth: '500px' }}>
           <div className="login-card-header" style={{ marginBottom: '2rem' }}>
             <h2 style={{ fontSize: '1.8rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '0.5rem' }}>Get Started Free</h2>
             <p style={{ color: 'var(--text-muted)' }}>Register your institution and activate your 1-day free trial instantly.</p>

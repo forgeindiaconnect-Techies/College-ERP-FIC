@@ -38,7 +38,7 @@ const ParentDashboard = () => {
       try {
         let studentId = parsedSession.childId || parsedSession.referenceId || parsedSession.parentOf;
         if (studentId && studentId.length === 24 && /^[0-9a-fA-F]{24}$/.test(studentId)) {
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           const match = erpStudents.find(s => s._id === studentId || s.id === studentId);
           if (match && match.id) studentId = match.id;
         }

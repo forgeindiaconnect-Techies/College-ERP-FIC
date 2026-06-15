@@ -31,12 +31,12 @@ const Scholarships = () => {
   });
 
   useEffect(() => {
-    const saved = localStorage.getItem('erp_scholarships');
+    const saved = localStorage.getItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (saved) {
       setScholars(JSON.parse(saved));
     } else {
       setScholars(DEFAULT_SCHOLARS);
-      localStorage.setItem('erp_scholarships', JSON.stringify(DEFAULT_SCHOLARS));
+      localStorage.setItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(DEFAULT_SCHOLARS));
     }
   }, []);
 
@@ -66,7 +66,7 @@ const Scholarships = () => {
 
   const saveList = (newList) => {
     setScholars(newList);
-    localStorage.setItem('erp_scholarships', JSON.stringify(newList));
+    localStorage.setItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(newList));
   };
 
   // Live search as user types

@@ -25,6 +25,6 @@ const transportComplaintSchema = new mongoose.Schema({
     details: { type: String },
     timestamp: { type: Date, default: Date.now }
   }]
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('TransportComplaint', transportComplaintSchema);

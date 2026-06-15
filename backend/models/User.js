@@ -26,6 +26,10 @@ const userSchema = new mongoose.Schema({
     type: String,
     default: null // Will link users to a specific College (e.g. 'COL123')
   },
+  collegeId: {
+    type: String,
+    default: null
+  },
   phone: {
     type: String,
     default: null

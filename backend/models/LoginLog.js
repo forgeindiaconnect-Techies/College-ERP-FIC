@@ -7,6 +7,6 @@ const loginLogSchema = new mongoose.Schema({
   browser: { type: String, required: true },
   time: { type: String, required: true },
   status: { type: String, enum: ['Success', 'Failed (Bad Password)'], default: 'Success' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('LoginLog', loginLogSchema);

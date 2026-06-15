@@ -7,6 +7,6 @@ const hostelRoomSchema = new mongoose.Schema({
   capacity: { type: Number, required: true },
   occupied: { type: Number, required: true, default: 0 },
   status: { type: String, enum: ['Available', 'Full', 'Maintenance'], default: 'Available' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('HostelRoom', hostelRoomSchema);

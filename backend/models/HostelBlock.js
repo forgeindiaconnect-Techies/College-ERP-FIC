@@ -6,6 +6,6 @@ const hostelBlockSchema = new mongoose.Schema({
   capacity: { type: Number, required: true },
   occupied: { type: Number, required: true, default: 0 },
   warden: { type: String, required: true }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('HostelBlock', hostelBlockSchema);

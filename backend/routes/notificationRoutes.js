@@ -1,14 +1,14 @@
 import express from 'express';
 import Notification from '../models/Notification.js';
 import User from '../models/User.js';
-import { protect } from '../middleware/authMiddleware.js';
+import { protect, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // @desc    Get user notifications
 // @route   GET /api/notifications
 // @access  Private
-router.get('/', protect, async (req, res) => {
+router.get('/', protect, collegeScope, async (req, res) => {
   try {
     // If Admin/Sub Admin, they can see a global view or specific ones.
     // For now, let's just get notifications meant for req.user._id
@@ -21,10 +21,10 @@ router.get('/', protect, async (req, res) => {
     };
     
     // Add tenant restriction if user belongs to a tenant
-    if (req.user.tenantId && req.user.tenantId !== 'system') {
+    if (req.collegeId) {
       query = {
         $and: [
-          { $or: [{ tenantId: req.user.tenantId }, { tenantId: { $exists: false } }, { tenantId: null }] },
+          { $or: [{ collegeId: req.collegeId }, { tenantId: req.collegeId }] },
           query
         ]
       };
@@ -32,12 +32,16 @@ router.get('/', protect, async (req, res) => {
 
     if (req.user.role === 'Super Admin') {
        query = {}; // Super Admin sees all system notifications
-    } else if (req.user._id === 'mock-id') {
-       query = {}; // Mock users see all notifications
     }
 
     const notifications = await Notification.find(query).sort({ createdAt: -1 }).limit(20);
-    res.json(notifications);
+    // Map readBy to isRead for the frontend
+    const mapped = notifications.map(n => {
+      const obj = n.toObject();
+      obj.isRead = obj.readBy && obj.readBy.some(id => id.toString() === req.user._id.toString());
+      return obj;
+    });
+    res.json(mapped);
   } catch (error) {
     res.status(500).json({ message: 'Server Error fetching notifications' });
   }
@@ -46,15 +50,20 @@ router.get('/', protect, async (req, res) => {
 // @desc    Mark notification as read
 // @route   PUT /api/notifications/:id/read
 // @access  Private
-router.put('/:id/read', protect, async (req, res) => {
+router.put('/:id/read', protect, collegeScope, async (req, res) => {
   try {
     const notification = await Notification.findById(req.params.id);
     if (!notification) {
       return res.status(404).json({ message: 'Notification not found' });
     }
-    notification.isRead = true;
-    await notification.save();
-    res.json(notification);
+    if (!notification.readBy) notification.readBy = [];
+    if (!notification.readBy.includes(req.user._id)) {
+      notification.readBy.push(req.user._id);
+      await notification.save();
+    }
+    const obj = notification.toObject();
+    obj.isRead = true;
+    res.json(obj);
   } catch (error) {
     res.status(500).json({ message: 'Server Error updating notification' });
   }
@@ -63,12 +72,12 @@ router.put('/:id/read', protect, async (req, res) => {
 // @desc    Mark all notifications as read
 // @route   PUT /api/notifications/read-all
 // @access  Private
-router.put('/read-all', protect, async (req, res) => {
+router.put('/read-all', protect, collegeScope, async (req, res) => {
   try {
     let query = { recipient: req.user._id };
     if (req.user.role === 'Admin' || req.user._id === 'mock-id') query = {};
     
-    await Notification.updateMany(query, { isRead: true });
+    await Notification.updateMany(query, { $addToSet: { readBy: req.user._id } });
     res.json({ message: 'All notifications marked as read' });
   } catch (error) {
     res.status(500).json({ message: 'Server Error updating notifications' });
@@ -78,7 +87,7 @@ router.put('/read-all', protect, async (req, res) => {
 // @desc    Create a new notification
 // @route   POST /api/notifications
 // @access  Private
-router.post('/', protect, async (req, res) => {
+router.post('/', protect, collegeScope, async (req, res) => {
   try {
     const { recipient, email, targetRoles, title, message, type, link } = req.body;
     let actualRecipient = recipient;
@@ -104,7 +113,9 @@ router.post('/', protect, async (req, res) => {
       title,
       message,
       type,
-      link
+      link,
+      tenantId: req.collegeId || req.user.tenantId || 'unassigned_college',
+      collegeId: req.collegeId || req.user.tenantId || 'unassigned_college'
     });
 
     const created = await notification.save();

@@ -1,16 +1,18 @@
 .navbar {
-  height: 70px;
+  min-height: 70px;
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 2rem;
+  padding: 0.75rem 2rem;
   position: sticky;
   top: 0;
   z-index: 90;
   border-radius: 0 !important;
   box-shadow: var(--shadow-sm);
+  flex-wrap: wrap;
+  gap: 1rem;
 }
 
 .hamburger-btn {
@@ -105,8 +107,8 @@
 
 .badge {
   position: absolute;
-  top: 2px;
-  right: 2px;
+  top: 0px;
+  right: 0px;
   background-color: var(--danger);
   color: white;
   font-size: 0.65rem;
@@ -117,7 +119,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid var(--bg-secondary);
+  border: 2px solid var(--bg-card);
 }
 
 .navbar-profile {

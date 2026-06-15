@@ -119,7 +119,7 @@ const TransportManagement = () => {
       let combinedTransportStudents = [...studentsRes.data];
 
       // Merge from main students db
-      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       const allDbStudents = [...(allStudentsRes.data || [])];
       erpStudents.forEach(ls => {
         if (!allDbStudents.find(cs => cs.id === ls.id || cs.rollNo === ls.rollNo)) {

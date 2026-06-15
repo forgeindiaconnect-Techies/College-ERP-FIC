@@ -27,7 +27,7 @@ const HodLeaves = () => {
   const [newLeave, setNewLeave] = useState({ type: 'Casual Leave', startDate: '', endDate: '', reason: '' });
 
   useEffect(() => {
-    const saved = localStorage.getItem('erp_leave_requests');
+    const saved = localStorage.getItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const all = saved ? JSON.parse(saved) : DEFAULT_LEAVES;
     // Show only leaves from HOD's dept
     const deptLeaves = all.filter(l => (l.dept === DEPT) || (!l.dept && !l.role));
@@ -38,11 +38,11 @@ const HodLeaves = () => {
     const updated = leaves.map(l => l.id===id ? { ...l, status } : l);
     setLeaves(updated);
     // Also update shared storage
-    const saved = localStorage.getItem('erp_leave_requests');
+    const saved = localStorage.getItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (saved) {
       const all = JSON.parse(saved);
       const merged = all.map(l => l.id===id ? { ...l, status } : l);
-      localStorage.setItem('erp_leave_requests', JSON.stringify(merged));
+      localStorage.setItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(merged));
     }
   };
 
@@ -66,10 +66,10 @@ const HodLeaves = () => {
       ...newLeave,
       status: 'Pending'
     };
-    const saved = localStorage.getItem('erp_leave_requests');
+    const saved = localStorage.getItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const all = saved ? JSON.parse(saved) : DEFAULT_LEAVES;
     const merged = [newRequest, ...all];
-    localStorage.setItem('erp_leave_requests', JSON.stringify(merged));
+    localStorage.setItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(merged));
     
     // Update local state
     setLeaves(merged.filter(l => (l.dept === DEPT) || (!l.dept && !l.role)));

@@ -1,6 +1,6 @@
 import express from 'express';
 import Salary from '../models/Salary.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
@@ -33,7 +33,7 @@ const processPayload = (data) => {
 };
 
 // GET all salaries — Admin, Principal, Accounts
-router.get('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     const salaries = await Salary.find().sort({ createdAt: -1 });
     res.json(salaries);
@@ -43,7 +43,7 @@ router.get('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (req
 });
 
 // GET salaries for a specific staff member
-router.get('/staff/:staffId', protect, async (req, res) => {
+router.get('/staff/:staffId', protect, collegeScope, async (req, res) => {
   try {
     const salaries = await Salary.find({ staffId: req.params.staffId }).sort({ createdAt: -1 });
     res.json(salaries);
@@ -53,7 +53,7 @@ router.get('/staff/:staffId', protect, async (req, res) => {
 });
 
 // POST — Create new payroll record
-router.post('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     if (Array.isArray(req.body)) {
       const docs = req.body.map(processPayload);
@@ -71,7 +71,7 @@ router.post('/', protect, authorize('Admin', 'Principal', 'Accounts'), async (re
 });
 
 // PUT — Update salary record (e.g. Disburse)
-router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     const payload = processPayload(req.body);
     if (req.body.status === 'Disbursed' && !payload.paymentDate) {
@@ -86,7 +86,7 @@ router.put('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (
 });
 
 // DELETE — Remove payroll record
-router.delete('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     await Salary.findByIdAndDelete(req.params.id);
     req.app.get('io').emit('dataUpdated', { module: 'salaries', action: 'deleted' });

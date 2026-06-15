@@ -34,11 +34,11 @@ const SuperAdminTrials = () => {
     if (action === 'Extend Trial') {
       title = 'Extend Trial';
       message = `Extend trial for ${collegeName} by 14 days?`;
-      type = 'info';
+      type = 'warning';
     } else if (action === 'Convert to Paid') {
       title = 'Convert to Paid';
       message = `Convert ${collegeName} to a paid Premium plan?`;
-      type = 'success';
+      type = 'warning';
     } else if (action === 'Expire Trial') {
       title = 'Expire Trial';
       message = `Force expire the trial for ${collegeName}?`;
@@ -46,7 +46,7 @@ const SuperAdminTrials = () => {
     } else if (action === 'Send Reminder') {
       title = 'Send Reminder';
       message = `Send an expiry reminder to ${collegeName}?`;
-      type = 'info';
+      type = 'warning';
     }
 
     setModalState({ isOpen: true, type, title, message, action, collegeId, collegeName });
@@ -146,8 +146,8 @@ const SuperAdminTrials = () => {
                 const startStr = startDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                 const endStr = endDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
                 
-                let daysLeft = Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
-                const isExpired = daysLeft <= 0 || college.subscriptionStatus === 'Expired';
+                const daysLeft = college.daysRemaining !== undefined ? college.daysRemaining : Math.ceil((endDate - now) / (1000 * 60 * 60 * 24));
+                const status = college.subscriptionStatus || (daysLeft <= 0 ? 'Expired' : 'Active');
                 
                 return (
                   <tr key={college._id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
@@ -166,10 +166,16 @@ const SuperAdminTrials = () => {
                         borderRadius: '20px', 
                         fontSize: '0.75rem', 
                         fontWeight: 600, 
-                        background: isExpired ? 'rgba(239,68,68,0.1)' : 'rgba(245,158,11,0.1)', 
-                        color: isExpired ? '#ef4444' : '#f59e0b' 
+                        background: status === 'Active' ? 'rgba(16,185,129,0.1)' : 
+                                  status === 'Grace Period' ? 'rgba(245,158,11,0.1)' : 
+                                  'rgba(239,68,68,0.1)', 
+                        color: status === 'Active' ? '#10b981' : 
+                               status === 'Grace Period' ? '#f59e0b' : 
+                               '#ef4444' 
                       }}>
-                        {isExpired ? 'Expired' : `${daysLeft} Days`}
+                        {status === 'Expired' ? 'Expired' : 
+                         status === 'Grace Period' ? `Grace: ${daysLeft}d` : 
+                         `${daysLeft} Days`}
                       </span>
                     </td>
                     <td style={{ padding: '16px 20px' }}>

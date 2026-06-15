@@ -52,7 +52,7 @@ const StudentTransport = () => {
         let dbRecord = res?.data || null;
 
         if (!dbRecord) {
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           dbRecord = erpStudents.find(s => s.rollNo === activeStud.id || s.id === activeStud.id) || activeStud;
         }
 

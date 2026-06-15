@@ -20,11 +20,11 @@ const LeavesManagement = () => {
 
   const fetchLeaves = () => {
     setLoading(true);
-    const saved = localStorage.getItem('erp_leave_requests');
+    const saved = localStorage.getItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (saved) {
       setLeaves(JSON.parse(saved));
     } else {
-      localStorage.setItem('erp_leave_requests', JSON.stringify(DEFAULT_LEAVES));
+      localStorage.setItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(DEFAULT_LEAVES));
       setLeaves(DEFAULT_LEAVES);
     }
     setLoading(false);
@@ -33,7 +33,7 @@ const LeavesManagement = () => {
   const handleAction = (id, newStatus) => {
     const updated = leaves.map(l => l.id === id ? { ...l, status: newStatus } : l);
     setLeaves(updated);
-    localStorage.setItem('erp_leave_requests', JSON.stringify(updated));
+    localStorage.setItem(`erp_leave_requests_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
   };
 
   const filtered = leaves.filter(l => {

@@ -27,7 +27,7 @@ const MOCK_FEE_STRUCTURES = [
 
 // Scholarships loaded from localStorage (written by Accounts > Scholarships page)
 const loadScholarsLS = () => {
-  try { return JSON.parse(localStorage.getItem('erp_scholarships') || '[]'); } catch { return []; }
+  try { return JSON.parse(localStorage.getItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]'); } catch { return []; }
 };
 
 const MOCK_FEES = [
@@ -127,7 +127,7 @@ const FeesManagement = () => {
 
   // Live-sync scholarships from localStorage (updated by Accounts portal)
   useEffect(() => {
-    const onStorage = (e) => { if (e.key === 'erp_scholarships') setScholarships(loadScholarsLS()); };
+    const onStorage = (e) => { if (e.key === `erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) setScholarships(loadScholarsLS()); };
     window.addEventListener('storage', onStorage);
     const timer = setInterval(() => setScholarships(loadScholarsLS()), 5000);
     return () => { window.removeEventListener('storage', onStorage); clearInterval(timer); };
@@ -168,7 +168,7 @@ const FeesManagement = () => {
          feeGroups[sid].push(f);
       });
       
-      const savedScholars = JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
+      const savedScholars = JSON.parse(localStorage.getItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
 
       const mergedRecords = combinedStudents.map(s => {
         const studentPayments = feeGroups[s.id] || [];
@@ -576,7 +576,7 @@ const FeesManagement = () => {
                   <button className="text-xs text-danger underline mt-2 bg-transparent cursor-pointer"
                     onClick={() => {
                       const updated = scholarships.filter(s => (s.id || s.studentId) !== (sch.id || sch.studentId));
-                      localStorage.setItem('erp_scholarships', JSON.stringify(updated));
+                      localStorage.setItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
                       setScholarships(updated);
                     }}>Revoke Scholarship</button>
                 </div>

@@ -26,9 +26,7 @@ const assignmentSubmissionSchema = new mongoose.Schema({
     type: String,
     default: 'Submitted'
   }
-}, {
-  timestamps: true
-});
+, collegeId: { type: String } }, { timestamps: true });
 
 const AssignmentSubmission = mongoose.model('AssignmentSubmission', assignmentSubmissionSchema);
 export default AssignmentSubmission;

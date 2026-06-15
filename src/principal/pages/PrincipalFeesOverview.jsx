@@ -45,7 +45,7 @@ const studentFees = [
 // scholarships are read from localStorage (set by Accounts > Scholarships page)
 const loadScholarsFromStorage = () => {
   try {
-    return JSON.parse(localStorage.getItem('erp_scholarships') || '[]');
+    return JSON.parse(localStorage.getItem(`erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
   } catch { return []; }
 };
 
@@ -59,7 +59,7 @@ export default function PrincipalFeesOverview() {
   // Keep scholarships in sync whenever Accounts page updates localStorage
   useEffect(() => {
     const onStorage = (e) => {
-      if (e.key === 'erp_scholarships') {
+      if (e.key === `erp_scholarships_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) {
         setScholarships(loadScholarsFromStorage());
       }
     };

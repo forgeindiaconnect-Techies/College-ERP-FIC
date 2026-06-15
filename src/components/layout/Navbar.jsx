@@ -68,16 +68,18 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
       }
     }
 
-    getDepartments()
-      .then(res => {
-        if (res?.data && res.data.length > 0) {
-          // If backend has real departments, use them instead of fallback
-          // setDepartments(res.data); 
-        }
-      })
-      .catch(() => {
-        // Silently catch 403/401 to prevent console errors when user lacks permission
-      });
+    if (role !== 'Super Admin' && role !== 'Student' && role !== 'Parent') {
+      getDepartments()
+        .then(res => {
+          if (res?.data && res.data.length > 0) {
+            // If backend has real departments, use them instead of fallback
+            // setDepartments(res.data); 
+          }
+        })
+        .catch(() => {
+          // Silently catch 403/401 to prevent console errors when user lacks permission
+        });
+    }
   }, [role]);
 
   const [messages, setMessages] = useState([]);

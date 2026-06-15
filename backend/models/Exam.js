@@ -38,6 +38,10 @@ const examSchema = new mongoose.Schema({
   createdBy: {
     type: String,
     default: 'System'
+  },
+  collegeId: {
+    type: String,
+    required: false
   }
 }, {
   timestamps: true

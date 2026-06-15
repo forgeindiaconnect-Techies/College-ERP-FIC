@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import {
   Calendar,
   Clock,
@@ -170,15 +170,19 @@ const initialEvents = [
   }
 ];
 
+import { AuthContext } from '../../context/AuthContext';
+
 export default function PrincipalMeetingsEvents() {
+  const { user } = useContext(AuthContext);
+  const tenantKey = `principal_meetings_events_${user?.tenantId || 'default'}`;
   const [events, setEvents] = useState(() => {
-    const saved = localStorage.getItem('principal_meetings_events');
+    const saved = localStorage.getItem(tenantKey);
     return saved ? JSON.parse(saved) : initialEvents;
   });
 
   useEffect(() => {
-    localStorage.setItem('principal_meetings_events', JSON.stringify(events));
-  }, [events]);
+    localStorage.setItem(tenantKey, JSON.stringify(events));
+  }, [events, tenantKey]);
   
   // Navigation & View controllers
   const [activeView, setActiveView] = useState('list'); // 'list', 'calendar', 'reports'

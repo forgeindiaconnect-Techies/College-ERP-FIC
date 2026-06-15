@@ -11,6 +11,6 @@ const attendanceSchema = new mongoose.Schema({
   status: { type: String, enum: ['Present', 'Absent', 'On Leave', 'Medical Leave'], required: true },
   subject: { type: String },
   markedBy: { type: String }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('Attendance', attendanceSchema);

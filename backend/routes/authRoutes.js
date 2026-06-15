@@ -12,10 +12,11 @@ import Student from '../models/Student.js';
 import College from '../models/College.js';
 import Staff from '../models/Staff.js';
 import Department from '../models/Department.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope, checkSubscription } from '../middleware/authMiddleware.js';
 import bcrypt from 'bcryptjs';
 import ActivityLog from '../models/ActivityLog.js';
 import Subscription from '../models/Subscription.js';
+import { calculateSubscriptionStatus } from '../utils/subscriptionHelper.js';
 
 const router = express.Router();
 
@@ -43,32 +44,29 @@ router.post('/login', async (req, res) => {
         action: 'System Login',
         moduleName: 'Authentication',
         dept: user.department || 'System',
-        ip: req.ip || req.connection.remoteAddress
+        ip: req.ip || req.connection.remoteAddress,
+        collegeId: user.tenantId || user.collegeId || 'unassigned_college'
       }).catch(err => console.error('Failed to log login activity', err));
 
       // Fetch College Subscription
       let subscriptionDetails = null;
-      if (user.tenantId) {
-        const college = await College.findOne({ tenantId: user.tenantId });
+      const effectiveTenantId = user.tenantId || user.collegeId;
+      if (effectiveTenantId && effectiveTenantId !== 'system') {
+        const college = await College.findOne({ tenantId: effectiveTenantId });
         if (college) {
-          subscriptionDetails = {
-            plan: college.subscriptionPlan,
-            status: college.subscriptionStatus,
-            trialEndDate: college.trialEndDate
-          };
+          subscriptionDetails = calculateSubscriptionStatus(college);
           
-          // Auto-expire trial if past end date
-          if (college.subscriptionPlan === 'Trial' && new Date() > college.trialEndDate) {
-            college.subscriptionStatus = 'Expired';
+          // Auto-update DB if status changed
+          if (college.subscriptionStatus !== subscriptionDetails.status) {
+            college.subscriptionStatus = subscriptionDetails.status;
             await college.save();
-            subscriptionDetails.status = 'Expired';
           }
         }
       }
 
       let collegeName = null;
-      if (user.tenantId && user.tenantId !== 'system') {
-        const college = await College.findOne({ tenantId: user.tenantId });
+      if (effectiveTenantId && effectiveTenantId !== 'system') {
+        const college = await College.findOne({ tenantId: effectiveTenantId });
         if (college) collegeName = college.name;
       }
 
@@ -92,6 +90,7 @@ router.post('/login', async (req, res) => {
       res.status(401).json({ message: 'Invalid email or password' });
     }
   } catch (error) {
+    console.error('[auth/login] Error:', error);
     res.status(500).json({ message: error.message });
   }
 });
@@ -118,28 +117,37 @@ router.post('/forgot-password', async (req, res) => {
 router.post('/register-college', async (req, res) => {
   const { collegeName, adminName, email, phone, password } = req.body;
   try {
-    const existingCollege = await College.findOne({ email: email?.trim().toLowerCase() });
-    if (existingCollege) {
-      return res.status(400).json({ message: 'A college is already registered with this email.' });
+    const normalizedEmail = email?.trim().toLowerCase();
+    
+    // Check if college name already exists
+    const existingCollegeByName = await College.findOne({ name: { $regex: new RegExp(`^${collegeName.trim()}$`, 'i') } });
+    if (existingCollegeByName) {
+      return res.status(400).json({ message: `A college with the name '${collegeName}' is already registered in the system.` });
     }
 
-    const existingUser = await User.findOne({ email: email?.trim().toLowerCase() });
+    const existingCollege = await College.findOne({ email: normalizedEmail });
+    if (existingCollege) {
+      return res.status(400).json({ message: `The email '${normalizedEmail}' is already used by another college. You must provide a unique admin email for each new college.` });
+    }
+
+    const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
-      return res.status(400).json({ message: 'This email is already in use by a user.' });
+      return res.status(400).json({ message: `The email '${normalizedEmail}' is already an active user account. Please use a different email.` });
     }
 
     // Generate Tenant ID safely
     const lastCollege = await College.findOne({}, {}, { sort: { 'createdAt': -1 } });
     let nextNum = 1;
     if (lastCollege && lastCollege.tenantId && lastCollege.tenantId.startsWith('COL')) {
-      const lastNum = parseInt(lastCollege.tenantId.replace('COL', ''), 10);
+      const lastNum = parseInt(lastCollege.tenantId.replace('COL', '').split('-')[0], 10);
       if (!isNaN(lastNum)) {
         nextNum = lastNum + 1;
       }
     }
-    // Also add randomness to absolutely prevent race conditions or dupes
+    // Add randomness and timestamp to absolutely prevent race conditions or dupes
+    const timestampSuffix = Date.now().toString().slice(-4);
     const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
-    const tenantId = `COL${String(nextNum).padStart(3, '0')}-${randomSuffix}`;
+    const tenantId = `COL${String(nextNum).padStart(3, '0')}-${timestampSuffix}${randomSuffix}`;
 
     const trialStartDate = new Date();
     const trialEndDate = new Date();
@@ -154,31 +162,38 @@ router.post('/register-college', async (req, res) => {
       subscriptionPlan: 'Trial',
       subscriptionStatus: 'Active',
       trialStartDate,
-      trialEndDate
+      trialEndDate,
+      adminPassword: password
     });
     await newCollege.save();
 
-    const newAdmin = new User({
-      name: adminName,
-      email: email.trim().toLowerCase(),
-      password,
-      role: 'Admin',
-      phone,
-      tenantId
-    });
-    await newAdmin.save();
+    try {
+      const newAdmin = new User({
+        name: adminName,
+        email: email.trim().toLowerCase(),
+        password,
+        role: 'Admin',
+        phone,
+        tenantId
+      });
+      await newAdmin.save();
+    } catch (userError) {
+      // Rollback college creation if user creation fails
+      await College.findOneAndDelete({ _id: newCollege._id });
+      throw new Error('Failed to create Admin user account. College registration rolled back. ' + userError.message);
+    }
 
     res.status(201).json({
       message: 'Your 1-day free trial has been activated successfully.',
       tenantId
     });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error.message || 'An unexpected error occurred during registration.' });
   }
 });
 
-// Verify Payment and Update Subscription
-router.post('/verify-payment', protect, async (req, res) => {
+// Submit Payment for Verification
+router.post('/verify-payment', protect, collegeScope, async (req, res) => {
   const { paymentId, planName, amount } = req.body;
   
   try {
@@ -192,45 +207,60 @@ router.post('/verify-payment', protect, async (req, res) => {
     // Subscription lasts for 30 days
     endDate.setDate(endDate.getDate() + 30);
 
-    college.subscriptionPlan = planName;
-    college.subscriptionStatus = 'Active';
-    // Let's reuse trialEndDate for actual end date since we don't have planEndDate in schema yet
-    college.trialEndDate = endDate;
-    await college.save();
-
     const subscription = new Subscription({
       tenantId: college.tenantId,
       collegeId: college._id,
+      collegeName: college.name,
       planName,
       amount,
       startDate: now,
       endDate: endDate,
-      paymentStatus: 'Success',
+      paymentStatus: 'Pending', // Sent to Super Admin for verification
       transactionId: paymentId
     });
 
     await subscription.save();
 
-    res.json({ message: 'Your subscription has been activated successfully.', subscription });
+    // Do NOT automatically set college to Active. Super Admin must verify it first.
+    // However, we send a notification to Super Admin
+    await ActivityLog.create({
+      userId: req.user._id,
+      userName: req.user.name,
+      role: req.user.role,
+      action: `Requested Upgrade to ${planName}`,
+      moduleName: 'Subscription',
+      ip: req.ip || req.connection.remoteAddress,
+      collegeId: 'system' // So it shows on Super Admin logs potentially
+    });
+
+    res.json({ message: 'Your subscription request has been submitted successfully and is pending verification by the Super Admin.', subscription });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
 // Get all colleges (Super Admin only)
-router.get('/colleges', protect, async (req, res) => {
+router.get('/colleges', protect, collegeScope, async (req, res) => {
   try {
     if (req.user.role !== 'Super Admin') {
       return res.status(403).json({ message: 'Not authorized as Super Admin' });
     }
     
+    const { calculateSubscriptionStatus } = await import('../utils/subscriptionHelper.js');
     const colleges = await College.find().sort({ createdAt: -1 });
     
     const collegesWithStats = await Promise.all(colleges.map(async (college) => {
-      const userCount = await User.countDocuments({ collegeId: college._id });
+      // Users are linked via tenantId string (e.g. 'COL002-614'), NOT collegeId ObjectId
+      const userCount = await User.countDocuments({ tenantId: college.tenantId });
+      // Compute real-time subscription status from dates (same as Subscriptions/Trials tabs)
+      const liveStatus = calculateSubscriptionStatus(college);
       return {
         ...college.toObject(),
-        totalUsers: userCount
+        totalUsers: userCount,
+        // Override the raw DB status with the accurately computed live status
+        subscriptionStatus: liveStatus.status,
+        subscriptionPlan: liveStatus.planName,
+        daysRemaining: liveStatus.daysRemaining,
       };
     }));
     
@@ -241,7 +271,7 @@ router.get('/colleges', protect, async (req, res) => {
 });
 
 // Get Current User
-router.get('/me', protect, async (req, res) => {
+router.get('/me', protect, collegeScope, async (req, res) => {
   let collegeName = null;
   if (req.user.tenantId && req.user.tenantId !== 'system') {
     const college = await College.findOne({ tenantId: req.user.tenantId });
@@ -438,13 +468,13 @@ router.post('/seed', async (req, res) => {
 });
 
 // GET all users (Admin only)
-router.get('/users', protect, async (req, res) => {
+router.get('/users', protect, collegeScope, async (req, res) => {
   try {
     const role = (req.user.role || '').toLowerCase();
     if (role !== 'admin' && role !== 'principal' && role !== 'system admin') {
       return res.status(403).json({ message: 'Access denied: Admin/Principal only' });
     }
-    const users = await User.find({}, '-password');
+    const users = await User.find({ collegeId: req.user.collegeId }, '-password');
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -452,7 +482,7 @@ router.get('/users', protect, async (req, res) => {
 });
 
 // CREATE a user
-router.post('/users', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
+router.post('/users', protect, authorize('Admin', 'Sub Admin', 'Principal'), collegeScope, checkSubscription, async (req, res) => {
   try {
     const { name, email, password, role, department, referenceId, parentOf, studentId, subjects, phone } = req.body;
     
@@ -490,7 +520,7 @@ router.post('/users', protect, authorize('Admin', 'Sub Admin', 'Principal'), asy
 });
 
 // UPDATE a user
-router.put('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
+router.put('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), collegeScope, checkSubscription, async (req, res) => {
   try {
     const { name, email, role, department, referenceId, parentOf, studentId, subjects, password, phone } = req.body;
     const user = await User.findById(req.params.id);
@@ -522,7 +552,7 @@ router.put('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), 
 });
 
 // DELETE a user
-router.delete('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), async (req, res) => {
+router.delete('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), collegeScope, checkSubscription, async (req, res) => {
   try {
     const user = await User.findByIdAndDelete(req.params.id);
     if (!user) {

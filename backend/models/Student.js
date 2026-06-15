@@ -31,6 +31,6 @@ const studentSchema = new mongoose.Schema({
   pickupPoint: { type: String },
   transportFeeAmount: { type: Number },
   transportFeeStatus: { type: String }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('Student', studentSchema);

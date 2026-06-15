@@ -26,7 +26,8 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, LineChart, Line, Legend
 } from 'recharts';
-import { getStudents, getStaff, getDepartments, getAllFees, getAllAttendance, getExams } from '../api/index';
+import { getStudents, getStaff, getDepartments, getAllFees, getAllAttendance, getExams, getActivityLogs, getAllTimetables, getPendingApprovals } from '../api/index';
+import api from '../api';
 import './Dashboard.css';
 
 const MOCK_ATTENDANCE = [
@@ -64,18 +65,27 @@ const Dashboard = () => {
   const [hods, setHods] = useState([]);
   const [fees, setFees] = useState([]);
   const [exams, setExams] = useState([]);
+  const [activeTimetablesCount, setActiveTimetablesCount] = useState(0);
   const [leavesCount, setLeavesCount] = useState(0);
+  const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  // Live subscription state — always fetched fresh from backend
+  const [subscription, setSubscription] = useState(null);
+  const [subLoading, setSubLoading] = useState(true);
 
   const fetchAllData = useCallback(async () => {
     try {
       setLoading(true);
-      const [studentsRes, staffRes, deptsRes, feesRes, examsRes] = await Promise.all([
+      const [studentsRes, staffRes, deptsRes, feesRes, examsRes, logsRes, timetablesRes, approvalsRes] = await Promise.all([
         getStudents().catch(() => ({ data: [] })),
         getStaff().catch(() => ({ data: [] })),
         getDepartments().catch(() => ({ data: [] })),
         getAllFees().catch(() => ({ data: [] })),
-        getExams().catch(() => ({ data: [] }))
+        getExams().catch(() => ({ data: [] })),
+        getActivityLogs().catch(() => ({ data: [] })),
+        getAllTimetables().catch(() => ({ data: [] })),
+        getPendingApprovals().catch(() => ({ data: [] }))
       ]);
 
       const sData = studentsRes?.data || [];
@@ -83,23 +93,21 @@ const Dashboard = () => {
       const dData = deptsRes?.data || [];
       const feesData = feesRes?.data || [];
       const examsData = examsRes?.data || [];
+      const logsData = logsRes?.data || [];
+      const timetablesData = timetablesRes?.data || [];
+      const approvalsData = approvalsRes?.data || [];
 
       setStudents(sData);
       setStaff(fData);
       setDepts(dData);
       setFees(feesData);
       setExams(examsData);
+      setActivityLogs(logsData);
+      setActiveTimetablesCount(timetablesData.length);
+      setLeavesCount(approvalsData.filter(a => a.type === 'Leave Request').length);
 
       const hodsList = fData.filter(s => s.designation === 'HOD' || s.role === 'HOD' || s.email?.includes('hod'));
       setHods(hodsList.length > 0 ? hodsList : dData.filter(d => d.hod));
-
-      const savedLeaves = localStorage.getItem('erp_leave_requests');
-      if (savedLeaves) {
-        const lData = JSON.parse(savedLeaves);
-        setLeavesCount(lData.filter(l => l.status === 'Pending').length);
-      } else {
-        setLeavesCount(1);
-      }
     } catch (err) {
       console.error('Error fetching dashboard stats:', err);
     } finally {
@@ -108,12 +116,35 @@ const Dashboard = () => {
   }, []);
 
   // Real-time sync: re-fetch when Accounts / any module emits dataUpdated
-  useRealtimeSync(fetchAllData, ['fees', 'salaries', 'students', 'staff', 'expenses']);
+  useRealtimeSync(fetchAllData, ['fees', 'salaries', 'students', 'staff', 'expenses', 'users']);
 
   useEffect(() => {
     const session = sessionStorage.getItem('admin_session');
     if (!session) { navigate('/login'); return; }
     fetchAllData();
+
+    const fetchSub = () => {
+      // Always fetch fresh subscription from backend (never trust stale sessionStorage)
+      setSubLoading(true);
+      api.get('/admin/my-subscription')
+        .then(res => {
+          if (res.data && res.data.subscription) {
+            setSubscription(res.data.subscription);
+          }
+        })
+        .catch(err => console.error('Failed to fetch subscription status:', err))
+        .finally(() => setSubLoading(false));
+    };
+
+    fetchSub();
+
+    const onFocus = () => {
+      fetchAllData();
+      fetchSub();
+    };
+
+    window.addEventListener('focus', onFocus);
+    return () => window.removeEventListener('focus', onFocus);
   }, [navigate, fetchAllData]);
 
   // Aggregate Metrics Calculations
@@ -155,53 +186,34 @@ const Dashboard = () => {
     };
   }) : [];
 
-  const attendanceData = [
-    { name: 'Week 1', students: 85, staff: 95 },
-    { name: 'Week 2', students: 82, staff: 94 },
-    { name: 'Week 3', students: 88, staff: 96 },
-    { name: 'Week 4', students: 84, staff: 92 },
-    { name: 'Week 5', students: parseFloat(averageAttendance) || 86, staff: 93 }
-  ];
+  // Dynamically calculate attendance data if students exist
+  const attendanceData = students.length > 0 ? [
+    { name: 'Overall', students: parseFloat(averageAttendance) || 0, staff: staff.length > 0 ? 100 : 0 }
+  ] : [];
 
-  const cgpaData = [
-    { semester: 'Sem 1', avg: 7.2, top: 9.1 },
-    { semester: 'Sem 2', avg: 7.5, top: 9.4 },
-    { semester: 'Sem 3', avg: 7.8, top: 9.5 },
-    { semester: 'Sem 4', avg: 7.6, top: 9.3 },
-    { semester: 'Sem 5', avg: 7.9, top: 9.6 }
-  ];
+  // Dynamically calculate CGPA data if students exist
+  const cgpaData = students.length > 0 ? [
+    { semester: 'Current', avg: students.reduce((sum, s) => sum + (s.cgpa || 0), 0) / students.length, top: Math.max(...students.map(s => s.cgpa || 0)) }
+  ] : [];
 
+  // Always use live subscription from backend API
+  const isTrial = subscription?.isTrial ?? false;
+  const isGracePeriod = subscription?.isGracePeriod ?? false;
+  const isActivePlan = subscription?.status === 'Active';
+  const isExpired = subscription?.status === 'Expired';
+  const activePlanName = subscription?.planName ?? '';
+  const daysToRenew = subscription?.daysRemaining ?? 0;
+
+  // Derive session data for page-level checks only
   const sessionStr = sessionStorage.getItem('admin_session');
   let sessionData = null;
-  let remainingHours = 0;
-  let isTrial = false;
-  let isActivePlan = false;
-  let activePlanName = '';
-  let daysToRenew = 0;
-
   try {
-    if (sessionStr) {
-      sessionData = JSON.parse(sessionStr);
-      if (sessionData.subscription && sessionData.subscription.plan === 'Trial') {
-        isTrial = true;
-        const endDate = new Date(sessionData.subscription.trialEndDate);
-        const diffMs = endDate - new Date();
-        remainingHours = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60)));
-      } else if (sessionData.subscription && sessionData.subscription.status === 'Active') {
-        isActivePlan = true;
-        activePlanName = sessionData.subscription.plan;
-        const endDate = new Date(sessionData.subscription.trialEndDate);
-        const diffMs = endDate - new Date();
-        daysToRenew = Math.max(0, Math.floor(diffMs / (1000 * 60 * 60 * 24)));
-      }
-    }
-  } catch (e) {
-    console.error('Error parsing admin session', e);
-  }
+    if (sessionStr) sessionData = JSON.parse(sessionStr);
+  } catch (e) { /* ignore */ }
 
   return (
     <div className="dashboard animate-fade-in">
-      {isTrial && (
+      {(isTrial && isActivePlan) && (
         <div style={{
           background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
           color: 'white',
@@ -218,22 +230,72 @@ const Dashboard = () => {
             <span>Trial Version</span>
           </div>
           <div style={{ fontSize: '14px', fontWeight: 500 }}>
-            Your free trial will expire in {remainingHours} hours. Trial limits: 1 HOD, 2 Students.
+            Expires in {daysToRenew} Days
           </div>
           <button 
             onClick={() => navigate('/upgrade-plan')}
             style={{
-              background: 'rgba(255,255,255,0.2)',
-              border: '1px solid rgba(255,255,255,0.4)',
-              color: 'white',
-              padding: '6px 16px',
-              borderRadius: '20px',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '13px',
-              transition: 'all 0.2s'
+              background: 'rgba(255,255,255,0.2)', border: '1px solid rgba(255,255,255,0.4)', color: 'white', padding: '6px 16px', borderRadius: '20px', cursor: 'pointer', fontWeight: 600, fontSize: '13px', transition: 'all 0.2s'
             }}>
             Upgrade Plan
+          </button>
+        </div>
+      )}
+
+      {isGracePeriod && (
+        <div style={{
+          background: 'linear-gradient(90deg, #ef4444, #b91c1c)',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 12px rgba(239,68,68,0.4)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 600 }}>
+            <Activity size={20} />
+            <span>{isTrial ? 'Trial Expired' : 'Plan Expired'}</span>
+          </div>
+          <div style={{ fontSize: '14px', fontWeight: 500 }}>
+            Grace Period: {daysToRenew} Days Left
+          </div>
+          <button 
+            onClick={() => navigate('/upgrade-plan')}
+            style={{
+              background: 'white', color: '#b91c1c', padding: '6px 16px', borderRadius: '20px', cursor: 'pointer', fontWeight: 600, fontSize: '13px', border: 'none'
+            }}>
+            Renew Now
+          </button>
+        </div>
+      )}
+
+      {isExpired && !isGracePeriod && (
+        <div style={{
+          background: 'linear-gradient(90deg, #991b1b, #7f1d1d)',
+          color: 'white',
+          padding: '12px 24px',
+          borderRadius: '8px',
+          marginBottom: '20px',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          boxShadow: '0 4px 12px rgba(153,27,27,0.4)'
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 600 }}>
+            <Activity size={20} />
+            <span>Subscription Expired</span>
+          </div>
+          <div style={{ fontSize: '14px', fontWeight: 500 }}>
+            Your account has been restricted. Please renew to restore access.
+          </div>
+          <button 
+            onClick={() => navigate('/upgrade-plan')}
+            style={{
+              background: 'white', color: '#7f1d1d', padding: '6px 16px', borderRadius: '20px', cursor: 'pointer', fontWeight: 600, fontSize: '13px', border: 'none'
+            }}>
+            Renew Now
           </button>
         </div>
       )}
@@ -252,12 +314,10 @@ const Dashboard = () => {
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontWeight: 600 }}>
             <Crown size={20} />
-            <span>{activePlanName} Plan Active</span>
+            <span>{activePlanName} Plan</span>
           </div>
           <div style={{ fontSize: '14px', fontWeight: 500 }}>
-            {daysToRenew <= 7 
-              ? `Your subscription expires in ${daysToRenew} days. Please renew soon!`
-              : `Your subscription is active for ${daysToRenew} more days.`}
+            Expires in {daysToRenew} Days
           </div>
           {daysToRenew <= 7 && (
             <button 
@@ -382,7 +442,7 @@ const Dashboard = () => {
           <div className="card-header">
             <h3>Global Attendance Trends</h3>
           </div>
-          <div className="chart-container">
+          <div className="chart-container" style={{ minHeight: '300px', height: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={attendanceData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
@@ -411,7 +471,7 @@ const Dashboard = () => {
           <div className="card-header">
             <h3>Departmental Grades & KPI</h3>
           </div>
-          <div className="chart-container">
+          <div className="chart-container" style={{ minHeight: '300px', height: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={deptScores} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={16}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
@@ -483,18 +543,25 @@ const Dashboard = () => {
           <h3>📋 Recent Global Operations Logs</h3>
           <div style={{ marginTop: '1rem', maxHeight: '200px', overflowY: 'auto' }}>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
-              {[
-                { time: '5 mins ago', user: 'Admin', act: 'Registered new HOD account (Dr. Sanjay Sen).' },
-                { time: '1 hour ago', user: 'CSE HOD', act: 'Added active Student Roll No: CSE007.' },
-                { time: 'Today', user: 'ECE HOD', act: 'Modified semester 3 timetable period schedule.' },
-                { time: 'Yesterday', user: 'System', act: 'Automated database check and seeder successfully run.' }
-              ].map((log, i) => (
-                <li key={i} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.82rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', alignItems: 'center' }}>
-                  <span className="text-muted" style={{ fontWeight: 600, minWidth: '75px' }}>{log.time}</span>
-                  <span className="badge-outline" style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', border: '1px solid var(--primary)', borderRadius: '4px', color: 'var(--primary)' }}>{log.user}</span>
-                  <span style={{ color: 'var(--text-main)', flex: 1 }}>{log.act}</span>
+              {activityLogs.length > 0 ? (
+                activityLogs.slice(0, 5).map((log, i) => {
+                  const logDate = new Date(log.createdAt);
+                  const isToday = new Date().toDateString() === logDate.toDateString();
+                  let timeStr = isToday ? logDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : logDate.toLocaleDateString();
+                  
+                  return (
+                    <li key={log._id || i} style={{ display: 'flex', gap: '0.75rem', fontSize: '0.82rem', paddingBottom: '0.75rem', borderBottom: '1px solid var(--border-color)', alignItems: 'center' }}>
+                      <span className="text-muted" style={{ fontWeight: 600, minWidth: '75px' }}>{timeStr}</span>
+                      <span className="badge-outline" style={{ fontSize: '0.7rem', padding: '0.1rem 0.4rem', border: '1px solid var(--primary)', borderRadius: '4px', color: 'var(--primary)' }}>{log.role || 'System'}</span>
+                      <span style={{ color: 'var(--text-main)', flex: 1 }}>{log.action}</span>
+                    </li>
+                  );
+                })
+              ) : (
+                <li style={{ padding: '1rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                  No recent activities found.
                 </li>
-              ))}
+              )}
             </ul>
           </div>
         </div>
@@ -504,7 +571,7 @@ const Dashboard = () => {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
             {[
               { title: 'Subjects', val: totalSubjectsCount, path: '/admin/subjects', icon: <BookOpen size={16} /> },
-              { title: 'Timetables', val: 'Active', path: '/admin/timetable', icon: <Calendar size={16} /> },
+              { title: 'Timetables', val: activeTimetablesCount, path: '/admin/timetable', icon: <Calendar size={16} /> },
               { title: 'Exams', val: activeExamsCount, path: '/admin/exams', icon: <FileText size={16} /> },
               { title: 'Leave Requests', val: leaveRequestsCount, path: '/admin/leaves', icon: <Inbox size={16} /> }
             ].map((mod, i) => (

@@ -43,9 +43,7 @@ const approvalSchema = new mongoose.Schema({
     type: String,
     default: ''
   }
-}, {
-  timestamps: true
-});
+, collegeId: { type: String } }, { timestamps: true });
 
 const Approval = mongoose.model('Approval', approvalSchema);
 export default Approval;

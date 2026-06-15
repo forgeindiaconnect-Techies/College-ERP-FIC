@@ -10,12 +10,19 @@ import {
   BarChart,
   ShieldAlert,
   Crown,
-  X
+  X,
+  LogOut
 } from 'lucide-react';
 
 const SuperAdminSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleLogout = () => {
+    sessionStorage.removeItem('superadmin_session');
+    sessionStorage.removeItem('superadmin_token');
+    navigate('/login');
+  };
 
   const navItems = [
     { name: 'Dashboard', path: '/superadmin/dashboard', icon: <BarChart size={20} /> },
@@ -61,6 +68,18 @@ const SuperAdminSidebar = ({ isOpen, onClose }) => {
           })}
         </ul>
       </nav>
+
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <button 
+          onClick={handleLogout} 
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
+          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+        >
+          <LogOut size={18} />
+          <span>Logout</span>
+        </button>
+      </div>
     </aside>
   );
 };

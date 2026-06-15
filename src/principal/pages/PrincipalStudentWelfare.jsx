@@ -159,7 +159,7 @@ export default function PrincipalStudentWelfare() {
   const [cases, setCases] = useState([]);
 
   const [anonymousComplaints, setAnonymousComplaints] = useState(() => {
-    const saved = localStorage.getItem('principal_anonymous_complaints');
+    const saved = localStorage.getItem(`principal_anonymous_complaints_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     return saved ? JSON.parse(saved) : initialAnonymousComplaints;
   });
 
@@ -182,7 +182,7 @@ export default function PrincipalStudentWelfare() {
   }, []);
 
   useEffect(() => {
-    localStorage.setItem('principal_anonymous_complaints', JSON.stringify(anonymousComplaints));
+    localStorage.setItem(`principal_anonymous_complaints_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(anonymousComplaints));
   }, [anonymousComplaints]);
 
   // Tab management

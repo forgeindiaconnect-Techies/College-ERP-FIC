@@ -87,7 +87,7 @@ const StaffAttendance = () => {
       ]);
 
       const backendStudents = studRes?.data || [];
-      const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+      const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       
       const combinedStudents = [...backendStudents];
       erpStudents.forEach(ls => {
@@ -113,7 +113,7 @@ const StaffAttendance = () => {
       let dynSubjects = [...new Set(mySchedule.map(s => s.subject))];
       if (dynSubjects.length === 0) {
         // Fallback to Master Subject System for this semester and department
-        const savedSubjects = localStorage.getItem('erp_subjects');
+        const savedSubjects = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
         if (savedSubjects) {
           const allSubs = JSON.parse(savedSubjects);
           const deptSubs = allSubs.filter(sub => sub.dept === activeStaff.dept && sub.sem === sem);
@@ -295,7 +295,7 @@ const StaffAttendance = () => {
       console.error('Failed to save attendance via API, persisting locally:', err);
       // Fallback to localStorage
       try {
-        const existingLocal = JSON.parse(localStorage.getItem('erp_attendance') || '[]');
+        const existingLocal = JSON.parse(localStorage.getItem(`erp_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
         
         const bulkRecords = myClassStudents.map(s => ({
           _id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
@@ -310,7 +310,7 @@ const StaffAttendance = () => {
           markedBy: staffSession.name
         }));
         
-        localStorage.setItem('erp_attendance', JSON.stringify([...existingLocal, ...bulkRecords]));
+        localStorage.setItem(`erp_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify([...existingLocal, ...bulkRecords]));
         setSaveSuccess(true);
         setSaveError('');
         await loadData(staffSession, targetSem);

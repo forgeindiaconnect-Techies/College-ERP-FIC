@@ -35,7 +35,7 @@ const Expenses = () => {
         setExpenses(res.data);
       } else {
         // Fallback to mock data if DB is empty
-        const saved = localStorage.getItem('erp_expenses');
+        const saved = localStorage.getItem(`erp_expenses_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
         if (saved) {
           setExpenses(JSON.parse(saved));
         } else {
@@ -45,7 +45,7 @@ const Expenses = () => {
     } catch (err) {
       console.error('Failed to load expenses:', err);
       // Fallback
-      const saved = localStorage.getItem('erp_expenses');
+      const saved = localStorage.getItem(`erp_expenses_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
       setExpenses(saved ? JSON.parse(saved) : DEFAULT_EXPENSES);
     } finally {
       setLoading(false);
@@ -74,7 +74,7 @@ const Expenses = () => {
       const mockExp = { id: `EXP-${String(expenses.length + 1).padStart(3, '0')}`, ...newExpense };
       const updated = [mockExp, ...expenses];
       setExpenses(updated);
-      localStorage.setItem('erp_expenses', JSON.stringify(updated));
+      localStorage.setItem(`erp_expenses_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
     }
     
     setIsModalOpen(false);
@@ -102,7 +102,7 @@ const Expenses = () => {
       
       // Update local storage just in case it was a mock item
       if (!target._id) {
-        localStorage.setItem('erp_expenses', JSON.stringify(updated));
+        localStorage.setItem(`erp_expenses_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
       }
     } catch (err) {
       console.error('Failed to update status:', err);

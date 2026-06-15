@@ -56,7 +56,7 @@ const ConfirmModal = ({ isOpen, onClose, onConfirm, title, message, type = 'warn
           {message}
         </p>
 
-        {type !== 'success' && type !== 'info' ? (
+        {onConfirm ? (
           <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
             <button 
               onClick={onClose}

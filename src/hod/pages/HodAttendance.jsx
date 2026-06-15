@@ -66,8 +66,8 @@ const HodAttendance = () => {
       setLoading(false);
     } catch (err) {
       console.warn('Backend unavailable, using fallback data:', err.message);
-      const saved = localStorage.getItem('erp_students');
-      const base = saved ? JSON.parse(saved) : MOCK_STUDENTS_FALLBACK;
+      const saved = localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
+      const base = saved ? JSON.parse(saved) : [];
       setStudents(base.filter(s => s.dept === HOD_DEPT));
       setLoading(false);
     }

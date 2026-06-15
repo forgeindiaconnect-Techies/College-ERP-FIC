@@ -12,6 +12,6 @@ const hodSupportSchema = new mongoose.Schema({
     date: { type: String },
     text: { type: String }
   }]
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('HodSupportRecord', hodSupportSchema);

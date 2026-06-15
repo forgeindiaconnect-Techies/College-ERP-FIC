@@ -21,7 +21,6 @@ const salarySchema = new mongoose.Schema({
   netSalary:     { type: Number },
   paymentDate:   { type: Date },
   paymentMode:   { type: String, default: 'Bank Transfer' },
-  status:        { type: String, enum: ['Pending', 'Disbursed'], default: 'Pending' },
-}, { timestamps: true });
+  status:        { type: String, enum: ['Pending', 'Disbursed'], default: 'Pending' }, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('Salary', salarySchema);

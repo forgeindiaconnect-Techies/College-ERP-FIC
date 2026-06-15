@@ -8,6 +8,6 @@ const transportVehicleMaintenanceSchema = new mongoose.Schema({
   cost: { type: Number, default: 0 },
   remarks: { type: String },
   status: { type: String, enum: ['Completed', 'Scheduled', 'In Progress'], default: 'Scheduled' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('TransportVehicleMaintenance', transportVehicleMaintenanceSchema);

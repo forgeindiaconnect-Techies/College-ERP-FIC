@@ -8,8 +8,7 @@ const activityLogSchema = new mongoose.Schema({
   moduleName: { type: String, required: true }, // e.g., 'Assignments'
   dept: { type: String }, // User's department
   ip: { type: String, default: '127.0.0.1' },
-  status: { type: String, enum: ['Success', 'Failed'], default: 'Success' },
-}, { timestamps: true });
+  status: { type: String, enum: ['Success', 'Failed'], default: 'Success' }, collegeId: { type: String } }, { timestamps: true });
 
 const ActivityLog = mongoose.model('ActivityLog', activityLogSchema);
 

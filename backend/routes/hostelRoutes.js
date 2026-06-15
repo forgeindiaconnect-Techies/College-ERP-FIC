@@ -3,14 +3,14 @@ import HostelBlock from '../models/HostelBlock.js';
 import HostelRoom from '../models/HostelRoom.js';
 import HostelStudent from '../models/HostelStudent.js';
 import HostelComplaint from '../models/HostelComplaint.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // @desc    Get all hostel blocks
 // @route   GET /api/hostel/blocks
 // @access  Private
-router.get('/blocks', protect, async (req, res) => {
+router.get('/blocks', protect, collegeScope, async (req, res) => {
   try {
     const blocks = await HostelBlock.find({});
     res.json(blocks);
@@ -22,7 +22,7 @@ router.get('/blocks', protect, async (req, res) => {
 // @desc    Get all hostel rooms
 // @route   GET /api/hostel/rooms
 // @access  Private
-router.get('/rooms', protect, async (req, res) => {
+router.get('/rooms', protect, collegeScope, async (req, res) => {
   try {
     const rooms = await HostelRoom.find({});
     res.json(rooms);
@@ -34,7 +34,7 @@ router.get('/rooms', protect, async (req, res) => {
 // @desc    Get all hostel students
 // @route   GET /api/hostel/students
 // @access  Private
-router.get('/students', protect, async (req, res) => {
+router.get('/students', protect, collegeScope, async (req, res) => {
   try {
     const students = await HostelStudent.find({})
       .populate({
@@ -50,7 +50,7 @@ router.get('/students', protect, async (req, res) => {
 // @desc    Get all hostel complaints
 // @route   GET /api/hostel/complaints
 // @access  Private
-router.get('/complaints', protect, async (req, res) => {
+router.get('/complaints', protect, collegeScope, async (req, res) => {
   try {
     const { studentId } = req.query;
     const filter = studentId ? { studentId } : {};
@@ -64,7 +64,7 @@ router.get('/complaints', protect, async (req, res) => {
 // @desc    Create a new hostel complaint
 // @route   POST /api/hostel/complaints
 // @access  Private
-router.post('/complaints', protect, async (req, res) => {
+router.post('/complaints', protect, collegeScope, async (req, res) => {
   try {
     const { studentId, studentName, room, category, title, description, priority } = req.body;
     
@@ -95,7 +95,7 @@ router.post('/complaints', protect, async (req, res) => {
 // @desc    Update a hostel complaint status
 // @route   PUT /api/hostel/complaints/:id
 // @access  Private
-router.put('/complaints/:id', protect, async (req, res) => {
+router.put('/complaints/:id', protect, collegeScope, async (req, res) => {
   try {
     const { status, resolutionRemarks } = req.body;
     

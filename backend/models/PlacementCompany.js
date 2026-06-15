@@ -12,6 +12,6 @@ const placementCompanySchema = new mongoose.Schema({
   hrContact: { type: String },
   drives: { type: Number, required: true, default: 0 },
   status: { type: String, enum: ['Active', 'Inactive'], default: 'Active' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('PlacementCompany', placementCompanySchema);

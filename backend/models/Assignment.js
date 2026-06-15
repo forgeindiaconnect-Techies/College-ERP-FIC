@@ -32,9 +32,7 @@ const assignmentSchema = new mongoose.Schema({
     type: Number,
     default: 0
   }
-}, {
-  timestamps: true
-});
+, collegeId: { type: String } }, { timestamps: true });
 
 const Assignment = mongoose.model('Assignment', assignmentSchema);
 export default Assignment;

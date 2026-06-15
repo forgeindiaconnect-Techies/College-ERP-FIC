@@ -10,6 +10,6 @@ const placementApplicationSchema = new mongoose.Schema({
   company: { type: String, required: true },
   role: { type: String, required: true },
   status: { type: String, enum: ['Applied', 'Shortlisted', 'Waitlisted', 'Rejected'], default: 'Applied' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('PlacementApplication', placementApplicationSchema);

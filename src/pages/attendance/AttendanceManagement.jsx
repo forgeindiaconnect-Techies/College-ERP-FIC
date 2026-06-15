@@ -31,18 +31,7 @@ import './AttendanceManagement.css';
 const DEPARTMENTS = ['All', 'Computer Science', 'Electrical Engg.', 'Mechanical Engg.', 'Civil Engg.', 'Information Tech.'];
 const SEMESTERS = ['All', 'Sem 1', 'Sem 2', 'Sem 3', 'Sem 4', 'Sem 5', 'Sem 6', 'Sem 7', 'Sem 8'];
 
-const MOCK_STUDENTS = [
-  { id:'CS2021001', name:'John Doe',       email:'john@college.edu',    phone:'9876543210', dept:'Computer Science',  sem:'Sem 6', cgpa:8.5, attendance:92, status:'Active',   feeStatus:'Paid'    },
-  { id:'EE2022001', name:'Alice Smith',    email:'alice@college.edu',   phone:'9845123456', dept:'Electrical Engg.',  sem:'Sem 4', cgpa:9.1, attendance:95, status:'Active',   feeStatus:'Paid'    },
-  { id:'ME2023001', name:'Robert Johnson', email:'robert@college.edu',  phone:'9812987654', dept:'Mechanical Engg.',  sem:'Sem 2', cgpa:7.8, attendance:85, status:'Active',   feeStatus:'Pending' },
-  { id:'CS2021004', name:'Emily Davis',    email:'emily@college.edu',   phone:'9823456789', dept:'Computer Science',  sem:'Sem 6', cgpa:8.9, attendance:98, status:'Active',   feeStatus:'Paid'    },
-  { id:'CE2020001', name:'Michael Brown',  email:'michael@college.edu', phone:'9867123456', dept:'Civil Engg.',       sem:'Sem 8', cgpa:7.4, attendance:78, status:'Inactive', feeStatus:'Partial' },
-  { id:'EE2022002', name:'Sarah Wilson',   email:'sarah@college.edu',   phone:'9801234567', dept:'Electrical Engg.',  sem:'Sem 4', cgpa:9.5, attendance:91, status:'Active',   feeStatus:'Paid'    },
-  { id:'CS2022001', name:'David Lee',      email:'david@college.edu',   phone:'9890123456', dept:'Computer Science',  sem:'Sem 3', cgpa:8.2, attendance:88, status:'Active',   feeStatus:'Pending' },
-  { id:'IT2022001', name:'Priya Sharma',   email:'priya@college.edu',   phone:'9856789012', dept:'Information Tech.', sem:'Sem 5', cgpa:9.3, attendance:97, status:'Active',   feeStatus:'Paid'    },
-  { id:'ME2023002', name:'Arjun Nair',     email:'arjun@college.edu',   phone:'9834567890', dept:'Mechanical Engg.',  sem:'Sem 2', cgpa:7.0, attendance:72, status:'Active',   feeStatus:'Partial' },
-  { id:'CE2020002', name:'Lakshmi Rao',    email:'lakshmi@college.edu', phone:'9878901234', dept:'Civil Engg.',       sem:'Sem 8', cgpa:8.8, attendance:96, status:'Active',   feeStatus:'Waived'  },
-];
+
 
 const MONTHLY_ANALYTICS = [
   { name: 'Nov', CS: 92, EE: 88, ME: 85, CE: 89, IT: 94, average: 90 },
@@ -111,7 +100,7 @@ const AttendanceManagement = () => {
       
       // 1. Fetch Students
       const studentsRes = await getStudents();
-      const studentList = studentsRes.data.length ? studentsRes.data : MOCK_STUDENTS;
+      const studentList = studentsRes.data;
       setStudents(studentList);
 
       // 2. Fetch Attendance Records

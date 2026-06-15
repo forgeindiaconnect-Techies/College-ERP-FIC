@@ -4,14 +4,14 @@ import PlacementJob from '../models/PlacementJob.js';
 import PlacementApplication from '../models/PlacementApplication.js';
 import PlacementInterview from '../models/PlacementInterview.js';
 import PlacementSelection from '../models/PlacementSelection.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // @desc    Get all placement companies
 // @route   GET /api/placement/companies
 // @access  Private
-router.get('/companies', protect, async (req, res) => {
+router.get('/companies', protect, collegeScope, async (req, res) => {
   try {
     const companies = await PlacementCompany.find({});
     res.json(companies);
@@ -23,7 +23,7 @@ router.get('/companies', protect, async (req, res) => {
 // @desc    Add a placement company
 // @route   POST /api/placement/companies
 // @access  Private/Admin
-router.post('/companies', protect, authorize('Admin', 'Principal', 'Sub-Admin'), async (req, res) => {
+router.post('/companies', protect, authorize('Admin', 'Principal', 'Sub-Admin'), collegeScope, async (req, res) => {
   try {
     const { name, sector, location, status, logo, website, hrName, hrEmail, hrContact } = req.body;
     const companyId = `COMP${Date.now()}`;
@@ -40,7 +40,7 @@ router.post('/companies', protect, authorize('Admin', 'Principal', 'Sub-Admin'),
 // @desc    Update a placement company
 // @route   PUT /api/placement/companies/:id
 // @access  Private/Admin
-router.put('/companies/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), async (req, res) => {
+router.put('/companies/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), collegeScope, async (req, res) => {
   try {
     const company = await PlacementCompany.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(company);
@@ -52,7 +52,7 @@ router.put('/companies/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin
 // @desc    Delete a placement company
 // @route   DELETE /api/placement/companies/:id
 // @access  Private/Admin
-router.delete('/companies/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), async (req, res) => {
+router.delete('/companies/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), collegeScope, async (req, res) => {
   try {
     await PlacementCompany.findByIdAndDelete(req.params.id);
     res.json({ message: 'Company removed' });
@@ -64,7 +64,7 @@ router.delete('/companies/:id', protect, authorize('Admin', 'Principal', 'Sub-Ad
 // @desc    Get all placement jobs
 // @route   GET /api/placement/jobs
 // @access  Private
-router.get('/jobs', protect, async (req, res) => {
+router.get('/jobs', protect, collegeScope, async (req, res) => {
   try {
     const jobs = await PlacementJob.find({});
     res.json(jobs);
@@ -76,7 +76,7 @@ router.get('/jobs', protect, async (req, res) => {
 // @desc    Add a placement job
 // @route   POST /api/placement/jobs
 // @access  Private/Admin
-router.post('/jobs', protect, authorize('Admin', 'Principal', 'Sub-Admin'), async (req, res) => {
+router.post('/jobs', protect, authorize('Admin', 'Principal', 'Sub-Admin'), collegeScope, async (req, res) => {
   try {
     const { company, role, ctc, eligibility, minCgpa, maxArrears, eligibleDepartments, driveDate, deadline } = req.body;
     const jobId = `JOB${Date.now()}`;
@@ -97,7 +97,7 @@ router.post('/jobs', protect, authorize('Admin', 'Principal', 'Sub-Admin'), asyn
 // @desc    Update a placement job
 // @route   PUT /api/placement/jobs/:id
 // @access  Private/Admin
-router.put('/jobs/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), async (req, res) => {
+router.put('/jobs/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), collegeScope, async (req, res) => {
   try {
     const job = await PlacementJob.findByIdAndUpdate(req.params.id, req.body, { new: true });
     res.json(job);
@@ -109,7 +109,7 @@ router.put('/jobs/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), a
 // @desc    Delete a placement job
 // @route   DELETE /api/placement/jobs/:id
 // @access  Private/Admin
-router.delete('/jobs/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), async (req, res) => {
+router.delete('/jobs/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin'), collegeScope, async (req, res) => {
   try {
     await PlacementJob.findByIdAndDelete(req.params.id);
     res.json({ message: 'Job removed' });
@@ -123,7 +123,7 @@ router.delete('/jobs/:id', protect, authorize('Admin', 'Principal', 'Sub-Admin')
 // @access  Private/Admin/Staff/HOD
 import Student from '../models/Student.js';
 
-router.get('/jobs/:id/eligible-students', protect, async (req, res) => {
+router.get('/jobs/:id/eligible-students', protect, collegeScope, async (req, res) => {
   try {
     const job = await PlacementJob.findById(req.params.id);
     if (!job) return res.status(404).json({ message: 'Job not found' });
@@ -226,7 +226,7 @@ router.get('/jobs/:id/eligible-students', protect, async (req, res) => {
 // @desc    Get all placement applications
 // @route   GET /api/placement/applications
 // @access  Private
-router.get('/applications', protect, async (req, res) => {
+router.get('/applications', protect, collegeScope, async (req, res) => {
   try {
     const applications = await PlacementApplication.find({})
       .populate('studentId', 'name dept cgpa arrears');
@@ -239,7 +239,7 @@ router.get('/applications', protect, async (req, res) => {
 // @desc    Apply for a placement drive
 // @route   POST /api/placement/applications
 // @access  Private
-router.post('/applications', protect, async (req, res) => {
+router.post('/applications', protect, collegeScope, async (req, res) => {
   try {
     const { studentId, student, regNo, dept, cgpa, company, role } = req.body;
     const applicationId = `APP${Date.now()}`;
@@ -255,7 +255,7 @@ router.post('/applications', protect, async (req, res) => {
 // @desc    Update placement application status
 // @route   PUT /api/placement/applications/:id/status
 // @access  Private/Admin/Staff
-router.put('/applications/:id/status', protect, authorize('Admin', 'Principal', 'Sub-Admin', 'Staff'), async (req, res) => {
+router.put('/applications/:id/status', protect, authorize('Admin', 'Principal', 'Sub-Admin', 'Staff'), collegeScope, async (req, res) => {
   try {
     const application = await PlacementApplication.findByIdAndUpdate(
       req.params.id,
@@ -294,7 +294,7 @@ router.put('/applications/:id/status', protect, authorize('Admin', 'Principal', 
 // @desc    Get all placement interviews
 // @route   GET /api/placement/interviews
 // @access  Private
-router.get('/interviews', protect, async (req, res) => {
+router.get('/interviews', protect, collegeScope, async (req, res) => {
   try {
     const interviews = await PlacementInterview.find({});
     res.json(interviews);
@@ -306,7 +306,7 @@ router.get('/interviews', protect, async (req, res) => {
 // @desc    Add a placement interview
 // @route   POST /api/placement/interviews
 // @access  Private/Admin/Staff
-router.post('/interviews', protect, authorize('Admin', 'Principal', 'Sub-Admin', 'Staff'), async (req, res) => {
+router.post('/interviews', protect, authorize('Admin', 'Principal', 'Sub-Admin', 'Staff'), collegeScope, async (req, res) => {
   try {
     const { company, role, round, date, time, mode, venue, panel, candidates } = req.body;
     const interviewId = `INT${Date.now()}`;
@@ -320,7 +320,7 @@ router.post('/interviews', protect, authorize('Admin', 'Principal', 'Sub-Admin',
 // @desc    Get all placement selections
 // @route   GET /api/placement/selections
 // @access  Private
-router.get('/selections', protect, async (req, res) => {
+router.get('/selections', protect, collegeScope, async (req, res) => {
   try {
     const selections = await PlacementSelection.find({});
     res.json(selections);
@@ -332,7 +332,7 @@ router.get('/selections', protect, async (req, res) => {
 // @desc    Add a placement selection
 // @route   POST /api/placement/selections
 // @access  Private/Admin/Staff
-router.post('/selections', protect, authorize('Admin', 'Principal', 'Sub-Admin', 'Staff'), async (req, res) => {
+router.post('/selections', protect, authorize('Admin', 'Principal', 'Sub-Admin', 'Staff'), collegeScope, async (req, res) => {
   try {
     const { student, regNo, company, role, ctc, date } = req.body;
     const selectionId = `SEL${Date.now()}`;

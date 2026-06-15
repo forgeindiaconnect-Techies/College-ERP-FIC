@@ -306,6 +306,8 @@ function App() {
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/unauthorized" element={<Unauthorized />} />
             <Route path="/upgrade-plan" element={<AdminGuard><UpgradePlan /></AdminGuard>} />
+            <Route path="/register" element={<Navigate to="/get-access" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
 
             {/* Redirect old login pages to unified login */}
             <Route path="/admin/login" element={<Navigate to="/login" replace />} />

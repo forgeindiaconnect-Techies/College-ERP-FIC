@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Building2, User, Phone, Mail, Activity, AlertTriangle, MoreVertical, Shield } from 'lucide-react';
+import { Search, Building2, User, Phone, Mail, Activity, AlertTriangle, MoreVertical, Shield, Key } from 'lucide-react';
 import api from '../../api';
 import ConfirmModal from '../../components/common/ConfirmModal';
 
@@ -17,6 +17,7 @@ const SuperAdminColleges = () => {
     try {
       setLoading(true);
       const res = await api.get('/auth/colleges');
+
       setColleges(res.data);
     } catch (error) {
       console.error('Failed to fetch colleges:', error);
@@ -33,7 +34,7 @@ const SuperAdminColleges = () => {
         isOpen: true,
         type: 'info',
         title: 'Feature Under Construction',
-        message: `Activating/Deactivating college is under construction. ID: ${collegeId}`
+       message: `Activating/Deactivating college is under construction. ID: ${collegeId}`
       });
     } catch (error) {
       console.error(error);
@@ -108,18 +109,69 @@ const SuperAdminColleges = () => {
                     </div>
                   </td>
                   <td style={{ padding: '16px 20px' }}>
-                    <div style={{ fontWeight: 500, color: 'var(--text-main)', marginBottom: '4px' }}>{college.adminName}</div>
-                    <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>{college.email}</div>
+                    {/* Admin name */}
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>{college.adminName}</div>
+                    {/* Credential card */}
+                    <div style={{
+                      background: 'rgba(99,102,241,0.04)',
+                      border: '1px solid rgba(99,102,241,0.15)',
+                      borderRadius: '8px',
+                      padding: '8px 10px',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      gap: '5px',
+                      width: 'fit-content',
+                      minWidth: '200px'
+                    }}>
+                      {/* Email row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.04em', width: '42px', flexShrink: 0 }}>Email</span>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontWeight: 500 }}>{college.email}</span>
+                      </div>
+                      {/* Divider */}
+                      <div style={{ height: '1px', background: 'rgba(99,102,241,0.1)' }} />
+                      {/* Password row */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.04em', width: '42px', flexShrink: 0 }}>Pass</span>
+                        <span style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.03em' }}>
+                          {college.adminPassword || '••••••••'}
+                        </span>
+                      </div>
+                    </div>
                   </td>
                   <td style={{ padding: '16px 20px' }}>
-                    <div style={{ display: 'flex', gap: '8px', marginBottom: '4px' }}>
-                      <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: college.subscriptionPlan === 'Trial' ? 'rgba(245,158,11,0.1)' : 'rgba(139,92,246,0.1)', color: college.subscriptionPlan === 'Trial' ? '#f59e0b' : '#8b5cf6' }}>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '4px' }}>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                        background: college.subscriptionPlan === 'Trial' ? 'rgba(245,158,11,0.1)' : 'rgba(139,92,246,0.1)',
+                        color: college.subscriptionPlan === 'Trial' ? '#f59e0b' : '#8b5cf6'
+                      }}>
                         {college.subscriptionPlan}
                       </span>
-                      <span style={{ padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600, background: college.subscriptionStatus === 'Active' ? 'rgba(16,185,129,0.1)' : 'rgba(239,68,68,0.1)', color: college.subscriptionStatus === 'Active' ? '#10b981' : '#ef4444' }}>
+                      <span style={{
+                        padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
+                        background:
+                          college.subscriptionStatus === 'Active' ? 'rgba(16,185,129,0.1)' :
+                          college.subscriptionStatus === 'Grace Period' ? 'rgba(245,158,11,0.1)' :
+                          'rgba(239,68,68,0.1)',
+                        color:
+                          college.subscriptionStatus === 'Active' ? '#10b981' :
+                          college.subscriptionStatus === 'Grace Period' ? '#f59e0b' :
+                          '#ef4444'
+                      }}>
                         {college.subscriptionStatus}
                       </span>
                     </div>
+                    {college.subscriptionStatus === 'Active' && college.daysRemaining > 0 && (
+                      <div style={{ fontSize: '0.72rem', color: 'var(--text-muted)' }}>
+                        {college.daysRemaining}d left
+                      </div>
+                    )}
+                    {college.subscriptionStatus === 'Grace Period' && (
+                      <div style={{ fontSize: '0.72rem', color: '#f59e0b' }}>
+                        Grace: {college.daysRemaining}d left
+                      </div>
+                    )}
                   </td>
                   <td style={{ padding: '16px 20px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
                     {college.totalUsers || 0} Registered

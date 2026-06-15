@@ -300,7 +300,7 @@ const PlacementManagement = () => {
                     <XAxis dataKey="dept" axisLine={false} tickLine={false} />
                     <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
                     <Tooltip cursor={{ fill: 'transparent' }} contentStyle={{ backgroundColor: 'var(--bg-secondary)', borderColor: 'var(--border-color)', borderRadius: '8px' }} />
-                    <Bar dataKey="percentage" fill="var(--primary-color)" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="percentage" fill="var(--primary)" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

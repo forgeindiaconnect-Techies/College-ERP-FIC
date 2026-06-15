@@ -13,6 +13,6 @@ const issueRecordSchema = new mongoose.Schema({
   status: { type: String, enum: ['Issued', 'Overdue', 'Returned'], default: 'Issued' },
   fine: { type: Number, default: 0 },
   conditionOnReturn: { type: String, enum: ['Good', 'Damaged', 'Lost', 'Pending'], default: 'Pending' }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('IssueRecord', issueRecordSchema);

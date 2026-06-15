@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, X, Megaphone, Calendar, Tag, User, MessageSquare } from 'lucide-react';
 import './AnnouncementsManagement.css';
 
-const DEFAULT_ANNOUNCEMENTS = [
-  { id: 'ANN001', title: 'End Semester Fees Schedule', content: 'All students are requested to clear their pending academic term fee dues on or before May 28th to generate hall tickets.', targetAudience: 'Students', date: '2026-05-22', author: 'College Accounts' },
-  { id: 'ANN002', title: 'Semester Syllabus Freeze', content: 'Faculty staff must close active curriculum lectures and upload laboratory internals results by next Monday.', targetAudience: 'Staff', date: '2026-05-21', author: 'Academic Dean' },
-  { id: 'ANN003', title: 'Summer Internship Drive 2026', content: 'Global tech corporations will host campus recruitment placement drives starting June 1st. Resume freeze date is May 25th.', targetAudience: 'All', date: '2026-05-20', author: 'Placement Cell' }
-];
+const DEFAULT_ANNOUNCEMENTS = [];
 
 const AnnouncementsManagement = () => {
   const [announcements, setAnnouncements] = useState([]);
@@ -25,11 +21,11 @@ const AnnouncementsManagement = () => {
 
   const fetchAnnouncements = () => {
     setLoading(true);
-    const saved = localStorage.getItem('erp_announcements');
+    const saved = localStorage.getItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (saved) {
       setAnnouncements(JSON.parse(saved));
     } else {
-      localStorage.setItem('erp_announcements', JSON.stringify(DEFAULT_ANNOUNCEMENTS));
+      localStorage.setItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(DEFAULT_ANNOUNCEMENTS));
       setAnnouncements(DEFAULT_ANNOUNCEMENTS);
     }
     setLoading(false);
@@ -37,7 +33,7 @@ const AnnouncementsManagement = () => {
 
   const saveAnnouncements = (newList) => {
     setAnnouncements(newList);
-    localStorage.setItem('erp_announcements', JSON.stringify(newList));
+    localStorage.setItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(newList));
   };
 
   const openAdd = () => {

@@ -1,11 +1,11 @@
 import express from 'express';
 import Expense from '../models/Expense.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
+import { protect, authorize, collegeScope } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 // Get all expenses
-router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     const expenses = await Expense.find().sort({ createdAt: -1 });
     res.json(expenses);
@@ -15,7 +15,7 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'
 });
 
 // Create new expense
-router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     // Generate an ID like EXP-001
     const count = await Expense.countDocuments();
@@ -39,7 +39,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts
 });
 
 // Update expense (e.g. mark as paid/pending)
-router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     const updated = await Expense.findOneAndUpdate(
       { id: req.params.id },
@@ -55,7 +55,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accoun
 });
 
 // Delete expense
-router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'), async (req, res) => {
+router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'Accounts'), collegeScope, async (req, res) => {
   try {
     await Expense.findOneAndDelete({ id: req.params.id });
     req.app.get('io').emit('dataUpdated', { module: 'expenses', action: 'deleted' });

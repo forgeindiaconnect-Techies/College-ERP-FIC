@@ -15,6 +15,6 @@ const feeSchema = new mongoose.Schema({
   status: { type: String, enum: ['Paid', 'Pending', 'Partial'], default: 'Pending' },
   receiptNo: { type: String },
   payments: { type: Array, default: [] }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('Fee', feeSchema);

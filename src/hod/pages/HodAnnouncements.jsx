@@ -25,7 +25,7 @@ const HodAnnouncements = () => {
   const [form, setForm] = useState({ title:'', content:'', target:'All', author:`${DEPT} HOD Office` });
 
   useEffect(() => {
-    const saved = localStorage.getItem('erp_announcements');
+    const saved = localStorage.getItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const all = saved ? JSON.parse(saved) : DEFAULT_ANNOUNCEMENTS;
     const deptNotices = all.filter(a => {
       const isMyDept = a.dept === DEPT || a.dept === undefined;
@@ -38,11 +38,11 @@ const HodAnnouncements = () => {
 
   const saveAll = (list) => {
     setNotices(list);
-    const saved = localStorage.getItem('erp_announcements');
+    const saved = localStorage.getItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const all = saved ? JSON.parse(saved) : [];
     // Merge: replace dept notices, keep others
     const others = all.filter(a => a.dept && a.dept!==DEPT);
-    localStorage.setItem('erp_announcements', JSON.stringify([...others, ...list.map(a=>({...a,dept:DEPT}))]));
+    localStorage.setItem(`erp_announcements_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify([...others, ...list.map(a=>({...a,dept:DEPT}))]));
   };
 
   const openAdd = () => { setForm({ title:'', content:'', target:'All', author:`${DEPT} HOD Office` }); setEditId(null); setModal(true); };

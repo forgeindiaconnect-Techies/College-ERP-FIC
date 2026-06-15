@@ -8,6 +8,6 @@ const placementSelectionSchema = new mongoose.Schema({
   role: { type: String, required: true },
   ctc: { type: String, required: true },
   date: { type: Date, required: true }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('PlacementSelection', placementSelectionSchema);

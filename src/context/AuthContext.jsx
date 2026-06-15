@@ -3,12 +3,12 @@ import React, { createContext, useState, useEffect } from 'react';
 export const AuthContext = createContext();
 
 const SESSION_KEYS = [
-  'admin_session', 'subadmin_session', 'hod_session',
+  'superadmin_session', 'admin_session', 'subadmin_session', 'hod_session',
   'staff_session', 'student_session', 'parent_session', 'accounts_session'
 ];
 
 const TOKEN_KEYS = [
-  'admin_token', 'subadmin_token', 'hod_token',
+  'superadmin_token', 'admin_token', 'subadmin_token', 'hod_token',
   'staff_token', 'student_token', 'parent_token', 'accounts_token'
 ];
 
@@ -56,6 +56,17 @@ export const AuthProvider = ({ children }) => {
   const logout = () => {
     SESSION_KEYS.forEach(k => sessionStorage.removeItem(k));
     TOKEN_KEYS.forEach(k => sessionStorage.removeItem(k));
+    
+    // Clear mock localStorage to prevent cross-tenant data leaks during demo testing
+    const keysToRemove = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('erp_') || key.startsWith('principal_'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
+    
     setUser(null);
   };
 

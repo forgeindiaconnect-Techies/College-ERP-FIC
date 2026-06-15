@@ -32,7 +32,7 @@ const HodSubjects = () => {
   const [form, setForm] = useState({ code:'', name:'', sem:'Semester 1', teacher:'', credits:4, hours:4 });
 
   useEffect(() => {
-    const saved = localStorage.getItem('erp_subjects');
+    const saved = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     let existingAll = saved ? JSON.parse(saved) : [];
     const deptSubs = existingAll.filter(s => s.dept === DEPT);
     
@@ -55,17 +55,17 @@ const HodSubjects = () => {
       
       // Save these injected subjects to local storage immediately
       const otherDeptSubjects = existingAll.filter(s => s.dept !== DEPT);
-      localStorage.setItem('erp_subjects', JSON.stringify([...otherDeptSubjects, ...autoMocks]));
+      localStorage.setItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify([...otherDeptSubjects, ...autoMocks]));
     }
   }, [DEPT]);
 
   const save = (list) => { 
     setSubjects(list); 
     // Also save all subjects (including other departments) back to local storage
-    const existing = JSON.parse(localStorage.getItem('erp_subjects') || '[]');
+    const existing = JSON.parse(localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
     // Filter out current dept subjects and merge the updated list
     const otherDeptSubjects = existing.filter(s => s.dept !== DEPT);
-    localStorage.setItem('erp_subjects', JSON.stringify([...otherDeptSubjects, ...list]));
+    localStorage.setItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify([...otherDeptSubjects, ...list]));
   };
 
   const openAdd = () => { setForm({ code:'', name:'', sem:'Semester 1', teacher:'', credits:4, hours:4 }); setEditId(null); setModalOpen(true); };

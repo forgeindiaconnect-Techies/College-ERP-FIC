@@ -1,5 +1,8 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
+import { context } from '../context.js';
+import College from '../models/College.js';
+import { calculateSubscriptionStatus } from '../utils/subscriptionHelper.js';
 
 export const protect = async (req, res, next) => {
   let token;
@@ -10,8 +13,9 @@ export const protect = async (req, res, next) => {
       // Accept frontend mock tokens to prevent 401 redirect loops in demo mode
       if (token.startsWith('mock-')) {
         let role = 'Student';
-        if (token.includes('-admin')) role = 'Admin';
+        if (token.includes('-superadmin')) role = 'Super Admin';
         else if (token.includes('-subadmin')) role = 'Sub Admin';
+        else if (token.includes('-admin')) role = 'Admin';
         else if (token.includes('-principal')) role = 'Principal';
         else if (token.includes('-hod')) role = 'HOD';
         else if (token.includes('-staff')) role = 'Staff';
@@ -27,7 +31,7 @@ export const protect = async (req, res, next) => {
         
         const permissions = role === 'Sub Admin' ? ['manage_students', 'manage_staff', 'manage_attendance'] : undefined;
         
-        req.user = { role, _id: 'mock-id', department: 'Computer Science', referenceId, permissions };
+        req.user = { role, _id: 'mock-id', department: 'Computer Science', referenceId, permissions, tenantId: 'mock_college_id', collegeId: 'mock_college_id' };
         return next();
       }
 
@@ -87,3 +91,35 @@ export const requirePermission = (moduleName) => {
     next();
   };
 };
+
+export const collegeScope = (req, res, next) => {
+  if (req.user && req.user.role !== 'Super Admin') {
+    req.collegeId = req.user.tenantId || req.user.collegeId || 'unassigned_college';
+    
+    // Store in global context for Mongoose plugin to access
+    const store = context.getStore();
+    if (store) {
+      store.set('collegeId', req.collegeId);
+    }
+  }
+  next();
+};
+
+export const checkSubscription = async (req, res, next) => {
+  try {
+    const tenantId = req.user?.tenantId || req.collegeId;
+    if (tenantId && tenantId !== 'system' && tenantId !== 'mock_college_id') {
+      const college = await College.findOne({ tenantId });
+      if (college) {
+        const subscription = calculateSubscriptionStatus(college);
+        if (subscription.status === 'Expired') {
+          return res.status(403).json({ message: 'Subscription Expired. Access restricted. Please renew/upgrade.' });
+        }
+      }
+    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
+

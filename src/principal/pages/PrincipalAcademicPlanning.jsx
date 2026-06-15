@@ -100,12 +100,12 @@ const initialSchedules = [
 
 export default function PrincipalAcademicPlanning() {
   const [schedules, setSchedules] = useState(() => {
-    const saved = localStorage.getItem('principal_academic_planning');
+    const saved = localStorage.getItem(`principal_academic_planning_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     return saved ? JSON.parse(saved) : initialSchedules;
   });
 
   useEffect(() => {
-    localStorage.setItem('principal_academic_planning', JSON.stringify(schedules));
+    localStorage.setItem(`principal_academic_planning_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(schedules));
   }, [schedules]);
 
   // View States

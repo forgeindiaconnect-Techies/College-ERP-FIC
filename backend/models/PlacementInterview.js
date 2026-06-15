@@ -11,6 +11,6 @@ const placementInterviewSchema = new mongoose.Schema({
   venue: { type: String }, // Venue / Meeting Link
   panel: { type: String }, // Panel Details
   candidates: { type: Number, required: true }
-}, { timestamps: true });
+, collegeId: { type: String } }, { timestamps: true });
 
 export default mongoose.model('PlacementInterview', placementInterviewSchema);

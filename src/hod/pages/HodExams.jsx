@@ -50,7 +50,7 @@ const HodExams = () => {
   useEffect(() => {
     fetchExams();
 
-    const savedSubs = localStorage.getItem('erp_subjects');
+    const savedSubs = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (savedSubs) {
       const deptSubs = JSON.parse(savedSubs).filter(s => s.dept === hod.dept);
       setSubjects(deptSubs);

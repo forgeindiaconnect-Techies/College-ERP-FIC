@@ -39,7 +39,7 @@ const StudentHostel = () => {
   // Leave Pass State
   const [showLeaveModal, setShowLeaveModal] = useState(false);
   const [leaveRequests, setLeaveRequests] = useState(() => {
-    const saved = localStorage.getItem('erp_hostel_leaves');
+    const saved = localStorage.getItem(`erp_hostel_leaves_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (saved) {
       const allLeaves = JSON.parse(saved);
       // Try to filter for the current student once studentDetails is loaded, 
@@ -63,7 +63,7 @@ const StudentHostel = () => {
     
     // Save to global storage so admin sees it
     const today = new Date().toISOString().split('T')[0];
-    const attendanceLog = JSON.parse(localStorage.getItem('erp_hostel_attendance') || '[]');
+    const attendanceLog = JSON.parse(localStorage.getItem(`erp_hostel_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
     
     const record = {
       studentId: studentDetails?.id || studentDetails?.referenceId,
@@ -76,7 +76,7 @@ const StudentHostel = () => {
     
     if (!attendanceLog.some(a => a.studentId === record.studentId && a.date === today)) {
       attendanceLog.push(record);
-      localStorage.setItem('erp_hostel_attendance', JSON.stringify(attendanceLog));
+      localStorage.setItem(`erp_hostel_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(attendanceLog));
     }
 
     alert('Attendance successfully marked for today! Geolocation verified within campus bounds.');
@@ -127,9 +127,9 @@ const StudentHostel = () => {
     setMyVisitors(prev => prev.map(v => v.id === id ? { ...v, outTime: timeNow } : v));
     
     // Update global localStorage for admin to see
-    const savedVisitors = JSON.parse(localStorage.getItem('erp_hostel_visitors') || '[]');
+    const savedVisitors = JSON.parse(localStorage.getItem(`erp_hostel_visitors_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
     const updatedVisitors = savedVisitors.map(v => v.id === id ? { ...v, outTime: timeNow } : v);
-    localStorage.setItem('erp_hostel_visitors', JSON.stringify(updatedVisitors));
+    localStorage.setItem(`erp_hostel_visitors_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updatedVisitors));
   };
 
 
@@ -163,8 +163,8 @@ const StudentHostel = () => {
     setLeaveRequests(prev => {
       const updated = [newLeave, ...prev];
       // Save globally for Admin to see
-      const allSaved = JSON.parse(localStorage.getItem('erp_hostel_leaves') || '[]');
-      localStorage.setItem('erp_hostel_leaves', JSON.stringify([newLeave, ...allSaved]));
+      const allSaved = JSON.parse(localStorage.getItem(`erp_hostel_leaves_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
+      localStorage.setItem(`erp_hostel_leaves_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify([newLeave, ...allSaved]));
       return updated;
     });
     
@@ -174,7 +174,7 @@ const StudentHostel = () => {
   };
 
   useEffect(() => {
-    const savedMenu = localStorage.getItem('erp_mess_menu');
+    const savedMenu = localStorage.getItem(`erp_mess_menu_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (savedMenu) {
       try {
         setCurrentMessMenu(JSON.parse(savedMenu));
@@ -200,7 +200,7 @@ const StudentHostel = () => {
 
         if (!dbRecord) {
           // Fallback to local storage or session
-          const erpStudents = JSON.parse(localStorage.getItem('erp_students') || '[]');
+          const erpStudents = JSON.parse(localStorage.getItem(`erp_students_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
           dbRecord = erpStudents.find(s => s.rollNo === activeStud.id || s.id === activeStud.id) || activeStud;
         }
 
@@ -211,7 +211,7 @@ const StudentHostel = () => {
 
           // Load visitor records filtered by student name
           try {
-            const savedVisitors = JSON.parse(localStorage.getItem('erp_hostel_visitors') || '[]');
+            const savedVisitors = JSON.parse(localStorage.getItem(`erp_hostel_visitors_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
             const studentName = dbRecord.name || '';
             const filtered = savedVisitors.filter(v =>
               v.student?.toLowerCase().includes(studentName.toLowerCase().split(' ')[0])
@@ -224,7 +224,7 @@ const StudentHostel = () => {
           // Check if attendance already marked today
           try {
             const today = new Date().toISOString().split('T')[0];
-            const attendanceLog = JSON.parse(localStorage.getItem('erp_hostel_attendance') || '[]');
+            const attendanceLog = JSON.parse(localStorage.getItem(`erp_hostel_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
             const isMarked = attendanceLog.some(a => 
               (a.studentId === dbRecord.id || a.studentId === dbRecord.referenceId) && 
               a.date === today

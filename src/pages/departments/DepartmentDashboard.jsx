@@ -214,7 +214,7 @@ const DepartmentDashboard = () => {
           // Fallback if not found
           setDept({ id: id, name: 'Unknown', code: 'N/A', hod: 'Not Assigned', students: 0, staff: 0, status: 'Unknown' });
         }
-        const savedSubs = localStorage.getItem('erp_subjects');
+        const savedSubs = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
         if (savedSubs && found) {
           const parsedSubs = JSON.parse(savedSubs);
           setDeptSubjects(parsedSubs.filter(s => s.dept === found.name || s.dept.includes(found.name.split(' ')[0])));
@@ -248,9 +248,9 @@ const DepartmentDashboard = () => {
     setDeptSubjects([...deptSubjects, newSub]);
     
     // Save globally to erp_subjects
-    const savedSubs = localStorage.getItem('erp_subjects');
+    const savedSubs = localStorage.getItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     const parsedSubs = savedSubs ? JSON.parse(savedSubs) : [];
-    localStorage.setItem('erp_subjects', JSON.stringify([...parsedSubs, newSub]));
+    localStorage.setItem(`erp_subjects_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify([...parsedSubs, newSub]));
     
     setSubjectModalOpen(false);
     setSubjectForm({ code: '', name: '', sem: 'Semester 1', teacher: '', credits: 4 });
