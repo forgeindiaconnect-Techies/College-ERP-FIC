@@ -50,7 +50,7 @@ api.interceptors.request.use(
     } catch (e) {
       console.error('Error fetching token from storage', e);
     }
-      
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -70,7 +70,7 @@ api.interceptors.response.use(
       if (error.config && error.config.url && error.config.url.includes('/login')) {
         return Promise.reject(error);
       }
-      
+
       // Do not redirect if using a mock token (fallback mode)
       let isMock = false;
       const allTokens = ['superadmin_token', 'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token'];
@@ -78,18 +78,18 @@ api.interceptors.response.use(
         const t = sessionStorage.getItem(k);
         if (t && t.startsWith('mock-')) isMock = true;
       }
-      
+
       if (isMock) {
         return Promise.reject(error);
       }
-      
+
       console.warn('Session expired or unauthorized! Clearing session storage and redirecting to login...');
       const keys = [
         'superadmin_token', 'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token',
         'superadmin_session', 'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session', 'driver_session'
       ];
       keys.forEach(k => sessionStorage.removeItem(k));
-      
+
       // Prevent infinite redirect loops if already on login page
       if (!window.location.pathname.endsWith('/login')) {
         window.location.href = '/login?expired=true';
@@ -272,7 +272,7 @@ export const getNotifications = () => api.get('/notifications').catch(() => ({ d
             tenantId = parsed.tenantId;
             break;
           }
-        } catch(e) {}
+        } catch (e) { }
       }
     }
     const rawEvents = localStorage.getItem(`principal_meetings_events_${tenantId}`);
@@ -288,7 +288,7 @@ export const getNotifications = () => api.get('/notifications').catch(() => ({ d
       if (!res.data) res.data = [];
       res.data = [...res.data, ...activeEvents];
     }
-  } catch(e) { console.error(e); }
+  } catch (e) { console.error(e); }
   return res;
 });
 export const createNotification = (data) => api.post('/notifications', data);

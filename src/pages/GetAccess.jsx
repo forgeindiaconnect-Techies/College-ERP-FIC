@@ -45,19 +45,12 @@ const GetAccess = () => {
       <div className="login-visual-section">
         <div className="visual-overlay"></div>
         <div className="visual-content">
-          <div style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <div style={{ background: 'white', padding: '12px', borderRadius: '12px' }}>
-              <Zap size={32} color="var(--primary)" />
-            </div>
-            <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'white', letterSpacing: '-0.5px' }}>
-              ERP<span style={{ color: '#93c5fd' }}>SaaS</span>
-            </span>
+          <div style={{ marginBottom: '24px' }}>
+            <img src="/logo.svg" alt="ERPSYS Logo" style={{ width: '240px', height: 'auto' }} />
           </div>
-          <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '1rem', lineHeight: 1.2 }}>
-            Modernize Your<br />Campus Today
-          </h1>
-          <p className="brand-description" style={{ fontSize: '1.1rem', maxWidth: '400px' }}>
-            Join hundreds of institutions using our AI-powered ERP platform to streamline academics, fees, transport, and administration.
+          <p style={{ fontSize: '18px', fontWeight: '600', marginBottom: '24px' }}>Smart Campus, Smarter Management</p>
+          <p className="brand-description" style={{ fontSize: '1.1rem', maxWidth: '400px', margin: '0 auto' }}>
+            A unified platform to manage students, faculty, courses, attendance, exams, fees and more — efficiently and securely.
           </p>
           
           <div style={{ marginTop: '3rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
