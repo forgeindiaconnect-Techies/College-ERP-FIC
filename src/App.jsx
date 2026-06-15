@@ -63,7 +63,6 @@ import AIAssistant from './pages/ai/AIAssistant';
 import SettingsSecurity from './pages/settings/SettingsSecurity';
 import LandingPage from './pages/landing/LandingPage';
 import AcademicStructure from './pages/academic/AcademicStructure';
-import PermissionsManagement from './pages/permissions/PermissionsManagement';
 
 // Super Admin Layout & Pages
 import SuperAdminLayout from './superadmin/components/SuperAdminLayout';
@@ -364,7 +363,6 @@ function App() {
               <Route path="settings"      element={<SettingsSecurity />} />
               <Route path="activity-logs" element={<ActivityLogs />} />
               <Route path="analytics"     element={<SystemAnalytics />} />
-              <Route path="system-users"  element={<PermissionsManagement />} />
               <Route path="subscription"  element={<AdminSubscription />} />
             </Route>
 
