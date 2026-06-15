@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, X, ShieldCheck, Mail, ShieldAlert, Key, Award, Users, CheckCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, ShieldCheck, Mail, ShieldAlert, Key, Award, Users, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { getUsers, createUser, updateUser, deleteUser } from '../../api/index';
 import './PermissionsManagement.css';
 
@@ -19,6 +19,7 @@ const PermissionsManagement = () => {
   const [editTarget, setEditTarget] = useState(null);
   const [form, setForm] = useState({ name: '', email: '', password: '', role: 'Student', department: '', referenceId: '' });
   const [successFlash, setSuccessFlash] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -59,6 +60,7 @@ const PermissionsManagement = () => {
   const closeModal = () => {
     setModalOpen(false);
     setEditTarget(null);
+    setShowPassword(false);
   };
 
   const handleSubmit = async (e) => {
@@ -260,7 +262,33 @@ const PermissionsManagement = () => {
 
                 <div className="form-group">
                   <label><Key size={13} style={{ display: 'inline', marginRight: '4px' }} /> Account Password {editTarget && '(Leave blank to retain)'}</label>
-                  <input type="password" placeholder={editTarget ? '••••••••' : 'Enter login password'} value={form.password} onChange={e => setForm({ ...form, password: e.target.value })} />
+                  <div style={{ position: 'relative' }}>
+                    <input 
+                      type={showPassword ? "text" : "password"} 
+                      placeholder={editTarget ? '••••••••' : 'Enter login password'} 
+                      value={form.password} 
+                      onChange={e => setForm({ ...form, password: e.target.value })} 
+                      style={{ paddingRight: '40px', width: '100%' }}
+                    />
+                    <button 
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      style={{
+                        position: 'absolute',
+                        right: '10px',
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--text-muted)',
+                        cursor: 'pointer',
+                        padding: '4px',
+                        display: 'flex'
+                      }}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
                 </div>
 
                 <div className="form-group">
