@@ -5,7 +5,7 @@ import { protect, authorize, requirePermission, collegeScope } from '../middlewa
 const router = express.Router();
 
 // Get all departments
-router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), collegeScope, async (req, res) => {
+router.get('/', protect, collegeScope, async (req, res) => {
   try {
     const departments = await Department.find({ collegeId: req.collegeId || 'unassigned_college' });
     res.json(departments);
