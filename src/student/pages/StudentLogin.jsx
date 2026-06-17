@@ -28,6 +28,9 @@ const StudentLogin = () => {
       }
 
       sessionStorage.setItem('student_token', userData.token);
+      if (userData.tenantId || userData.collegeId) {
+        sessionStorage.setItem('tenantId', userData.tenantId || userData.collegeId);
+      }
       sessionStorage.setItem('student_session', JSON.stringify({
         id: userData.referenceId,
         name: userData.name,

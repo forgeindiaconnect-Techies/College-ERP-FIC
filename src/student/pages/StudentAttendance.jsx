@@ -45,7 +45,14 @@ const StudentAttendance = () => {
         }
       }
       
-      const res = await getAttendanceByStudent(finalId);
+      let apiData = [];
+      try {
+        const res = await getAttendanceByStudent(finalId);
+        if (res && res.data) apiData = res.data;
+      } catch (apiErr) {
+        console.error('API fetch failed, falling back to local storage:', apiErr);
+      }
+
       // Merge with localStorage
       const localAttendance = JSON.parse(localStorage.getItem(`erp_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
       const finalName = studentSession?.name ? studentSession.name.toLowerCase() : '';
@@ -55,7 +62,7 @@ const StudentAttendance = () => {
         (r.studentName && finalName && r.studentName.toLowerCase() === finalName)
       );
       
-      const allRecords = [...(res?.data || []), ...localRecords];
+      const allRecords = [...apiData, ...localRecords];
       // Deduplicate by _id
       const records = [];
       const seenIds = new Set();

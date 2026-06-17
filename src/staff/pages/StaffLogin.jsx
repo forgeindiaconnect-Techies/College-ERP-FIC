@@ -28,6 +28,9 @@ const StaffLogin = () => {
       }
 
       sessionStorage.setItem('staff_token', userData.token);
+      if (userData.tenantId || userData.collegeId) {
+        sessionStorage.setItem('tenantId', userData.tenantId || userData.collegeId);
+      }
       sessionStorage.setItem('staff_session', JSON.stringify({
         id: userData.referenceId,
         name: userData.name, dept: userData.department, deptCode: userData.department?.substring(0, 2).toUpperCase() || 'CS', role: 'Staff', email: userData.email, subjects: userData.subjects || []

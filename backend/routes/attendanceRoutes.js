@@ -37,7 +37,7 @@ router.get('/student/:studentId', protect, collegeScope, async (req, res) => {
       console.log('=> 403 Forbidden: Unauthorized');
       return res.status(403).json({ message: 'Unauthorized to view this record' });
     }
-    const records = await Attendance.find({ collegeId: req.collegeId || 'unassigned_college',  }).sort({ date: -1 });
+    const records = await Attendance.find({ studentId: req.params.studentId, collegeId: req.collegeId || 'unassigned_college' }).sort({ date: -1 });
     console.log(`=> Found ${records.length} records`);
     res.json(records);
   } catch (err) {
@@ -59,6 +59,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
         const exactDate = new Date(record.date);
         exactDate.setUTCHours(0, 0, 0, 0);
         record.date = exactDate; // ensure the record saves with this normalized date
+        record.collegeId = req.collegeId || 'unassigned_college'; // Explicitly inject collegeId
         
         const key = `${record.subject}_${record.period || 'All'}_${exactDate.getTime()}`;
         if (!sessionsToCheck.find(s => s.key === key)) {
@@ -103,6 +104,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
       const exactDate = new Date(req.body.date);
       exactDate.setUTCHours(0, 0, 0, 0);
       req.body.date = exactDate;
+      req.body.collegeId = req.collegeId || 'unassigned_college'; // Explicitly inject collegeId
 
       const existingCount = await Attendance.countDocuments({
         studentId: req.body.studentId,
