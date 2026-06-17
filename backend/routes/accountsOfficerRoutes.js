@@ -29,14 +29,11 @@ router.post('/', protect, authorize('Admin', 'Super Admin'), checkSubscription, 
       return res.status(400).json({ message: 'User with this email already exists' });
     }
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
-
     const newUser = new User({
       name,
       email,
       phone,
-      password: hashedPassword,
+      password, // Pass plain password, Mongoose schema will hash it
       role: 'Accounts',
       collegeId: req.user.collegeId || req.user.tenantId
     });
