@@ -24,7 +24,7 @@ const timetableSchema = new mongoose.Schema({
     default: ['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00', '03:00 - 04:00']
   },
   schedule: {
-    type: [slotSchema], // Array of slot objects
+    type: [[String]], // 2D array of strings from frontend grid
     default: []
   },
   collegeId: {

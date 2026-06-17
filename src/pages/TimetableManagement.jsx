@@ -59,16 +59,17 @@ const TimetableManagement = () => {
     setLoading(true);
     try {
       const res = await getTimetable(dept, sem);
-      if (res.data) {
-        setTimes(res.data.times || ['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00']);
-        setGrid(res.data.schedule || [
-          ['', '', '', 'Lunch', ''],
-          ['', '', '', 'Lunch', ''],
-          ['', '', '', 'Lunch', ''],
-          ['', '', '', 'Lunch', ''],
-          ['', '', '', 'Lunch', '']
-        ]);
-      }
+        if (res.data) {
+          setTimes(res.data.times?.length > 0 ? res.data.times : ['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00']);
+          const fetchedGrid = res.data.schedule;
+          setGrid(fetchedGrid && fetchedGrid.length > 0 ? fetchedGrid : [
+            ['', '', '', 'Lunch', ''],
+            ['', '', '', 'Lunch', ''],
+            ['', '', '', 'Lunch', ''],
+            ['', '', '', 'Lunch', ''],
+            ['', '', '', 'Lunch', '']
+          ]);
+        }
     } catch (err) {
       console.error('Failed to fetch timetable', err);
     } finally {
