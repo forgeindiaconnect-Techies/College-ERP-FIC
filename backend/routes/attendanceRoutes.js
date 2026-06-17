@@ -5,9 +5,11 @@ import { protect, authorize, departmentScope, requirePermission, collegeScope } 
 
 const router = express.Router();
 
-const updateStudentAttendancePercentage = async (studentId) => {
+const updateStudentAttendancePercentage = async (studentId, req) => {
   try {
-    const records = await Attendance.find({ collegeId: req.collegeId || 'unassigned_college',  });
+    const records = await Attendance.find({ 
+      collegeId: { $in: [req.collegeId, 'unassigned_college'] } 
+    });
     if (records.length === 0) return;
     const presentDays = records.filter(r => r.status === 'Present').length;
     const percentage = Math.round((presentDays / records.length) * 100);
@@ -37,7 +39,9 @@ router.get('/student/:studentId', protect, collegeScope, async (req, res) => {
       console.log('=> 403 Forbidden: Unauthorized');
       return res.status(403).json({ message: 'Unauthorized to view this record' });
     }
-    const records = await Attendance.find({ studentId: req.params.studentId, collegeId: req.collegeId || 'unassigned_college' }).sort({ date: -1 });
+    const records = await Attendance.find({ 
+      studentId: req.params.studentId 
+    }).sort({ date: -1 });
     console.log(`=> Found ${records.length} records`);
     res.json(records);
   } catch (err) {
@@ -95,7 +99,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
       // Update student percentages (get unique student IDs)
       const studentIds = [...new Set(req.body.map(r => r.studentId))];
       for (const id of studentIds) {
-        await updateStudentAttendancePercentage(id);
+        await updateStudentAttendancePercentage(id, req);
       }
       req.app.get('io').emit('dataUpdated', { module: 'attendance', action: 'created' });
       return res.status(201).json({ message: 'Attendance records saved successfully' });
@@ -119,7 +123,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
 
       const attendance = new Attendance(req.body);
       const newRecord = await attendance.save();
-      await updateStudentAttendancePercentage(newRecord.studentId);
+      await updateStudentAttendancePercentage(newRecord.studentId, req);
       req.app.get('io').emit('dataUpdated', { module: 'attendance', action: 'created' });
       return res.status(201).json(newRecord);
     }
@@ -133,7 +137,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 
   try {
     const updatedRecord = await Attendance.findByIdAndUpdate(req.params.id, req.body, { new: true });
     if (updatedRecord) {
-      await updateStudentAttendancePercentage(updatedRecord.studentId);
+      await updateStudentAttendancePercentage(updatedRecord.studentId, req);
     }
     req.app.get('io').emit('dataUpdated', { module: 'attendance', action: 'updated' });
     res.json(updatedRecord);
@@ -148,7 +152,7 @@ router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD
     const record = await Attendance.findById(req.params.id);
     if (record) {
       await Attendance.findByIdAndDelete(req.params.id);
-      await updateStudentAttendancePercentage(record.studentId);
+      await updateStudentAttendancePercentage(record.studentId, req);
     }
     req.app.get('io').emit('dataUpdated', { module: 'attendance', action: 'deleted' });
     res.json({ message: 'Attendance record deleted' });
