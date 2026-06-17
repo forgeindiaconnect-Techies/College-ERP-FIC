@@ -23,7 +23,7 @@ const updateStudentAttendancePercentage = async (studentId, req) => {
 router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff'), requirePermission('view_attendance'), departmentScope, collegeScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
-    const query = dept ? { department: dept } : {};
+    const query = dept ? { department: dept } : {}; if (req.collegeId) query.tenantId = req.collegeId;
     const records = await Attendance.find(query).sort({ attendanceDate: -1, date: -1 });
     res.json(records);
   } catch (err) {
@@ -40,7 +40,7 @@ router.get('/student/:studentId', protect, collegeScope, async (req, res) => {
       return res.status(403).json({ message: 'Unauthorized to view this record' });
     }
     const records = await Attendance.find({ 
-      studentId: req.params.studentId 
+      studentId: req.params.studentId, tenantId: { $in: [req.collegeId, 'unassigned_college'] } 
     }).sort({ attendanceDate: -1, date: -1 });
     console.log(`=> Found ${records.length} records`);
     res.json(records);

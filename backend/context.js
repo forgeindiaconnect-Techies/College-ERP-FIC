@@ -16,7 +16,7 @@ mongoose.plugin((schema) => {
       const store = context.getStore();
       if (store && store.get('collegeId')) {
         // Exclude models that are intentionally global
-        if (this.model && ['College', 'SystemSetting', 'User', 'Subscription'].includes(this.model.modelName)) {
+        if (this.model && ['College', 'SystemSetting', 'User', 'Subscription', 'Attendance'].includes(this.model.modelName)) {
           if (typeof next === 'function') return next();
           return;
         }
@@ -29,7 +29,7 @@ mongoose.plugin((schema) => {
   schema.pre('insertMany', function(next, docs) {
     const store = context.getStore();
     if (store && store.get('collegeId')) {
-      if (this.modelName && ['College', 'SystemSetting', 'User', 'Subscription'].includes(this.modelName)) {
+      if (this.modelName && ['College', 'SystemSetting', 'User', 'Subscription', 'Attendance'].includes(this.modelName)) {
         if (typeof next === 'function') return next();
         return;
       }
@@ -51,7 +51,7 @@ mongoose.plugin((schema) => {
     const store = context.getStore();
     if (store && store.get('collegeId')) {
       // Cannot reliably get modelName in aggregate hook sometimes, but we can check if it's the College collection
-      if (this._model && ['College', 'SystemSetting', 'User', 'Subscription'].includes(this._model.modelName)) {
+      if (this._model && ['College', 'SystemSetting', 'User', 'Subscription', 'Attendance'].includes(this._model.modelName)) {
         if (typeof next === 'function') return next();
         return;
       }
@@ -63,7 +63,7 @@ mongoose.plugin((schema) => {
   schema.pre('save', function(next) {
     const store = context.getStore();
     if (store && store.get('collegeId')) {
-      if (this.constructor && ['College', 'SystemSetting', 'User', 'Subscription'].includes(this.constructor.modelName)) {
+      if (this.constructor && ['College', 'SystemSetting', 'User', 'Subscription', 'Attendance'].includes(this.constructor.modelName)) {
         if (typeof next === 'function') return next();
         return;
       }
