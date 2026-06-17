@@ -62,7 +62,7 @@ const AccountsSidebar = ({ isOpen, onClose }) => {
   return (
     <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-header">
-        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+        <div style={{ display: "flex", flexDirection: "column" }}>`n            <h2 style={{ fontSize: "1.1rem", fontWeight: 700, margin: 0, color: "var(--text-main)", letterSpacing: "0.5px" }}>{account?.collegeName?.toUpperCase() || "GLOBAL TECH SOLUTION"}</h2>`n            <span style={{ fontSize: "0.8rem", color: "var(--text-muted)", fontWeight: 500 }}>Accounts Officer</span>`n          </div>
         <button className="sidebar-close-btn" onClick={onClose}>
           <X size={20} />
         </button>

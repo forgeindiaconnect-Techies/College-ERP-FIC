@@ -382,3 +382,8 @@ export const createAssignment = (assignmentData) => api.post('/assignments', ass
 export const submitAssignment = (assignmentId, data) => api.post(`/assignments/${assignmentId}/submit`, data);
 export const getAssignmentSubmissions = (assignmentId) => api.get(`/assignments/${assignmentId}/submissions`);
 export const getStudentSubmissions = (studentId) => api.get(`/assignments/student/${studentId}`);
+
+// Accounts Officer Endpoints
+export const getAccountsOfficers = () => api.get('/accounts-officer');
+export const createAccountsOfficer = (data) => api.post('/accounts-officer', data);
+export const deleteAccountsOfficer = (id) => api.delete(/accounts-officer/);

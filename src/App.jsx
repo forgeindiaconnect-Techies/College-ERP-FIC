@@ -59,6 +59,7 @@ import TransportManagement from './pages/transport/TransportManagement';
 import HostelManagement from './pages/hostel/HostelManagement';
 import PlacementManagement from './pages/placement/PlacementManagement';
 import AdminAssignments from './pages/assignments/AdminAssignments';
+import AccountsOfficerManagement from './pages/accounts-officer/AccountsOfficerManagement';
 import AIAssistant from './pages/ai/AIAssistant';
 import SettingsSecurity from './pages/settings/SettingsSecurity';
 import LandingPage from './pages/landing/LandingPage';
@@ -356,7 +357,7 @@ function App() {
               <Route path="transport"     element={<TransportManagement />} />
               <Route path="hostel"        element={<HostelManagement />} />
               <Route path="placement"     element={<PlacementManagement />} />
-              <Route path="assignments"   element={<AdminAssignments />} />
+              <Route path="assignments"   element={<AdminAssignments />} />`n                <Route path="accounts-management" element={<AccountsOfficerManagement />} />
               <Route path="ai"            element={<AIAssistant />} />
               <Route path="announcements" element={<AnnouncementsManagement />} />
               <Route path="permissions"   element={<RolePermissions />} />

@@ -27,6 +27,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       name: 'User Management',
       icon: <Users size={18} />,
       items: [
+        { name: 'Accounts Officer', path: '/admin/accounts-management', icon: <Wallet size={18} /> },
         { name: 'HODs', path: '/admin/hods', icon: <GraduationCap size={18} style={{ color: 'var(--primary)' }} /> },
         { name: 'Staff', path: '/admin/staff', icon: <GraduationCap size={18} /> },
         { name: 'Students', path: '/admin/students', icon: <Users size={18} /> },

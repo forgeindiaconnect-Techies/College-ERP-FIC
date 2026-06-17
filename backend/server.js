@@ -44,6 +44,7 @@ import staffSupportRoutes from './routes/staffSupportRoutes.js';
 import hodSupportRoutes from './routes/hodSupportRoutes.js';
 import superadminRoutes from './routes/superadminRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
+import accountsOfficerRoutes from './routes/accountsOfficerRoutes.js';
 
 // Import Cron Jobs
 import { initCronJobs } from './cron/scheduler.js';
@@ -662,6 +663,7 @@ app.use('/api/staff-support', staffSupportRoutes);
 app.use('/api/hod-support', hodSupportRoutes);
 app.use('/api/superadmin', superadminRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/accounts-officer', accountsOfficerRoutes);
 
 app.get('/', (req, res) => {
   res.send('College ERP API is running...');
