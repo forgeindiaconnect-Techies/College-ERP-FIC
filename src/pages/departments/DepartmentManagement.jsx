@@ -238,8 +238,8 @@ const DepartmentManagement = () => {
                   </span>
                 </div>
 
-                <div className="dept-card-body" style={{ padding: '1.25rem', background: 'rgba(255,255,255,0.02)' }}>
-                  <div className="dept-hod-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', padding: '0.6rem 0.8rem', background: 'rgba(99, 102, 241, 0.05)', borderRadius: '8px', borderLeft: '3px solid var(--primary)' }}>
+                <div className="dept-card-body" style={{ padding: '0 1.25rem 1.25rem 1.25rem' }}>
+                  <div className="dept-hod-info" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '1.25rem', padding: '0.6rem 0.8rem', background: 'var(--bg-primary)', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
                     <UserCircle size={18} className="text-[var(--primary)]" />
                     <span className="hod-name" style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--text-main)' }}>
                       {dept.headOfDepartment || dept.hod || `Dr. ${dept.name.substring(0, 3)} Sharma`}
@@ -247,32 +247,32 @@ const DepartmentManagement = () => {
                   </div>
                   
                   <div className="dept-stats-row" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div className="dept-stat-box" style={{ background: 'var(--bg-primary)', padding: '0.8rem', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-color)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                      <span className="stat-label" style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '0.4rem' }}>Students</span>
-                      <span className="stat-number" style={{ display: 'block', fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    <div className="dept-stat-box" style={{ background: 'var(--bg-primary)', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                      <span className="stat-label" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.4rem' }}>Students</span>
+                      <span className="stat-number" style={{ display: 'block', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>
                         {dept.students ? Number(dept.students).toLocaleString() : (dept.name.length * 15 + 120)}
                       </span>
                     </div>
-                    <div className="dept-stat-box" style={{ background: 'var(--bg-primary)', padding: '0.8rem', borderRadius: '10px', textAlign: 'center', border: '1px solid var(--border-color)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)' }}>
-                      <span className="stat-label" style={{ display: 'block', fontSize: '0.72rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginBottom: '0.4rem' }}>Staff</span>
-                      <span className="stat-number" style={{ display: 'block', fontSize: '1.25rem', fontWeight: 800, color: 'var(--text-main)' }}>
+                    <div className="dept-stat-box" style={{ background: 'var(--bg-primary)', padding: '0.8rem', borderRadius: '8px', textAlign: 'center', border: '1px solid var(--border-color)' }}>
+                      <span className="stat-label" style={{ display: 'block', fontSize: '0.7rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600, letterSpacing: '0.05em', marginBottom: '0.4rem' }}>Staff</span>
+                      <span className="stat-number" style={{ display: 'block', fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-main)' }}>
                         {dept.staff ? dept.staff : Math.floor((dept.name.length * 15 + 120) / 15)}
                       </span>
                     </div>
                   </div>
                 </div>
 
-                <div className="dept-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderTop: '1px solid var(--border-color)' }}>
+                <div className="dept-actions" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '1rem 1.25rem', borderTop: '1px solid var(--border-color)', background: 'var(--bg-primary)', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
                   <button 
-                    className="btn-primary" 
+                    className="btn-ghost" 
                     onClick={() => navigate(`/admin/departments/${dept._id || dept.id}`)}
-                    style={{ flex: 1, marginRight: '1rem', padding: '0.6rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', borderRadius: '8px' }}
+                    style={{ flex: 1, padding: '0.5rem', fontSize: '0.85rem', display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.5rem', borderRadius: '8px', border: '1px solid var(--primary)', color: 'var(--primary)' }}
                   >
                     View Details <ArrowRight size={16} />
                   </button>
                   <div className="action-buttons" style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button className="btn-icon" onClick={() => openEdit(dept)} title="Edit" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}><Edit2 size={16} className="text-[#3b82f6]" /></button>
-                    <button className="btn-icon btn-icon-danger" onClick={() => handleDelete(dept.id)} title="Delete" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)' }}><Trash2 size={16} className="text-[#ef4444]" /></button>
+                    <button className="btn-icon" onClick={() => openEdit(dept)} title="Edit" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', width: '34px', height: '34px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Edit2 size={16} className="text-[#3b82f6]" /></button>
+                    <button className="btn-icon btn-icon-danger" onClick={() => handleDelete(dept.id)} title="Delete" style={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', width: '34px', height: '34px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Trash2 size={16} className="text-[#ef4444]" /></button>
                   </div>
                 </div>
               </div>

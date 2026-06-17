@@ -108,10 +108,10 @@ const TimetableManagement = () => {
               <CheckCircle size={18} /> Saved!
             </div>
           )}
-          <button onClick={handleAddTimeslot} className="flex items-center gap-2 px-4 py-2 bg-[var(--bg-secondary)] border border-[var(--border-color)] text-[var(--text-main)] font-medium rounded-lg hover:bg-[var(--hover-bg)] transition-colors">
+          <button onClick={handleAddTimeslot} className="btn-ghost" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Plus size={18} /> Add Timeslot
           </button>
-          <button onClick={handlePublish} className="flex items-center gap-2 px-5 py-2 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 shadow-lg transition-all">
+          <button onClick={handlePublish} className="btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <Save size={18} /> Publish
           </button>
         </div>
