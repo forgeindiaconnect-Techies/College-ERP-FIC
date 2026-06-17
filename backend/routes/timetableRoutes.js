@@ -49,9 +49,11 @@ router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Sub Admin'), c
     const filter = { department, semester };
     if (req.collegeId) filter.collegeId = req.collegeId;
 
-    const timetable = await Timetable.findOneAndUpdate(
+    const updateDoc = { department, semester, schedule, collegeId: req.collegeId || null };
+      if (times) updateDoc.times = times;
+      const timetable = await Timetable.findOneAndUpdate(
       filter,
-      { department, semester, times, schedule, collegeId: req.collegeId || null },
+      { $set: updateDoc },
       { new: true, upsert: true, runValidators: true }
     );
     res.status(201).json(timetable);

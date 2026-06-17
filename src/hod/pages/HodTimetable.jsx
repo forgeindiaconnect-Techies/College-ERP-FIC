@@ -117,7 +117,7 @@ const HodTimetable = () => {
       });
     } catch (err) {
       console.error('Failed to publish timetable', err);
-      alert('Failed to save timetable to database');
+      alert('Failed to save timetable to database: ' + (err.response?.data?.message || err.message));
     }
   };
 
