@@ -58,7 +58,7 @@ router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Sub Admin'), c
     );
     res.status(201).json(timetable);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Timetable Save Error:', error); res.status(400).json({ message: error.message });
   }
 });
 
