@@ -92,7 +92,7 @@ const StudentAttendance = () => {
 
         // Daily Logs
         const logs = records.map(r => ({
-          date: new Date(r.date).toLocaleDateString('en-CA'),
+          date: new Date(r.date).toLocaleDateString('en-GB').replace(/\//g, '-'),
           subject: r.subject || 'General',
           status: r.status?.toLowerCase() || 'present',
           faculty: r.markedBy || 'System'

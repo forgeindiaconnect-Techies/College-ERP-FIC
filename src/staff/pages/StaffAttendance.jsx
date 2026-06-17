@@ -508,6 +508,19 @@ const StaffAttendance = () => {
                 filteredRecords.map((r, idx) => {
                   const status = markingState[r.id || r._id] || '';
                   const disabledRow = isSessionAlreadyMarked();
+                  
+                  const formattedDate = new Date(selectedDate);
+                  formattedDate.setUTCHours(0, 0, 0, 0);
+                  const savedRecord = rawAttendanceList.find(record => {
+                    const rDate = new Date(record.date);
+                    rDate.setUTCHours(0,0,0,0);
+                    return record.studentId === (r.id || r._id) &&
+                           rDate.getTime() === formattedDate.getTime() && 
+                           record.subject === selectedSubject && 
+                           record.period === selectedPeriod.split(' ')[1];
+                  });
+                  const savedStatus = savedRecord ? savedRecord.status : null;
+
                   return (
                     <tr key={r.id || r._id} className="border-b border-[var(--border-color)] hover:bg-[var(--bg-secondary)] transition-colors">
                       <td className="p-4 text-[var(--text-muted)]">{idx + 1}</td>
@@ -527,13 +540,15 @@ const StaffAttendance = () => {
                       </td>
                       <td className="p-4"><span className="font-mono text-sm bg-[var(--bg-secondary)] px-2 py-1 rounded text-[var(--text-main)]">{r.id || r._id}</span></td>
                       <td className="p-4">
-                        {r.totalDays > 0 ? (
-                          <div className="flex items-center gap-2">
-                            <span style={{ color: getColor(r.percent), fontWeight: 700 }}>{r.percent}%</span>
-                            <div className="w-24 h-2 bg-[var(--bg-secondary)] rounded-full overflow-hidden">
-                              <div className="h-full rounded-full" style={{ width: `${r.percent}%`, backgroundColor: getColor(r.percent) }}></div>
-                            </div>
-                          </div>
+                        {savedStatus ? (
+                          <span className={`text-xs font-semibold px-2 py-1 rounded-md ${
+                            savedStatus === 'Present' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 
+                            savedStatus === 'Absent' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                            savedStatus === 'Leave' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                          }`}>
+                            {savedStatus} {savedStatus === 'Present' ? '(P)' : savedStatus === 'Absent' ? '(A)' : savedStatus === 'Leave' ? '(L)' : '(M)'}
+                          </span>
                         ) : (
                           <span className="text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-500 rounded-md dark:bg-gray-800 dark:text-gray-400">
                             No Records Yet

@@ -57,44 +57,28 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
     if (Array.isArray(req.body)) {
       if (req.body.length === 0) return res.status(400).json({ message: 'Empty payload' });
 
-      // Group records by subject and period to check for duplicates
-      const sessionsToCheck = [];
-      req.body.forEach(record => {
+      const bulkOps = req.body.map(record => {
         const exactDate = new Date(record.date);
         exactDate.setUTCHours(0, 0, 0, 0);
-        record.date = exactDate; // ensure the record saves with this normalized date
-        record.collegeId = req.collegeId || 'unassigned_college'; // Explicitly inject collegeId
+        record.date = exactDate;
+        record.collegeId = req.collegeId || 'unassigned_college';
         
-        const key = `${record.subject}_${record.period || 'All'}_${exactDate.getTime()}`;
-        if (!sessionsToCheck.find(s => s.key === key)) {
-          sessionsToCheck.push({
-            key,
-            subject: record.subject,
-            period: record.period,
-            date: exactDate,
-            department: record.department,
-            semester: record.semester
-          });
-        }
+        return {
+          updateOne: {
+            filter: {
+              studentId: record.studentId,
+              date: exactDate,
+              subject: record.subject,
+              period: record.period
+            },
+            update: { $set: record },
+            upsert: true
+          }
+        };
       });
 
-      // Check if any of these sessions already exist
-      for (const session of sessionsToCheck) {
-        const existingCount = await Attendance.countDocuments({
-          subject: session.subject,
-          period: session.period,
-          date: session.date,
-          department: session.department,
-          semester: session.semester
-        });
-        if (existingCount > 0) {
-          return res.status(409).json({ message: `Attendance already submitted for ${session.subject} on this date and period.` });
-        }
-      }
-
-      // If no duplicates, insert all
-      const result = await Attendance.insertMany(req.body);
-      console.log(`=> Inserted ${result.length} records`);
+      await Attendance.bulkWrite(bulkOps);
+      console.log(`=> Upserted ${bulkOps.length} attendance records`);
       
       // Update student percentages (get unique student IDs)
       const studentIds = [...new Set(req.body.map(r => r.studentId))];
