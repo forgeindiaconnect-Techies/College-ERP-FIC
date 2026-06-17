@@ -386,4 +386,4 @@ export const getStudentSubmissions = (studentId) => api.get(`/assignments/studen
 // Accounts Officer Endpoints
 export const getAccountsOfficers = () => api.get('/accounts-officer');
 export const createAccountsOfficer = (data) => api.post('/accounts-officer', data);
-export const deleteAccountsOfficer = (id) => api.delete(/accounts-officer/);
+export const deleteAccountsOfficer = (id) => api.delete(`/accounts-officer/${id}`);
