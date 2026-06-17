@@ -100,12 +100,7 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
           </button>
         )}
         <div className="navbar-greeting" style={{ display: 'flex', flexDirection: 'column' }}>
-          {collegeName && (
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--primary)', letterSpacing: '-0.3px' }}>
-              {collegeName}
-            </h2>
-          )}
-          <h3 style={{ fontSize: collegeName ? '0.95rem' : '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text-main)', marginTop: '2px' }}>
+          <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text-main)', marginTop: '2px' }}>
             Welcome, {userRole}! 👋
           </h3>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '2px' }}>
@@ -193,11 +188,9 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
         <div className="navbar-profile-wrapper" style={{ position: 'relative' }}>
           <div className="navbar-profile" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
             <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4f46e5&color=fff`} alt="Profile" className="profile-img" />
-            <div className="profile-info">
-              <span className="profile-name">{userName}</span>
-              <span className="profile-role">
-                {userRole} {collegeName ? ` • ${collegeName}` : ''}
-              </span>
+            <div className="user-info">
+              <span className="user-name">{userName}</span>
+              <span className="user-role">{userRole}</span>
             </div>
             <ChevronDown size={16} className="text-muted" />
           </div>
