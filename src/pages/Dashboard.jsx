@@ -218,7 +218,8 @@ const Dashboard = () => {
   } catch (e) { /* ignore */ }
 
   return (
-    <div className="dashboard animate-fade-in">`n      <CollegeInfoCard />
+    <div className="dashboard animate-fade-in">
+      <CollegeInfoCard />
       {(isTrial && isActivePlan) && (
         <div style={{
           background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
