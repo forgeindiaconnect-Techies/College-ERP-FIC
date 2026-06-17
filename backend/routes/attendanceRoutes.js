@@ -8,7 +8,7 @@ const router = express.Router();
 const updateStudentAttendancePercentage = async (studentId, req) => {
   try {
     const records = await Attendance.find({ 
-      collegeId: { $in: [req.collegeId, 'unassigned_college'] } 
+      tenantId: { $in: [req.collegeId, 'unassigned_college'] } 
     });
     if (records.length === 0) return;
     const presentDays = records.filter(r => r.status === 'Present').length;
@@ -24,7 +24,7 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'St
   try {
     const dept = req.dept || req.query.dept;
     const query = dept ? { department: dept } : {};
-    const records = await Attendance.find(query).sort({ date: -1 });
+    const records = await Attendance.find(query).sort({ attendanceDate: -1, date: -1 });
     res.json(records);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -41,7 +41,7 @@ router.get('/student/:studentId', protect, collegeScope, async (req, res) => {
     }
     const records = await Attendance.find({ 
       studentId: req.params.studentId 
-    }).sort({ date: -1 });
+    }).sort({ attendanceDate: -1, date: -1 });
     console.log(`=> Found ${records.length} records`);
     res.json(records);
   } catch (err) {
@@ -58,18 +58,19 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
       if (req.body.length === 0) return res.status(400).json({ message: 'Empty payload' });
 
       const bulkOps = req.body.map(record => {
-        const exactDate = new Date(record.date);
+        const exactDate = new Date(record.attendanceDate || record.date);
         exactDate.setUTCHours(0, 0, 0, 0);
-        record.date = exactDate;
-        record.collegeId = req.collegeId || 'unassigned_college';
+        record.attendanceDate = exactDate;
+        record.tenantId = record.tenantId || req.collegeId || 'unassigned_college';
         
         return {
           updateOne: {
             filter: {
+              tenantId: record.tenantId,
               studentId: record.studentId,
-              date: exactDate,
-              subject: record.subject,
-              period: record.period
+              attendanceDate: exactDate,
+              subjectId: record.subjectId || record.subject,
+              periodId: record.periodId || record.period
             },
             update: { $set: record },
             upsert: true
@@ -89,16 +90,17 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
       return res.status(201).json({ message: 'Attendance records saved successfully' });
     } else {
       // Single insert
-      const exactDate = new Date(req.body.date);
+      const exactDate = new Date(req.body.attendanceDate || req.body.date);
       exactDate.setUTCHours(0, 0, 0, 0);
-      req.body.date = exactDate;
-      req.body.collegeId = req.collegeId || 'unassigned_college'; // Explicitly inject collegeId
+      req.body.attendanceDate = exactDate;
+      req.body.tenantId = req.body.tenantId || req.collegeId || 'unassigned_college'; // Explicitly inject tenantId
 
       const existingCount = await Attendance.countDocuments({
         studentId: req.body.studentId,
-        subject: req.body.subject,
-        period: req.body.period,
-        date: exactDate
+        subjectId: req.body.subjectId || req.body.subject,
+        periodId: req.body.periodId || req.body.period,
+        attendanceDate: exactDate,
+        tenantId: req.body.tenantId
       });
 
       if (existingCount > 0) {

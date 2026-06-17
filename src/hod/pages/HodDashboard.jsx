@@ -127,7 +127,7 @@ const HodDashboard = () => {
   const today = new Date();
   today.setUTCHours(0, 0, 0, 0);
   const presentCountToday = allAttendance.filter(r => {
-    const rDate = new Date(r.date);
+    const rDate = new Date(r.attendanceDate || r.date);
     rDate.setUTCHours(0, 0, 0, 0);
     return rDate.getTime() === today.getTime() && 
            (r.department === HOD_DEPT || r.department === deptCode || myStudents.some(s => s.id === r.studentId || s._id === r.studentId)) &&

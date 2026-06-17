@@ -212,11 +212,11 @@ const StaffAttendance = () => {
 
     // See if attendance already exists for this exact session
     const existingSessionRecords = rawAttendanceList.filter(r => {
-      const rDate = new Date(r.date);
+      const rDate = new Date(r.attendanceDate || r.date);
       rDate.setUTCHours(0,0,0,0);
       return rDate.getTime() === formattedDate.getTime() && 
-             r.subject === selectedSubject && 
-             r.period === selectedPeriod.split(' ')[1]; // "Period 1" -> "1"
+             (r.subjectId === selectedSubject || r.subject === selectedSubject) && 
+             (r.periodId === selectedPeriod.split(' ')[1] || r.period === selectedPeriod.split(' ')[1]);
     });
 
     myClassStudents.forEach(s => {
@@ -243,16 +243,15 @@ const StaffAttendance = () => {
     }));
   };
 
-  // Check if session is already marked
   const isSessionAlreadyMarked = () => {
     const formattedDate = new Date(selectedDate);
     formattedDate.setUTCHours(0, 0, 0, 0);
     return rawAttendanceList.some(r => {
-      const rDate = new Date(r.date);
+      const rDate = new Date(r.attendanceDate || r.date);
       rDate.setUTCHours(0,0,0,0);
       return rDate.getTime() === formattedDate.getTime() && 
-             r.subject === selectedSubject && 
-             r.period === selectedPeriod.split(' ')[1];
+             (r.subjectId === selectedSubject || r.subject === selectedSubject) && 
+             (r.periodId === selectedPeriod.split(' ')[1] || r.period === selectedPeriod.split(' ')[1]);
     });
   };
 
@@ -270,17 +269,18 @@ const StaffAttendance = () => {
     }
 
     try {
-      const bulkRecords = myClassStudents.map(s => ({
-        studentId: s.id || s._id,
-        studentName: s.name,
-        department: staffDept,
-        semester: targetSem,
-        date: new Date(selectedDate),
-        period: selectedPeriod.split(' ')[1],
-        status: markingState[s.id || s._id],
-        subject: selectedSubject,
-        markedBy: staffSession.name
-      }));
+        const bulkRecords = myClassStudents.map(s => ({
+          tenantId: sessionStorage.getItem('tenantId') || 'mock_college_id',
+          studentId: s.id || s._id,
+          studentName: s.name,
+          department: staffDept,
+          semester: targetSem,
+          attendanceDate: new Date(selectedDate),
+          periodId: selectedPeriod.split(' ')[1],
+          status: markingState[s.id || s._id],
+          subjectId: selectedSubject,
+          markedBy: staffSession.name
+        }));
 
       const res = await createAttendance(bulkRecords);
       if (res?.status === 201 || res?.status === 200) {
@@ -512,12 +512,12 @@ const StaffAttendance = () => {
                   const formattedDate = new Date(selectedDate);
                   formattedDate.setUTCHours(0, 0, 0, 0);
                   const savedRecord = rawAttendanceList.find(record => {
-                    const rDate = new Date(record.date);
+                    const rDate = new Date(record.attendanceDate || record.date);
                     rDate.setUTCHours(0,0,0,0);
                     return record.studentId === (r.id || r._id) &&
                            rDate.getTime() === formattedDate.getTime() && 
-                           record.subject === selectedSubject && 
-                           record.period === selectedPeriod.split(' ')[1];
+                           (record.subjectId === selectedSubject || record.subject === selectedSubject) && 
+                           (record.periodId === selectedPeriod.split(' ')[1] || record.period === selectedPeriod.split(' ')[1]);
                   });
                   const savedStatus = savedRecord ? savedRecord.status : null;
 
