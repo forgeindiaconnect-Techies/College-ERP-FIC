@@ -28,3 +28,8 @@
     padding: 1rem;
   }
 }
+
+.main-wrapper { transition: margin-left 0.3s; margin-left: 280px; }
+@media (max-width: 768px) {
+  .main-wrapper { margin-left: 0 !important; }
+}

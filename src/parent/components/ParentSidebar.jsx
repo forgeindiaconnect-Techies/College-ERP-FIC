@@ -1,8 +1,8 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarCheck, BookOpenCheck,
-  CreditCard, Calendar, FileText, Bell, LogOut, ChevronRight
+  CreditCard, Calendar, FileText, Bell, LogOut, ChevronRight, ChevronDown
 } from 'lucide-react';
 import './ParentSidebar.css';
 
@@ -18,14 +18,31 @@ const ParentSidebar = () => {
   const navigate = useNavigate();
   const parent = getParentSession();
 
-  const menuItems = [
-    { name: 'Dashboard', path: '/parent/dashboard', icon: <LayoutDashboard size={19} /> },
-    { name: 'Child Attendance', path: '/parent/attendance', icon: <CalendarCheck size={19} /> },
-    { name: 'Child Marks', path: '/parent/marks', icon: <BookOpenCheck size={19} /> },
-    { name: 'Fee Status', path: '/parent/fees', icon: <CreditCard size={19} /> },
-    { name: 'Timetable', path: '/parent/timetable', icon: <Calendar size={19} /> },
-    { name: 'Leave Status', path: '/parent/leaves', icon: <FileText size={19} /> },
-    { name: 'Notifications', path: '/parent/notifications', icon: <Bell size={19} /> },
+  const [expandedGroups, setExpandedGroups] = React.useState({});
+
+  const toggleGroup = (groupName) => {
+    setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+  };
+
+  const menuGroups = [
+    {
+      name: 'Child Academics',
+      icon: <BookOpenCheck size={18} />,
+      items: [
+        { name: 'Child Attendance', path: '/parent/attendance', icon: <CalendarCheck size={19} /> },
+        { name: 'Child Marks', path: '/parent/marks', icon: <BookOpenCheck size={19} /> },
+        { name: 'Timetable', path: '/parent/timetable', icon: <Calendar size={19} /> }
+      ]
+    },
+    {
+      name: 'Administration',
+      icon: <FileText size={18} />,
+      items: [
+        { name: 'Fee Status', path: '/parent/fees', icon: <CreditCard size={19} /> },
+        { name: 'Leave Status', path: '/parent/leaves', icon: <FileText size={19} /> },
+        { name: 'Notifications', path: '/parent/notifications', icon: <Bell size={19} /> }
+      ]
+    }
   ];
 
   const handleLogout = () => {
@@ -46,15 +63,43 @@ const ParentSidebar = () => {
       {/* Nav links */}
       <nav className="parent-nav">
         <ul>
-          {menuItems.map((item, i) => (
-            <li key={i}>
-              <NavLink
-                to={item.path}
-                className={({ isActive }) => isActive ? 'parent-nav-link active' : 'parent-nav-link'}
+          <li style={{ marginBottom: '0.5rem' }}>
+            <NavLink
+              to="/parent/dashboard"
+              className={({ isActive }) => isActive ? 'parent-nav-link active' : 'parent-nav-link'}
+            >
+              <LayoutDashboard size={19} />
+              <span>Dashboard</span>
+            </NavLink>
+          </li>
+
+          {menuGroups.map((group, idx) => (
+            <li key={idx} style={{ marginBottom: '0.5rem' }}>
+              <div 
+                className="nav-group-header" 
+                onClick={() => toggleGroup(group.name)}
               >
-                {item.icon}
-                <span>{item.name}</span>
-              </NavLink>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {group.icon}
+                  <span>{group.name}</span>
+                </div>
+                {expandedGroups[group.name] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </div>
+              
+              <ul className={`nav-group-items ${expandedGroups[group.name] ? 'expanded' : 'collapsed'}`}>
+                {group.items.map((item, i) => (
+                  <li key={i}>
+                    <NavLink
+                      to={item.path}
+                      className={({ isActive }) => isActive ? 'parent-nav-link active' : 'parent-nav-link'}
+                      style={{ paddingLeft: '3rem' }}
+                    >
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>

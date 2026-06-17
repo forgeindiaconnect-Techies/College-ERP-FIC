@@ -7,13 +7,7 @@ import {
 import '../../pages/Dashboard.css';
 
 // Pre-seeded communication logs to make the hub look instantly rich and functional
-const INITIAL_LOGS = [
-  { id: 'COM001', title: 'End Semester Exam Guidelines', category: 'Academic Updates', department: 'All', audience: 'Students', priority: 'High', date: '2026-05-24', status: 'Sent', attachment: 'Exam_Rules_2026.pdf', channels: ['Email', 'Push'], delivery: { email: 99, sms: 0, push: 100 } },
-  { id: 'COM002', title: 'Emergency Heavy Rain Academic Freeze', category: 'Emergency Alerts', department: 'All', audience: 'Entire College', priority: 'Emergency', date: '2026-05-25', status: 'Sent', attachment: null, channels: ['Email', 'SMS', 'Push'], delivery: { email: 98, sms: 96, push: 99 } },
-  { id: 'COM003', title: 'CSE Curriculum Review Syllabus Sync Meeting', category: 'Meeting Notifications', department: 'CSE', audience: 'HODs & Staff', priority: 'Medium', date: '2026-05-26', status: 'Delivering', attachment: 'Meeting_Agenda.pdf', channels: ['Email'], delivery: { email: 85, sms: 0, push: 0 } },
-  { id: 'COM004', title: 'Tuition Fee Clearance Final Reminder', category: 'Circulars', department: 'All', audience: 'Parents', priority: 'High', date: '2026-05-23', status: 'Sent', attachment: 'Fee_Circular_Term3.pdf', channels: ['Email', 'SMS'], delivery: { email: 97, sms: 92, push: 0 } },
-  { id: 'COM005', title: 'Scheduled Placement Roster Launch', category: 'Event Notifications', department: 'All', audience: 'Students', priority: 'Low', date: '2026-05-28', status: 'Scheduled', attachment: null, channels: ['Push'], delivery: { email: 0, sms: 0, push: 0 } },
-];
+const INITIAL_LOGS = [];
 
 export default function PrincipalCommunicationCenter() {
   const [logs, setLogs] = useState([]);
@@ -58,12 +52,12 @@ export default function PrincipalCommunicationCenter() {
       }
     }
 
-    // Sync database / LocalStorage logs
-    const saved = localStorage.getItem(`erp_communication_logs_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
+    // Sync database / LocalStorage logs (Using v2 key to clear old mock data)
+    const saved = localStorage.getItem(`erp_communication_logs_v2_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`);
     if (saved) {
       setLogs(JSON.parse(saved));
     } else {
-      localStorage.setItem(`erp_communication_logs_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(INITIAL_LOGS));
+      localStorage.setItem(`erp_communication_logs_v2_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(INITIAL_LOGS));
       setLogs(INITIAL_LOGS);
     }
   }, []);
@@ -75,7 +69,7 @@ export default function PrincipalCommunicationCenter() {
 
   const saveLogs = (newLogs) => {
     setLogs(newLogs);
-    localStorage.setItem(`erp_communication_logs_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(newLogs));
+    localStorage.setItem(`erp_communication_logs_v2_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(newLogs));
   };
 
   // Safe blocker modal for IT Super Admin permissions
@@ -435,7 +429,7 @@ export default function PrincipalCommunicationCenter() {
       <div style={{ display: 'grid', gridTemplateColumns: '3fr 1fr', gap: '1.5rem' }}>
         
         {/* LEFT COMPONENT: DATABASE ARCHIVE TABLE */}
-        <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-color)' }}>
+        <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', border: '1px solid var(--border-color)', minWidth: 0, overflowX: 'auto' }}>
           
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.8rem' }}>
             <h3 style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -497,8 +491,8 @@ export default function PrincipalCommunicationCenter() {
           </div>
 
           {/* Table */}
-          <div className="table-container">
-            <table>
+          <div className="table-container" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', minWidth: '800px' }}>
               <thead>
                 <tr>
                   <th>Title</th>

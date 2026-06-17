@@ -13,6 +13,7 @@ import {
 import { getAllFees, getSalaries, getExpenses, getStudents } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './AccountsDashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 const AccountsDashboard = () => {
   const navigate = useNavigate();
@@ -157,6 +158,7 @@ const AccountsDashboard = () => {
 
   return (
     <div className="accounts-dashboard animate-fade-in">
+      <CollegeInfoCard />
       {/* Welcome Banner */}
       <div className="accounts-welcome-banner">
         <div className="banner-left">

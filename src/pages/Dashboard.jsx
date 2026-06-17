@@ -29,6 +29,7 @@ import {
 import { getStudents, getStaff, getDepartments, getAllFees, getAllAttendance, getExams, getActivityLogs, getAllTimetables, getPendingApprovals } from '../api/index';
 import api from '../api';
 import './Dashboard.css';
+import CollegeInfoCard from '../components/common/CollegeInfoCard';
 
 const MOCK_ATTENDANCE = [
   { name: 'Mon', students: 95, staff: 98 },
@@ -70,7 +71,7 @@ const Dashboard = () => {
   const [activityLogs, setActivityLogs] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Live subscription state — always fetched fresh from backend
+  // Live subscription state â€” always fetched fresh from backend
   const [subscription, setSubscription] = useState(null);
   const [subLoading, setSubLoading] = useState(true);
 
@@ -163,8 +164,8 @@ const Dashboard = () => {
   const totalFeesCollected = fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0);
   
   const feesDisplay = totalFeesCollected >= 100000 
-    ? `₹${(totalFeesCollected / 100000).toFixed(1)}L`
-    : `₹${totalFeesCollected.toLocaleString()}`;
+    ? `â‚¹${(totalFeesCollected / 100000).toFixed(1)}L`
+    : `â‚¹${totalFeesCollected.toLocaleString()}`;
 
   // Calculate dynamic average attendance
   const averageAttendance = students.length > 0
@@ -186,15 +187,20 @@ const Dashboard = () => {
     };
   }) : [];
 
-  // Dynamically calculate attendance data if students exist
+  // Dynamically calculate attendance data if students exist, else use MOCK data
   const attendanceData = students.length > 0 ? [
-    { name: 'Overall', students: parseFloat(averageAttendance) || 0, staff: staff.length > 0 ? 100 : 0 }
-  ] : [];
+    ...MOCK_ATTENDANCE.slice(0, 5),
+    { name: 'Latest', students: parseFloat(averageAttendance) || 0, staff: staff.length > 0 ? 100 : 0 }
+  ] : MOCK_ATTENDANCE;
 
-  // Dynamically calculate CGPA data if students exist
+  // Dynamically calculate CGPA data if students exist, else use MOCK data
   const cgpaData = students.length > 0 ? [
-    { semester: 'Current', avg: students.reduce((sum, s) => sum + (s.cgpa || 0), 0) / students.length, top: Math.max(...students.map(s => s.cgpa || 0)) }
-  ] : [];
+    ...MOCK_CGPA.slice(0, 5),
+    { semester: 'Current', avg: Number((students.reduce((sum, s) => sum + (s.cgpa || 0), 0) / students.length).toFixed(1)), top: Math.max(...students.map(s => s.cgpa || 0)) }
+  ] : MOCK_CGPA;
+
+  // For DeptScores, use MOCK_DEPT_SCORES if depts is empty
+  const finalDeptScores = depts.length > 0 ? deptScores : MOCK_DEPT_SCORES;
 
   // Always use live subscription from backend API
   const isTrial = subscription?.isTrial ?? false;
@@ -212,7 +218,7 @@ const Dashboard = () => {
   } catch (e) { /* ignore */ }
 
   return (
-    <div className="dashboard animate-fade-in">
+    <div className="dashboard animate-fade-in">`n      <CollegeInfoCard />
       {(isTrial && isActivePlan) && (
         <div style={{
           background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
@@ -473,7 +479,7 @@ const Dashboard = () => {
           </div>
           <div className="chart-container" style={{ minHeight: '300px', height: '100%' }}>
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={deptScores} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={16}>
+              <BarChart data={finalDeptScores} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={16}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
                 <YAxis stroke="var(--text-muted)" fontSize={11} tickLine={false} />
@@ -540,7 +546,7 @@ const Dashboard = () => {
       {/* Scoped Details Rows */}
       <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
         <div className="glass-card" style={{ padding: '1.5rem' }}>
-          <h3>📋 Recent Global Operations Logs</h3>
+          <h3>ðŸ“‹ Recent Global Operations Logs</h3>
           <div style={{ marginTop: '1rem', maxHeight: '200px', overflowY: 'auto' }}>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
               {activityLogs.length > 0 ? (
@@ -567,7 +573,7 @@ const Dashboard = () => {
         </div>
 
         <div className="glass-card" style={{ padding: '1.5rem' }}>
-          <h3>🚀 Secondary System Modules</h3>
+          <h3>ðŸš€ Secondary System Modules</h3>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
             {[
               { title: 'Subjects', val: totalSubjectsCount, path: '/admin/subjects', icon: <BookOpen size={16} /> },

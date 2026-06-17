@@ -1,9 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, CalendarCheck, BookOpenCheck,
   ClipboardList, CreditCard, Calendar, FileText,
-  Settings, LogOut, ChevronRight, Megaphone, GraduationCap, Home, Briefcase, Library, ShieldAlert
+  Settings, LogOut, ChevronRight, ChevronDown, Megaphone, GraduationCap, Home, Briefcase, Library, ShieldAlert
 } from 'lucide-react';
 import './StudentSidebar.css';
 
@@ -21,21 +21,50 @@ const StudentSidebar = () => {
   const navigate = useNavigate();
   const student = getStudentSession();
 
-  const menuItems = [
-    { name: 'Dashboard', path: '/student/dashboard', icon: <LayoutDashboard size={19} /> },
-    { name: 'Announcements', path: '/student/announcements', icon: <Megaphone size={19} /> },
-    { name: 'My Attendance', path: '/student/attendance', icon: <CalendarCheck size={19} /> },
-    { name: 'Semester Marks', path: '/student/marks', icon: <BookOpenCheck size={19} /> },
-    { name: 'Assignments', path: '/student/assignments', icon: <ClipboardList size={19} /> },
-    { name: 'Exams', path: '/student/exams', icon: <GraduationCap size={19} /> },
-    { name: 'Placements', path: '/student/placement', icon: <Briefcase size={19} /> },
-    { name: 'Fee Status', path: '/student/fees', icon: <CreditCard size={19} /> },
-    { name: 'Hostel Allocation', path: '/student/hostel', icon: <Home size={19} /> },
-    { name: 'Timetable', path: '/student/timetable', icon: <Calendar size={19} /> },
-    { name: 'Library', path: '/student/library', icon: <Library size={19} /> },
-    { name: 'Leave Requests', path: '/student/leaves', icon: <FileText size={19} /> },
-    { name: 'Student Support Center', path: '/student/welfare', icon: <ShieldAlert size={19} /> },
-    { name: 'Profile Settings', path: '/student/settings', icon: <Settings size={19} /> },
+  const [expandedGroups, setExpandedGroups] = React.useState({});
+
+  const toggleGroup = (groupName) => {
+    setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+  };
+
+  const menuGroups = [
+    {
+      name: 'Academics',
+      icon: <BookOpenCheck size={18} />,
+      items: [
+        { name: 'My Attendance', path: '/student/attendance', icon: <CalendarCheck size={18} /> },
+        { name: 'Semester Marks', path: '/student/marks', icon: <BookOpenCheck size={18} /> },
+        { name: 'Assignments', path: '/student/assignments', icon: <ClipboardList size={18} /> },
+        { name: 'Exams', path: '/student/exams', icon: <GraduationCap size={18} /> },
+        { name: 'Timetable', path: '/student/timetable', icon: <Calendar size={18} /> }
+      ]
+    },
+    {
+      name: 'Campus Life',
+      icon: <Home size={18} />,
+      items: [
+        { name: 'Hostel Allocation', path: '/student/hostel', icon: <Home size={18} /> },
+        { name: 'Library', path: '/student/library', icon: <Library size={18} /> },
+        { name: 'Placements', path: '/student/placement', icon: <Briefcase size={18} /> }
+      ]
+    },
+    {
+      name: 'Administration',
+      icon: <FileText size={18} />,
+      items: [
+        { name: 'Fee Status', path: '/student/fees', icon: <CreditCard size={18} /> },
+        { name: 'Leave Requests', path: '/student/leaves', icon: <FileText size={18} /> }
+      ]
+    },
+    {
+      name: 'Support & Settings',
+      icon: <ShieldAlert size={18} />,
+      items: [
+        { name: 'Announcements', path: '/student/announcements', icon: <Megaphone size={18} /> },
+        { name: 'Student Support Center', path: '/student/welfare', icon: <ShieldAlert size={18} /> },
+        { name: 'Profile Settings', path: '/student/settings', icon: <Settings size={18} /> }
+      ]
+    }
   ];
 
   const handleLogout = () => {
@@ -56,15 +85,43 @@ const StudentSidebar = () => {
       {/* Nav links */}
       <nav className="student-nav">
         <ul>
-          {menuItems.map((item, i) => (
-            <li key={i}>
-              <NavLink
-                to={item.path}
-                className={({ isActive }) => isActive ? 'student-nav-link active' : 'student-nav-link'}
+          <li style={{ marginBottom: '0.5rem' }}>
+            <NavLink
+              to="/student/dashboard"
+              className={({ isActive }) => isActive ? 'student-nav-link active' : 'student-nav-link'}
+            >
+              <LayoutDashboard size={19} />
+              <span>Dashboard</span>
+            </NavLink>
+          </li>
+
+          {menuGroups.map((group, idx) => (
+            <li key={idx} style={{ marginBottom: '0.5rem' }}>
+              <div 
+                className="nav-group-header" 
+                onClick={() => toggleGroup(group.name)}
               >
-                {item.icon}
-                <span>{item.name}</span>
-              </NavLink>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {group.icon}
+                  <span>{group.name}</span>
+                </div>
+                {expandedGroups[group.name] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </div>
+              
+              <ul className={`nav-group-items ${expandedGroups[group.name] ? 'expanded' : 'collapsed'}`}>
+                {group.items.map((item, i) => (
+                  <li key={i}>
+                    <NavLink
+                      to={item.path}
+                      className={({ isActive }) => isActive ? 'student-nav-link active' : 'student-nav-link'}
+                      style={{ paddingLeft: '3rem' }}
+                    >
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>

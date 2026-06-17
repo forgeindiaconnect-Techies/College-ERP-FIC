@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Plus, Search, Edit2, Trash2, X, GraduationCap, Mail, Phone } from 'lucide-react';
 import { getStaff, createStaff, updateStaff, deleteStaff, getDepartments, createUser } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
+import CustomSelect from '../../components/CustomSelect';
 import './HodManagement.css';
 
 const DEFAULT_HODS = [
@@ -292,6 +293,16 @@ const HodManagement = () => {
                   />
                 </div>
                 <div className="form-group">
+                  <label>Login Password</label>
+                  <input 
+                    type="text"
+                    required={!editTarget}
+                    placeholder={editTarget ? "Leave blank to keep current" : "e.g. password123"}
+                    value={form.password || ''} 
+                    onChange={e => setForm({ ...form, password: e.target.value })} 
+                  />
+                </div>
+                <div className="form-group">
                   <label>Phone Number</label>
                   <input 
                     placeholder="e.g. 9876543210" 
@@ -301,24 +312,23 @@ const HodManagement = () => {
                 </div>
                 <div className="form-group">
                   <label>Department</label>
-                  <select 
-                    value={form.dept} 
+                  <CustomSelect 
+                    value={form.dept}
                     onChange={e => setForm({ ...form, dept: e.target.value })}
-                  >
-                    {availableDepartments.map(d => (
-                      <option key={d.name} value={d.name}>{d.name}</option>
-                    ))}
-                  </select>
+                    options={availableDepartments.map(d => ({ value: d.name, label: d.name }))}
+                    placeholder="Select Department"
+                  />
                 </div>
                 <div className="form-group">
                   <label>Status</label>
-                  <select 
-                    value={form.status} 
+                  <CustomSelect 
+                    value={form.status}
                     onChange={e => setForm({ ...form, status: e.target.value })}
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                    options={[
+                      { value: 'Active', label: 'Active' },
+                      { value: 'Inactive', label: 'Inactive' }
+                    ]}
+                  />
                 </div>
                 
                 {/* Advanced Metrics */}

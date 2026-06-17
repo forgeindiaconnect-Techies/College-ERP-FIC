@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Plus, Filter, MoreVertical, Edit2, Trash2, Mail, Phone, Clock, AlertTriangle, CheckCircle, X, BookOpen } from 'lucide-react';
 import { getStaff, createStaff, updateStaff, deleteStaff, approveStaff } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
+import CustomSelect from '../../components/CustomSelect';
 import './StaffManagement.css';
 
 const DEPARTMENTS = [
@@ -189,11 +190,15 @@ const StaffManagement = () => {
             <Search size={18} className="text-muted" />
             <input type="text" placeholder="Search by name or ID..." value={search} onChange={e => setSearch(e.target.value)} />
           </div>
-          <div className="filter-select-wrapper">
-            <select className="filter-select" value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
-              <option value="All">All Departments</option>
-              {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
-            </select>
+          <div className="filter-select-wrapper" style={{ width: '220px' }}>
+            <CustomSelect 
+              value={deptFilter} 
+              onChange={e => setDeptFilter(e.target.value)}
+              options={[
+                { value: 'All', label: 'All Departments' },
+                ...DEPARTMENTS.map(d => ({ value: d, label: d }))
+              ]}
+            />
           </div>
         </div>
 
@@ -271,15 +276,28 @@ const StaffManagement = () => {
                   <input type="email" required placeholder="staff@college.edu" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
                 </div>
                 <div className="form-group">
+                  <label>Login Password</label>
+                  <input 
+                    type="text" 
+                    required={!editTarget} 
+                    placeholder={editTarget ? "Leave blank to keep current" : "e.g. password123"} 
+                    value={form.password || ''} 
+                    onChange={e => setForm({ ...form, password: e.target.value })} 
+                  />
+                </div>
+                <div className="form-group">
                   <label><Phone size={13} /> Phone</label>
                   <input placeholder="10-digit number" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} />
                 </div>
                 <div className="form-group">
                   <label>Department</label>
-                  <select required value={form.dept} onChange={e => setForm({ ...form, dept: e.target.value })}>
-                    <option value="">Select Department</option>
-                    {DEPARTMENTS.map(d => <option key={d}>{d}</option>)}
-                  </select>
+                  <CustomSelect 
+                    value={form.dept}
+                    onChange={e => setForm({ ...form, dept: e.target.value })}
+                    options={DEPARTMENTS.map(d => ({ value: d, label: d }))}
+                    placeholder="Select Department"
+                    required
+                  />
                 </div>
                 <div className="form-group">
                   <label>Weekly Workload (hrs)</label>
@@ -287,10 +305,14 @@ const StaffManagement = () => {
                 </div>
                 <div className="form-group">
                   <label>Status</label>
-                  <select value={form.status} onChange={e => setForm({ ...form, status: e.target.value })}>
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                  <CustomSelect 
+                    value={form.status}
+                    onChange={e => setForm({ ...form, status: e.target.value })}
+                    options={[
+                      { value: 'Active', label: 'Active' },
+                      { value: 'Inactive', label: 'Inactive' }
+                    ]}
+                  />
                 </div>
               </div>
               <div className="form-group" style={{ marginTop: '1rem' }}>

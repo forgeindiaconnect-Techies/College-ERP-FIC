@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Bus, MapPin, Users, Navigation, CheckCircle, Clock } from 'lucide-react';
 import { getTransportDrivers, getTransportRoutes, getTransportStudents, getDriverAttendance } from '../../api/index';
 import './DriverDashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 const DriverDashboard = () => {
   const [session, setSession] = useState({});

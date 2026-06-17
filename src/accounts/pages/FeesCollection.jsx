@@ -398,7 +398,7 @@ const FeesCollection = () => {
         </div>
       )}
 
-      <div style={{ display:'grid', gridTemplateColumns:'1fr 2fr', gap:'20px' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'minmax(0, 1fr) minmax(0, 2fr)', gap:'20px' }}>
 
         {/* LEFT — Student Search */}
         <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>

@@ -115,9 +115,10 @@ router.post('/forgot-password', async (req, res) => {
 
 // Register College (SaaS Onboarding)
 router.post('/register-college', async (req, res) => {
-  const { collegeName, adminName, email, phone, password } = req.body;
+  const { collegeName, adminName, email, phone, password, principalName, principalEmail, principalPassword } = req.body;
   try {
     const normalizedEmail = email?.trim().toLowerCase();
+    const normalizedPrincipalEmail = principalEmail?.trim().toLowerCase();
     
     // Check if college name already exists
     const existingCollegeByName = await College.findOne({ name: { $regex: new RegExp(`^${collegeName.trim()}$`, 'i') } });
@@ -133,6 +134,13 @@ router.post('/register-college', async (req, res) => {
     const existingUser = await User.findOne({ email: normalizedEmail });
     if (existingUser) {
       return res.status(400).json({ message: `The email '${normalizedEmail}' is already an active user account. Please use a different email.` });
+    }
+    
+    if (normalizedPrincipalEmail) {
+      const existingPrincipalUser = await User.findOne({ email: normalizedPrincipalEmail });
+      if (existingPrincipalUser) {
+        return res.status(400).json({ message: `The email '${normalizedPrincipalEmail}' is already an active user account. Please use a different principal email.` });
+      }
     }
 
     // Generate Tenant ID safely
@@ -163,7 +171,9 @@ router.post('/register-college', async (req, res) => {
       subscriptionStatus: 'Active',
       trialStartDate,
       trialEndDate,
-      adminPassword: password
+      adminPassword: password,
+      principalEmail: normalizedPrincipalEmail,
+      principalPassword
     });
     await newCollege.save();
 
@@ -177,10 +187,22 @@ router.post('/register-college', async (req, res) => {
         tenantId
       });
       await newAdmin.save();
+
+      if (principalName && normalizedPrincipalEmail && principalPassword) {
+        const newPrincipal = new User({
+          name: principalName,
+          email: normalizedPrincipalEmail,
+          password: principalPassword,
+          role: 'Principal',
+          phone,
+          tenantId
+        });
+        await newPrincipal.save();
+      }
     } catch (userError) {
       // Rollback college creation if user creation fails
       await College.findOneAndDelete({ _id: newCollege._id });
-      throw new Error('Failed to create Admin user account. College registration rolled back. ' + userError.message);
+      throw new Error('Failed to create Admin/Principal user account. College registration rolled back. ' + userError.message);
     }
 
     res.status(201).json({
@@ -474,7 +496,14 @@ router.get('/users', protect, collegeScope, async (req, res) => {
     if (role !== 'admin' && role !== 'principal' && role !== 'system admin') {
       return res.status(403).json({ message: 'Access denied: Admin/Principal only' });
     }
-    const users = await User.find({ collegeId: req.user.collegeId }, '-password');
+    // Prevent cross-tenant data leak
+    const effectiveTenantId = req.collegeId || req.user.tenantId || req.user.collegeId || 'unassigned_college';
+    const users = await User.find({ 
+      $or: [
+        { tenantId: effectiveTenantId },
+        { collegeId: effectiveTenantId }
+      ]
+    }, '-password');
     res.json(users);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -558,6 +587,14 @@ router.delete('/users/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
+    
+    // Cascade delete related records to prevent orphaned duplicate keys
+    if (user.role === 'Student' && user.email) {
+      await Student.findOneAndDelete({ email: user.email });
+    } else if ((user.role === 'Staff' || user.role === 'HOD') && user.email) {
+      await Staff.findOneAndDelete({ email: user.email });
+    }
+
     req.app.get('io').emit('dataUpdated', { module: 'users', action: 'deleted' });
     res.json({ message: 'User account successfully deleted' });
   } catch (err) {

@@ -121,7 +121,7 @@ const SuperAdminTrials = () => {
         </div>
       </div>
 
-      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -151,8 +151,8 @@ const SuperAdminTrials = () => {
                 
                 return (
                   <tr key={college._id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
-                    <td style={{ padding: '16px 20px', fontWeight: 600, color: 'var(--text-main)' }}>
-                      {college.name}
+                    <td style={{ padding: '16px 20px', fontWeight: 600, color: 'var(--text-main)', verticalAlign: 'top' }}>
+                      {college.name || college.collegeName || 'Unknown College'}
                     </td>
                     <td style={{ padding: '16px 20px', color: 'var(--text-muted)' }}>
                       {startStr}

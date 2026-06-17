@@ -1,4 +1,4 @@
-/* =============================================
+﻿/* =============================================
    Student Sidebar — Matches Admin Sidebar Style
    ============================================= */
 .student-sidebar {
@@ -13,7 +13,7 @@
   top: 0;
   z-index: 100;
   transition: var(--transition);
-  border-right: 1px solid var(--border-color);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .student-sidebar-header {
@@ -28,28 +28,28 @@
 .student-logo {
   width: 40px;
   height: 40px;
-  background: var(--primary-gradient);
+  background: #eef2ff; color: #4f46e5;
   border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: 700;
   font-size: 1.2rem;
-  color: white;
+  color: var(--sidebar-header-text);
   box-shadow: 0 4px 10px rgba(79, 70, 229, 0.4);
 }
 
 .student-logo-text {
   font-weight: 800;
   font-size: 0.9rem;
-  color: white;
+  color: var(--sidebar-header-text);
   letter-spacing: 0.05em;
 }
 
 .student-brand {
   font-size: 1.4rem;
   font-weight: 600;
-  color: white;
+  color: var(--sidebar-header-text);
   margin: 0;
 }
 
@@ -69,7 +69,7 @@
   width: 5px;
 }
 .student-nav::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
   border-radius: 5px;
 }
 
@@ -104,30 +104,26 @@
 
 .student-nav-link:hover {
   background-color: var(--sidebar-hover);
-  color: #ffffff;
+  color: var(--sidebar-hover-text);
 }
 
 .dark .student-nav-link:hover {
-  color: white;
+  color: var(--sidebar-header-text);
 }
 
-.student-nav-link.active {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  color: #ffffff;
+.student-nav-link.active {background: #eef2ff; color: #4f46e5;
   border-left: none;
   box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
   border-radius: 12px;
 }
 
-.dark .student-nav-link.active {
-  background: linear-gradient(135deg, #4f46e5, #6366f1);
-  color: #ffffff;
+.dark .student-nav-link.active {background: #eef2ff; color: #4f46e5;
   box-shadow: 0 8px 20px rgba(79, 70, 229, 0.25);
   border-radius: 12px;
 }
 
 .student-nav-link.active svg {
-  color: white;
+  color: var(--sidebar-header-text);
 }
 
 .student-sidebar-footer {
@@ -137,3 +133,15 @@
 
 .w-full { width: 100%; }
 .text-left { text-align: left; }
+
+
+
+.student-sidebar-header img { filter: brightness(0); }
+.dark .student-sidebar-header img { filter: none; }
+
+.nav-group-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; color: #475569; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; letter-spacing: 0.05em; }
+.nav-group-header:hover { color: var(--text-main); }
+.nav-group-items { overflow: hidden; transition: max-height 0.3s ease-in-out; }
+.nav-group-items.collapsed { max-height: 0; }
+.nav-group-items.expanded { max-height: 500px; }
+.dark .nav-group-header { color: #9CA3AF; }

@@ -313,7 +313,7 @@ const Layout = () => {
   return (
     <div className="layout-container">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="main-wrapper">
+      <div className={`main-wrapper ${sidebarOpen ? 'sidebar-open' : ''}`}>
         <Navbar role="Admin" onMenuToggle={() => setSidebarOpen(o => !o)} />
         <main className="main-content" style={{ position: 'relative' }}>
           <div style={{ height: '100%' }}>

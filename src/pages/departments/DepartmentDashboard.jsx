@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { getDepartments, getStudents, getStaff } from '../../api/index';
 import './DepartmentDashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 const ADVANCED_METRICS = [
   { label: 'Total Students', value: (dept) => Number(dept.students).toLocaleString(), color: 'var(--text-main)' },

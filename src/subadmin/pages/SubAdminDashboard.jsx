@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Users, GraduationCap, CalendarCheck, Building2, Megaphone, FileBarChart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import '../../pages/Dashboard.css'; // Reuse dashboard styles
+import '../../pages/Dashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard'; // Reuse dashboard styles
 
 const SubAdminDashboard = () => {
   const [permissions, setPermissions] = useState([]);
@@ -33,7 +34,9 @@ const SubAdminDashboard = () => {
 
   return (
     <div className="dashboard-container">
+      <CollegeInfoCard />
       <div className="dashboard-header">
+      <CollegeInfoCard />
         <div>
           <h1 className="page-title">Welcome back, {userName}</h1>
           <p className="text-muted">Here's your permitted administrative access overview.</p>
@@ -42,6 +45,7 @@ const SubAdminDashboard = () => {
 
       {allowedCards.length > 0 ? (
         <div className="dashboard-grid">
+      <CollegeInfoCard />
           {allowedCards.map((card, idx) => (
             <Link to={card.path} key={idx} style={{ textDecoration: 'none' }}>
               <div className="stat-card glass-card hover-lift" style={{ '--accent-color': card.color }}>

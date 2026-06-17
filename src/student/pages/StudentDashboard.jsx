@@ -15,6 +15,7 @@ import {
 } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StudentDashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 const DEPT_SUBJECTS = {
   'Computer Science Engineering': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI', 'Cloud Computing', 'Cryptography'],
@@ -393,6 +394,7 @@ const StudentDashboard = () => {
 
   return (
     <div className="student-dashboard animate-fade-in">
+      <CollegeInfoCard />
       {hasOverdueBooks && (
         <div className="bg-red-500/10 border border-red-500/50 text-red-600 dark:text-red-400 p-5 rounded-2xl mb-8 flex items-start gap-4 shadow-sm">
           <ShieldAlert size={28} className="shrink-0 mt-0.5" />

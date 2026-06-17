@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import '../../pages/Dashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 export default function PrincipalDashboard() {
   const navigate = useNavigate();
@@ -241,15 +242,15 @@ export default function PrincipalDashboard() {
                 <div style={{ marginBottom: '2rem' }}>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '1rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>Department Head (HOD)</h4>
                   {data.HOD.length === 0 ? <p className="text-muted text-sm">No HOD assigned.</p> : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                       {data.HOD.map(user => (
                         <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(124, 58, 237, 0.3)', borderLeft: '4px solid #7C3AED' }}>
                           <p style={{ margin: 0, fontWeight: 800, fontSize: '1.05rem', color: 'var(--text-main)' }}>{user.name}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {user.referenceId || 'N/A'}</p>
-                          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)' }}>✉ {user.email}</p>
+                          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)', wordBreak: 'break-all' }}>✉ {user.email}</p>
                         </div>
                       ))}
-                    </div>
+                      </div>
                   )}
                 </div>
 
@@ -257,15 +258,15 @@ export default function PrincipalDashboard() {
                 <div style={{ marginBottom: '2rem' }}>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '1rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>Faculty & Staff</h4>
                   {data.Staff.length === 0 ? <p className="text-muted text-sm">No staff registered.</p> : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                       {data.Staff.map(user => (
                         <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(139, 92, 246, 0.2)', borderLeft: '4px solid #8B5CF6' }}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>{user.name}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {user.referenceId || 'N/A'}</p>
-                          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)' }}>✉ {user.email}</p>
+                          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)', wordBreak: 'break-all' }}>✉ {user.email}</p>
                         </div>
                       ))}
-                    </div>
+                      </div>
                   )}
                 </div>
 
@@ -273,15 +274,15 @@ export default function PrincipalDashboard() {
                 <div>
                   <h4 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--text-main)', marginBottom: '1rem', borderBottom: '2px solid var(--border-color)', paddingBottom: '0.5rem' }}>Enrolled Students</h4>
                   {data.Student.length === 0 ? <p className="text-muted text-sm">No students registered.</p> : (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', maxHeight: '400px', overflowY: 'auto', paddingRight: '0.5rem' }}>
                       {data.Student.map(user => (
                         <div key={user._id} style={{ background: 'var(--bg-primary)', padding: '1rem', borderRadius: '12px', border: '1px solid rgba(37, 99, 235, 0.2)', borderLeft: '4px solid #2563EB' }}>
                           <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: 'var(--text-main)' }}>{user.name}</p>
                           <p style={{ margin: '4px 0 0', fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {user.referenceId || user.studentId || 'N/A'}</p>
-                          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)' }}>✉ {user.email}</p>
+                          <p style={{ margin: '4px 0 0', fontSize: '0.85rem', color: 'var(--text-main)', wordBreak: 'break-all' }}>✉ {user.email}</p>
                         </div>
                       ))}
-                    </div>
+                      </div>
                   )}
                 </div>
               </div>

@@ -1,9 +1,9 @@
-import React from 'react';
+﻿import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Users, GraduationCap, CalendarCheck,
   BookOpenCheck, Calendar, BookOpen, FileText, ClipboardList, Inbox,
-  LogOut, ChevronRight, Megaphone, Settings, IndianRupee, Briefcase, Library, LifeBuoy
+  LogOut, ChevronRight, ChevronDown, Megaphone, Settings, IndianRupee, Briefcase, Library, LifeBuoy
 } from 'lucide-react';
 import './HodSidebar.css';
 
@@ -44,24 +44,59 @@ const HodSidebar = () => {
 
   const deptCode = DEPT_CODE_MAP[hodSession.dept] || hodSession.deptCode || 'HOD';
 
-  const menuItems = [
-    { name: 'Dashboard', path: '/hod', icon: <LayoutDashboard size={20} />, exact: true },
-    { name: 'Students', path: '/hod/students', icon: <Users size={20} /> },
-    { name: 'Staff', path: '/hod/staff', icon: <GraduationCap size={20} /> },
-    { name: 'Subjects', path: '/hod/subjects', icon: <BookOpen size={20} /> },
-    { name: 'Assignments', path: '/hod/assignments', icon: <FileText size={20} /> },
-    { name: 'Attendance', path: '/hod/attendance', icon: <CalendarCheck size={20} /> },
-    { name: 'Timetable', path: '/hod/timetable', icon: <Calendar size={20} /> },
-    { name: 'Leave Approvals', path: '/hod/leaves', icon: <Inbox size={20} /> },
-    { name: 'Exams', path: '/hod/exams', icon: <FileText size={20} /> },
-    { name: 'Results', path: '/hod/marks', icon: <BookOpenCheck size={20} /> },
-    { name: 'Reports', path: '/hod/reports', icon: <ClipboardList size={20} /> },
-    { name: 'Payroll', path: '/hod/payroll', icon: <IndianRupee size={20} /> },
-    { name: 'Announcements', path: '/hod/announcements', icon: <Megaphone size={20} /> },
-    { name: 'Placement', path: '/hod/placement', icon: <Briefcase size={20} /> },
-    { name: 'Library', path: '/hod/library', icon: <Library size={20} /> },
-    { name: 'Support Center', path: '/hod/support', icon: <LifeBuoy size={20} /> },
-    { name: 'Settings', path: '/hod/settings', icon: <Settings size={20} /> },
+  const [expandedGroups, setExpandedGroups] = React.useState({});
+
+  const toggleGroup = (groupName) => {
+    setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+  };
+
+  const menuGroups = [
+    {
+      name: 'Department Management',
+      icon: <Users size={18} />,
+      items: [
+        { name: 'Students', path: '/hod/students', icon: <Users size={18} /> },
+        { name: 'Staff', path: '/hod/staff', icon: <GraduationCap size={18} /> }
+      ]
+    },
+    {
+      name: 'Academic Operations',
+      icon: <BookOpenCheck size={18} />,
+      items: [
+        { name: 'Subjects', path: '/hod/subjects', icon: <BookOpen size={18} /> },
+        { name: 'Assignments', path: '/hod/assignments', icon: <FileText size={18} /> },
+        { name: 'Attendance', path: '/hod/attendance', icon: <CalendarCheck size={18} /> },
+        { name: 'Timetable', path: '/hod/timetable', icon: <Calendar size={18} /> },
+        { name: 'Exams', path: '/hod/exams', icon: <FileText size={18} /> },
+        { name: 'Results', path: '/hod/marks', icon: <BookOpenCheck size={18} /> }
+      ]
+    },
+    {
+      name: 'Resources & Career',
+      icon: <Library size={18} />,
+      items: [
+        { name: 'Placement', path: '/hod/placement', icon: <Briefcase size={18} /> },
+        { name: 'Library', path: '/hod/library', icon: <Library size={18} /> }
+      ]
+    },
+    {
+      name: 'Communication & Workflow',
+      icon: <Megaphone size={18} />,
+      items: [
+        { name: 'Leave Approvals', path: '/hod/leaves', icon: <Inbox size={18} /> },
+        { name: 'Announcements', path: '/hod/announcements', icon: <Megaphone size={18} /> },
+        { name: 'Support Center', path: '/hod/support', icon: <LifeBuoy size={18} /> }
+      ]
+    },
+    {
+      name: 'Analytics & Admin',
+      icon: <ClipboardList size={18} />,
+      items: [
+        { name: 'Reports', path: '/hod/reports', icon: <ClipboardList size={18} /> },
+        { name: 'Payroll', path: '/hod/payroll', icon: <IndianRupee size={18} /> },
+        { name: 'Settings', path: '/hod/settings', icon: <Settings size={18} /> }
+      ]
+    }
   ];
 
   const handleLogout = () => {
@@ -82,16 +117,44 @@ const HodSidebar = () => {
       {/* Nav */}
       <nav className="hod-nav">
         <ul>
-          {menuItems.map((item, i) => (
-            <li key={i}>
-              <NavLink
-                to={item.path}
-                end={item.exact}
-                className={({ isActive }) => isActive ? 'hod-nav-link active' : 'hod-nav-link'}
+          <li style={{ marginBottom: '0.5rem' }}>
+            <NavLink
+              to="/hod"
+              end={true}
+              className={({ isActive }) => isActive ? 'hod-nav-link active' : 'hod-nav-link'}
+            >
+              <LayoutDashboard size={18} />
+              <span>Dashboard</span>
+            </NavLink>
+          </li>
+
+          {menuGroups.map((group, idx) => (
+            <li key={idx} style={{ marginBottom: '0.5rem' }}>
+              <div 
+                className="nav-group-header" 
+                onClick={() => toggleGroup(group.name)}
               >
-                {item.icon}
-                <span>{item.name}</span>
-              </NavLink>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {group.icon}
+                  <span>{group.name}</span>
+                </div>
+                {expandedGroups[group.name] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </div>
+              
+              <ul className={`nav-group-items ${expandedGroups[group.name] ? 'expanded' : 'collapsed'}`}>
+                {group.items.map((item, i) => (
+                  <li key={i}>
+                    <NavLink 
+                      to={item.path} 
+                      className={({ isActive }) => isActive ? "hod-nav-link active" : "hod-nav-link"}
+                      style={{ paddingLeft: '3rem' }}
+                    >
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>

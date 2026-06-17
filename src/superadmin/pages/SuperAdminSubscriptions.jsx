@@ -124,7 +124,7 @@ const SuperAdminSubscriptions = () => {
         </div>
       </div>
 
-      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -146,8 +146,8 @@ const SuperAdminSubscriptions = () => {
                 
                 return (
                   <tr key={college._id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
-                    <td style={{ padding: '16px 20px', fontWeight: 600, color: 'var(--text-main)' }}>
-                      {college.collegeName}
+                    <td style={{ padding: '16px 20px', fontWeight: 600, color: 'var(--text-main)', verticalAlign: 'top' }}>
+                      {college.collegeName || college.name || 'Unknown College'}
                     </td>
                     <td style={{ padding: '16px 20px' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: college.planName === 'Trial' ? '#f59e0b' : '#3b82f6', fontWeight: 600 }}>

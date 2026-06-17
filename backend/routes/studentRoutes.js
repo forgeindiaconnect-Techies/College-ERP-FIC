@@ -11,7 +11,10 @@ const router = express.Router();
 router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'Staff', 'Accounts'), requirePermission('manage_students'), departmentScope, collegeScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
-    const query = dept ? { $or: [{ dept: dept }, { department: dept }] } : {};
+    const query = { collegeId: req.collegeId || 'unassigned_college' };
+    if (dept) {
+      query.$or = [{ dept: dept }, { department: dept }];
+    }
     const students = await Student.find(query);
     res.json(students);
   } catch (err) {
@@ -58,13 +61,15 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'A
           password: 'password123',
           role: 'Student',
           department: newStudent.dept,
-          referenceId: newStudent.id
+          referenceId: newStudent.id,
+          tenantId: req.collegeId || 'unassigned_college'
         });
         await user.save();
       } else {
         // If they recreated the student with the same email but new ID, update the referenceId
         existingUser.referenceId = newStudent.id;
         existingUser.department = newStudent.dept;
+        existingUser.tenantId = req.collegeId || 'unassigned_college';
         await existingUser.save();
       }
     } catch (userErr) {

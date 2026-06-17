@@ -11,7 +11,10 @@ const GetAccess = () => {
     adminName: '',
     email: '',
     phone: '',
-    password: ''
+    password: '',
+    principalName: '',
+    principalEmail: '',
+    principalPassword: ''
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -159,12 +162,62 @@ const GetAccess = () => {
                 <input
                   type="password"
                   name="password"
-                  placeholder="Create a strong password"
+                  placeholder="Create a strong admin password"
                   value={formData.password}
                   onChange={handleChange}
                   required
                   minLength={6}
                 />
+              </div>
+            </div>
+
+            <div style={{ margin: '1.5rem 0', padding: '1rem', background: 'rgba(99,102,241,0.05)', borderRadius: '8px', border: '1px dashed rgba(99,102,241,0.3)' }}>
+              <h3 style={{ fontSize: '0.9rem', fontWeight: 700, color: '#4f46e5', marginBottom: '1rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Principal Account Details</h3>
+              
+              <div className="input-group">
+                <label>Principal Name</label>
+                <div className="input-wrapper">
+                  <User size={18} className="form-icon" />
+                  <input
+                    type="text"
+                    name="principalName"
+                    placeholder="e.g. Dr. Suresh Kumar"
+                    value={formData.principalName}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>Principal Email</label>
+                <div className="input-wrapper">
+                  <Mail size={18} className="form-icon" />
+                  <input
+                    type="email"
+                    name="principalEmail"
+                    placeholder="principal@college.edu"
+                    value={formData.principalEmail}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="input-group">
+                <label>Principal Password</label>
+                <div className="input-wrapper">
+                  <Lock size={18} className="form-icon" />
+                  <input
+                    type="password"
+                    name="principalPassword"
+                    placeholder="Create a strong principal password"
+                    value={formData.principalPassword}
+                    onChange={handleChange}
+                    required
+                    minLength={6}
+                  />
+                </div>
               </div>
             </div>
 

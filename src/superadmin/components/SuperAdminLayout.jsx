@@ -104,7 +104,7 @@ const SuperAdminLayout = () => {
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
       )}
       
-      <div className="main-wrapper">
+      <div className={`main-wrapper ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <Navbar role="Super Admin" onMenuToggle={toggleSidebar} />
         <main className="main-content">
           <div className="page-content">

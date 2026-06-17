@@ -13,7 +13,7 @@ router.use(collegeScope);
 // Get all requests
 router.get('/', async (req, res) => {
   try {
-    const records = await StaffSupportRecord.find().sort({ createdAt: -1 });
+    const records = await StaffSupportRecord.find({ collegeId: req.collegeId || 'unassigned_college' }).sort({ createdAt: -1 });
     res.json(records);
   } catch (err) {
     res.status(500).json({ message: err.message });
@@ -25,6 +25,7 @@ router.post('/', async (req, res) => {
   try {
     const newRecord = new StaffSupportRecord({
       ...req.body,
+      collegeId: req.collegeId || 'unassigned_college',
       timeline: [{ date: new Date().toISOString().split('T')[0], text: 'Request submitted successfully' }]
     });
     await newRecord.save();

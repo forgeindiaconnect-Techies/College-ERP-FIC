@@ -6,10 +6,12 @@
   --bg-secondary: #FFFFFF;
   --bg-card: #FFFFFF; 
   
-  /* Sidebar Design: Dark Navy Gradient */
-  --sidebar-bg: #0F172A; 
-  --sidebar-hover: rgba(255, 255, 255, 0.05);
-  --sidebar-text: #94A3B8;
+  /* Sidebar Design: Clean Professional White */
+  --sidebar-bg: #ffffff;
+  --sidebar-hover: #f1f5f9;
+  --sidebar-text: #475569;
+  --sidebar-hover-text: #0f172a;
+  --sidebar-header-text: #0f172a;
   
   --primary: #4F46E5; 
   --primary-gradient: linear-gradient(135deg, #4F46E5, #7C3AED); 
@@ -46,13 +48,17 @@
   --bg-secondary: #1e293b; 
   --bg-card: #1e293b;
   
-  --sidebar-bg: #020617;
+  --sidebar-bg: var(--bg-card);
   --sidebar-hover: rgba(255, 255, 255, 0.05);
+  --sidebar-text: #94a3b8;
+  --sidebar-hover-text: #FFFFFF;
+  --sidebar-header-text: #f1f5f9;
   --primary: #6366F1;
   --secondary: #8B5CF6;
   
   --text-main: #f1f5f9;
   --text-muted: #CBD5E1;
+  --text-light: #94A3B8;
   
   --border-color: #334155;
   
@@ -222,6 +228,10 @@ th {
 
 .dark th {
   background-color: rgba(255,255,255,0.02);
+}
+
+th, td {
+  white-space: nowrap;
 }
 
 td {
@@ -659,4 +669,80 @@ tr:hover td {
   font-size: 0.95rem;
   margin: 0;
   max-width: 600px;
+}
+/* GLOBAL OFF-CANVAS SLIDE PANEL OVERRIDE FOR ALL MODALS */
+.modal-overlay {
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  inset: 0 !important;
+  background: rgba(15, 23, 42, 0.5) !important;
+  backdrop-filter: blur(4px) !important;
+  z-index: 999999 !important; /* Force above everything including sidebar */
+  display: flex !important;
+  justify-content: flex-end !important; /* Align to the right */
+  align-items: stretch !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.modal-card {
+  width: 100% !important;
+  max-width: 550px !important; /* Proper width for a side panel */
+  height: 100vh !important;
+  max-height: 100vh !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  border-left: 1px solid var(--border-color) !important;
+  animation: slideInRight 0.3s cubic-bezier(0.16, 1, 0.3, 1) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: var(--bg-card) !important;
+  box-shadow: -10px 0 40px rgba(0, 0, 0, 0.1) !important;
+}
+
+.modal-header {
+  padding: 1.5rem !important;
+  border-bottom: 1px solid var(--border-color) !important;
+  position: sticky !important;
+  top: 0 !important;
+  background: var(--bg-card) !important;
+  z-index: 10 !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.modal-form {
+  flex: 1 !important;
+  overflow-y: auto !important;
+  padding: 1.5rem !important;
+}
+
+.modal-actions {
+  padding: 1.5rem !important;
+  border-top: 1px solid var(--border-color) !important;
+  background: var(--bg-card) !important;
+  position: sticky !important;
+  bottom: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  justify-content: flex-end !important;
+  gap: 1rem !important;
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+.form-grid {
+  grid-template-columns: 1fr !important;
+}
+
+/* Ensure no inline padding overrides the panel height */
+.modal-card > div {
+  max-height: none !important;
 }

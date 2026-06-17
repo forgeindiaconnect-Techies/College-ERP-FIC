@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Plus, Search, Edit2, Trash2, X, Building2, Users, UserCircle, ArrowRight, CheckCircle } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, X, Building2, Users, UserCircle, ArrowRight, CheckCircle, Hash, Calendar } from 'lucide-react';
 import { getDepartments, createDepartment, updateDepartment, deleteDepartment, getStaff } from '../../api/index';
+import CustomSelect from '../../components/CustomSelect';
 import './DepartmentManagement.css';
 
 const MOCK_DEPARTMENTS = [
@@ -292,16 +293,13 @@ const DepartmentManagement = () => {
               <div className="form-grid">
                 <div className="form-group">
                   <label>Department Name</label>
-                  <select 
-                    required 
-                    value={form.name} 
+                  <CustomSelect 
+                    value={form.name}
                     onChange={e => setForm({ ...form, name: e.target.value })}
-                  >
-                    <option value="">— Select Department —</option>
-                    {STANDARD_DEPARTMENTS.map(d => (
-                      <option key={d.name} value={d.name}>{d.name}</option>
-                    ))}
-                  </select>
+                    options={STANDARD_DEPARTMENTS.map(d => ({ value: d.name, label: d.name }))}
+                    placeholder="— Select Department —"
+                    required
+                  />
                 </div>
                 <div className="form-group">
                   <label>Department Code (Auto)</label>
@@ -316,17 +314,15 @@ const DepartmentManagement = () => {
                 </div>
                 <div className="form-group">
                   <label>Assign HOD</label>
-                  <select 
-                    required 
-                    value={form.hod} 
+                  <CustomSelect 
+                    value={form.hod}
                     onChange={e => setForm({ ...form, hod: e.target.value })}
-                  >
-                    <option value="">Select HOD</option>
-                    {availableHods.map(h => <option key={h.id || h._id} value={h.name}>{h.name}</option>)}
-                    {form.hod && !availableHods.some(h => h.name === form.hod) && (
-                      <option value={form.hod}>{form.hod} (Legacy/Missing)</option>
-                    )}
-                  </select>
+                    options={[
+                      ...availableHods.map(h => ({ value: h.name, label: h.name })),
+                      ...(form.hod && !availableHods.some(h => h.name === form.hod) ? [{ value: form.hod, label: `${form.hod} (Legacy/Missing)` }] : [])
+                    ]}
+                    placeholder="Select HOD"
+                  />
                 </div>
                 <div className="form-group">
                   <label>Year Established</label>
@@ -361,13 +357,14 @@ const DepartmentManagement = () => {
                 </div>
                 <div className="form-group">
                   <label>Status</label>
-                  <select 
-                    value={form.status} 
+                  <CustomSelect 
+                    value={form.status}
                     onChange={e => setForm({ ...form, status: e.target.value })}
-                  >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
-                  </select>
+                    options={[
+                      { value: 'Active', label: 'Active' },
+                      { value: 'Inactive', label: 'Inactive' }
+                    ]}
+                  />
                 </div>
               </div>
               <div className="modal-actions">

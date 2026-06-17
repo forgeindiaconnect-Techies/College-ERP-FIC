@@ -15,6 +15,7 @@ import {
   BarChart, Bar, Legend
 } from 'recharts';
 import '../../../src/pages/Dashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 import api from '../../api';
 
 const MOCK_REVENUE = [
@@ -175,7 +176,7 @@ const SuperAdminDashboard = () => {
             View All <ArrowRight size={16} />
           </button>
         </div>
-        <div className="table-responsive">
+        <div className="table-responsive" style={{ overflowX: 'auto' }}>
           <table className="erp-table">
             <thead>
               <tr>
@@ -195,7 +196,7 @@ const SuperAdminDashboard = () => {
                 colleges.map(college => (
                   <tr key={college._id}>
                   <td style={{ fontWeight: 600 }}>{college.tenantId || 'N/A'}</td>
-                  <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{college.name}</td>
+                  <td style={{ fontWeight: 600, color: 'var(--text-main)' }}>{college.name || college.collegeName || 'Unknown College'}</td>
                   <td>
                     <span className="badge-outline" style={{ borderColor: college.subscriptionPlan === 'Elite' ? '#6366f1' : college.subscriptionPlan === 'Premium' ? '#3b82f6' : '#8b5cf6', color: college.subscriptionPlan === 'Elite' ? '#6366f1' : college.subscriptionPlan === 'Premium' ? '#3b82f6' : '#8b5cf6' }}>
                       {college.subscriptionPlan || 'None'}

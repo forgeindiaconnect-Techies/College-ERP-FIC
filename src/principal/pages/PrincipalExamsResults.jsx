@@ -13,32 +13,11 @@ const upcomingExams = [
   { code: 'EX2026-05', subject: 'Strategic Management', dept: 'MBA', sem: 'Sem 4', date: '2026-06-15', time: '10:00 AM', hall: 'MBA Block - Hall 1', type: 'Semester', status: 'Scheduled' },
 ];
 
-const resultData = [
-  { dept: 'CSE', passRate: 91, failRate: 9, avgScore: 78, topScore: 95, students: 120 },
-  { dept: 'ECE', passRate: 88, failRate: 12, avgScore: 74, topScore: 91, students: 98 },
-  { dept: 'EEE', passRate: 85, failRate: 15, avgScore: 71, topScore: 89, students: 105 },
-  { dept: 'MECH', passRate: 83, failRate: 17, avgScore: 69, topScore: 85, students: 115 },
-  { dept: 'BCA', passRate: 90, failRate: 10, avgScore: 76, topScore: 93, students: 80 },
-  { dept: 'MBA', passRate: 87, failRate: 13, avgScore: 73, topScore: 90, students: 60 },
-];
+const resultData = [];
 
-const trendData = [
-  { sem: 'Sem 1', passRate: 80, avgScore: 68 },
-  { sem: 'Sem 2', passRate: 83, avgScore: 71 },
-  { sem: 'Sem 3', passRate: 84, avgScore: 72 },
-  { sem: 'Sem 4', passRate: 86, avgScore: 74 },
-  { sem: 'Sem 5', passRate: 88, avgScore: 76 },
-  { sem: 'Sem 6', passRate: 87, avgScore: 75 },
-];
+const trendData = [];
 
-const gradeData = [
-  { name: 'O (Outstanding)', value: 15, color: '#10b981' },
-  { name: 'A+ (Excellent)', value: 30, color: '#6366f1' },
-  { name: 'A (Very Good)', value: 28, color: '#6366F1' },
-  { name: 'B+ (Good)', value: 18, color: '#f59e0b' },
-  { name: 'B (Average)', value: 6, color: '#0ea5e9' },
-  { name: 'Failed', value: 3, color: '#ef4444' },
-];
+const gradeData = [];
 
 
 
@@ -55,11 +34,11 @@ export default function PrincipalExamsResults() {
         if (res?.data && res.data.length > 0) {
           setExams(res.data);
         } else {
-          setExams(upcomingExams);
+          setExams([]);
         }
       })
       .catch(() => {
-        setExams(upcomingExams);
+        setExams([]);
       });
 
     // 2. Fetch arrears from real marks data
@@ -113,8 +92,10 @@ export default function PrincipalExamsResults() {
       });
   }, []);
 
-  const overall = Math.round(resultData.reduce((a, d) => a + d.passRate, 0) / resultData.length);
-  const topDept = resultData.reduce((a, d) => d.passRate > a.passRate ? d : a);
+  const overall = resultData.length > 0 ? Math.round(resultData.reduce((a, d) => a + d.passRate, 0) / resultData.length) : 0;
+  const topDept = resultData.length > 0 ? resultData.reduce((a, d) => d.passRate > a.passRate ? d : a) : { dept: 'N/A', passRate: 0 };
+  const avgScore = resultData.length > 0 ? Math.round(resultData.reduce((a, d) => a + d.avgScore, 0) / resultData.length) : 0;
+  const totalStudents = resultData.length > 0 ? resultData.reduce((a, d) => a + d.students, 0) : 0;
 
   return (
     <div className="main-content" style={{ padding: '2rem', background: 'var(--bg-primary)', minHeight: 'calc(100vh - 70px)' }}>
@@ -132,8 +113,8 @@ export default function PrincipalExamsResults() {
           { label: 'Overall Pass %', value: `${overall}%`, icon: <CheckCircle size={18} />, color: '#10b981', sub: 'All departments' },
           { label: 'Failed Students', value: arrearList.length, icon: <AlertCircle size={18} />, color: '#ef4444', sub: 'Active arrears' },
           { label: 'Top Department', value: topDept.dept, icon: <Star size={18} />, color: '#f59e0b', sub: `${topDept.passRate}% pass rate` },
-          { label: 'Avg Score', value: `${Math.round(resultData.reduce((a, d) => a + d.avgScore, 0) / resultData.length)}%`, icon: <TrendingUp size={18} />, color: '#6366F1', sub: 'Campus-wide' },
-          { label: 'Total Students', value: resultData.reduce((a, d) => a + d.students, 0), icon: <FileBarChart size={18} />, color: '#0ea5e9', sub: 'Appeared for exams' },
+          { label: 'Avg Score', value: `${avgScore}%`, icon: <TrendingUp size={18} />, color: '#6366F1', sub: 'Campus-wide' },
+          { label: 'Total Students', value: totalStudents, icon: <FileBarChart size={18} />, color: '#0ea5e9', sub: 'Appeared for exams' },
         ].map((s, i) => (
           <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>
             <div className="stat-icon-wrapper" style={{ background: s.color }}>{s.icon}</div>
@@ -163,7 +144,7 @@ export default function PrincipalExamsResults() {
                 <tr><th>Exam Code</th><th>Subject</th><th>Department</th><th>Semester</th><th>Date & Time</th><th>Hall</th><th>Type</th><th>Status</th></tr>
               </thead>
               <tbody>
-                {exams.map((e, i) => {
+                {exams.length > 0 ? exams.map((e, i) => {
                   const examCode = e._id ? `EX-${e._id.substring(e._id.length - 6).toUpperCase()}` : (e.code || `EX-${100 + i}`);
                   const examType = e.name || e.type || 'Internal';
                   return (
@@ -185,7 +166,13 @@ export default function PrincipalExamsResults() {
                       </td>
                     </tr>
                   );
-                })}
+                }) : (
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: 'center', padding: '2rem', color: 'var(--text-muted)' }}>
+                      No upcoming examinations scheduled for your institution.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
@@ -256,12 +243,14 @@ export default function PrincipalExamsResults() {
             </div>
             <div style={{ marginTop: '1.5rem', background: 'rgba(16,185,129,0.06)', borderRadius: 10, padding: '1rem', borderLeft: '3px solid #10b981' }}>
               <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>HIGHEST PERFORMERS</div>
-              {[{ name: 'Sarah Wilson', cgpa: 9.5, dept: 'EEE' }, { name: 'Alice Smith', cgpa: 9.1, dept: 'EEE' }, { name: 'Ritu Sen', cgpa: 9.2, dept: 'MBA' }].map((s, i) => (
+              {gradeData.length > 0 ? [{ name: 'Sarah Wilson', cgpa: 9.5, dept: 'EEE' }, { name: 'Alice Smith', cgpa: 9.1, dept: 'EEE' }, { name: 'Ritu Sen', cgpa: 9.2, dept: 'MBA' }].map((s, i) => (
                 <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 8, fontSize: '0.82rem' }}>
                   <span style={{ color: 'var(--text-main)', fontWeight: 600 }}>#{i + 1} {s.name}</span>
                   <span style={{ color: '#10b981', fontWeight: 800 }}>{s.cgpa} CGPA</span>
                 </div>
-              ))}
+              )) : (
+                <div style={{ marginTop: '1rem', fontSize: '0.85rem', color: 'var(--text-muted)' }}>No data available yet.</div>
+              )}
             </div>
           </div>
         </div>

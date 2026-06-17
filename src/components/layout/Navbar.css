@@ -16,7 +16,9 @@
 }
 
 .hamburger-btn {
-  display: none; /* hidden on desktop */
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .navbar-left {

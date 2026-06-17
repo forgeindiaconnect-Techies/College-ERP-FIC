@@ -16,7 +16,10 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePe
 
 // Create new department
 router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), collegeScope, async (req, res) => {
-  const department = new Department(req.body);
+  const department = new Department({
+    ...req.body,
+    collegeId: req.collegeId || req.user.tenantId
+  });
   try {
     const newDepartment = await department.save();
     req.app.get('io').emit('dataUpdated', { module: 'departments', action: 'created' });
@@ -30,7 +33,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal'), requireP
 router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), collegeScope, async (req, res) => {
   try {
     const updatedDepartment = await Department.findOneAndUpdate(
-      { id: req.params.id },
+      { id: req.params.id, collegeId: req.collegeId || req.user.tenantId },
       req.body,
       { new: true }
     );
@@ -44,7 +47,7 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requir
 // Delete department
 router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal'), requirePermission('view_departments'), collegeScope, async (req, res) => {
   try {
-    await Department.findOneAndDelete({ id: req.params.id });
+    await Department.findOneAndDelete({ id: req.params.id, collegeId: req.collegeId || req.user.tenantId });
     req.app.get('io').emit('dataUpdated', { module: 'departments', action: 'deleted' });
     res.json({ message: 'Department deleted' });
   } catch (err) {

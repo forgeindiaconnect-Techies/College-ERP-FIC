@@ -14,6 +14,7 @@ import {
   getNotifications, getStudentFeeStructure
 } from '../../api/index';
 import './ParentDashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 const ParentDashboard = () => {
   const navigate = useNavigate();
@@ -142,6 +143,7 @@ const ParentDashboard = () => {
 
   return (
     <div className="parent-dashboard animate-fade-in">
+      <CollegeInfoCard />
       {/* Welcome Banner */}
       <div className="parent-welcome-banner">
         <div className="banner-left">

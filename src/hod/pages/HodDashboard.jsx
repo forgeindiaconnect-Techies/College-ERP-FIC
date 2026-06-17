@@ -12,6 +12,7 @@ import {
 import { getStudents, getStaff } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './HodDashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 // Default Fallback
 const DEFAULT_SESSION = {

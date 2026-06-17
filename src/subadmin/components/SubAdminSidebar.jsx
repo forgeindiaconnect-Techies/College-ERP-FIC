@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+﻿import React, { useEffect, useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
@@ -19,7 +19,7 @@ import {
   Bus,
   Building,
   Briefcase,
-  Bot
+  Bot, ChevronRight, ChevronDown, BookOpenCheck
 } from 'lucide-react';
 import '../../components/layout/Sidebar.css';
 
@@ -47,25 +47,61 @@ const SubAdminSidebar = () => {
     navigate('/login');
   };
 
-  const allMenuItems = [
-    { name: 'Dashboard', path: '/subadmin/dashboard', icon: <LayoutDashboard size={18} />, exact: true, module: 'always' },
-    { name: 'Departments', path: '/subadmin/departments', icon: <Building2 size={18} />, module: 'view_departments' },
-    { name: 'Students', path: '/subadmin/students', icon: <Users size={18} />, module: 'manage_students' },
-    { name: 'Staff', path: '/subadmin/staff', icon: <GraduationCap size={18} />, module: 'manage_staff' },
-    { name: 'Attendance', path: '/subadmin/attendance', icon: <CalendarCheck size={18} />, module: 'view_attendance' },
-    { name: 'Timetable', path: '/subadmin/timetable', icon: <Calendar size={18} />, module: 'always' },
-    { name: 'Reports', path: '/subadmin/reports', icon: <ClipboardList size={19} />, module: 'reports' },
-    { name: 'Placement', path: '/subadmin/placement', icon: <Briefcase size={19} />, module: 'always' },
-    { name: 'Announcements', path: '/subadmin/announcements', icon: <Megaphone size={18} />, module: 'create_announcements' },
-    { name: 'Notifications', path: '/subadmin/notifications', icon: <Bell size={18} />, module: 'always' },
-    { name: 'Activity Logs', path: '/subadmin/activity-logs', icon: <Activity size={18} />, module: 'always' },
-    { name: 'Profile', path: '/subadmin/profile', icon: <User size={18} />, module: 'always' }
+  const [expandedGroups, setExpandedGroups] = useState({});
+
+  const toggleGroup = (groupName) => {
+    setExpandedGroups(prev => ({ ...prev, [groupName]: !prev[groupName] }));
+  };
+
+  const allMenuGroups = [
+    {
+      name: 'User Management',
+      icon: <Users size={18} />,
+      items: [
+        { name: 'Students', path: '/subadmin/students', icon: <Users size={18} />, module: 'manage_students' },
+        { name: 'Staff', path: '/subadmin/staff', icon: <GraduationCap size={18} />, module: 'manage_staff' }
+      ]
+    },
+    {
+      name: 'Academic',
+      icon: <BookOpenCheck size={18} />,
+      items: [
+        { name: 'Departments', path: '/subadmin/departments', icon: <Building2 size={18} />, module: 'view_departments' },
+        { name: 'Attendance', path: '/subadmin/attendance', icon: <CalendarCheck size={18} />, module: 'view_attendance' },
+        { name: 'Timetable', path: '/subadmin/timetable', icon: <Calendar size={18} />, module: 'always' },
+        { name: 'Placement', path: '/subadmin/placement', icon: <Briefcase size={19} />, module: 'always' }
+      ]
+    },
+    {
+      name: 'Communication',
+      icon: <Megaphone size={18} />,
+      items: [
+        { name: 'Announcements', path: '/subadmin/announcements', icon: <Megaphone size={18} />, module: 'create_announcements' },
+        { name: 'Notifications', path: '/subadmin/notifications', icon: <Bell size={18} />, module: 'always' }
+      ]
+    },
+    {
+      name: 'Reports & Logs',
+      icon: <FileBarChart size={18} />,
+      items: [
+        { name: 'Reports', path: '/subadmin/reports', icon: <ClipboardList size={19} />, module: 'reports' },
+        { name: 'Activity Logs', path: '/subadmin/activity-logs', icon: <Activity size={18} />, module: 'always' }
+      ]
+    },
+    {
+      name: 'Settings',
+      icon: <User size={18} />,
+      items: [
+        { name: 'Profile', path: '/subadmin/profile', icon: <User size={18} />, module: 'always' }
+      ]
+    }
   ];
 
-  // Filter items based on permissions
-  const menuItems = allMenuItems.filter(item => 
-    item.module === 'always' || permissions.includes(item.module)
-  );
+  // Filter items and groups based on permissions
+  const menuGroups = allMenuGroups.map(group => ({
+    ...group,
+    items: group.items.filter(item => item.module === 'always' || permissions.includes(item.module))
+  })).filter(group => group.items.length > 0);
 
   return (
     <aside className="sidebar">
@@ -75,16 +111,44 @@ const SubAdminSidebar = () => {
       
       <nav className="sidebar-nav">
         <ul>
-          {menuItems.map((item, index) => (
-            <li key={index}>
-              <NavLink 
-                to={item.path} 
-                end={item.exact}
-                className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+          <li style={{ marginBottom: '0.5rem' }}>
+            <NavLink 
+              to="/subadmin/dashboard" 
+              end={true}
+              className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+            >
+              <LayoutDashboard size={18} />
+              <span>Dashboard</span>
+            </NavLink>
+          </li>
+
+          {menuGroups.map((group, idx) => (
+            <li key={idx} style={{ marginBottom: '0.5rem' }}>
+              <div 
+                className="nav-group-header" 
+                onClick={() => toggleGroup(group.name)}
               >
-                {item.icon}
-                <span>{item.name}</span>
-              </NavLink>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  {group.icon}
+                  <span>{group.name}</span>
+                </div>
+                {expandedGroups[group.name] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+              </div>
+              
+              <ul className={`nav-group-items ${expandedGroups[group.name] ? 'expanded' : 'collapsed'}`}>
+                {group.items.map((item, i) => (
+                  <li key={i}>
+                    <NavLink 
+                      to={item.path} 
+                      className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+                      style={{ paddingLeft: '3rem' }}
+                    >
+                      {item.icon}
+                      <span>{item.name}</span>
+                    </NavLink>
+                  </li>
+                ))}
+              </ul>
             </li>
           ))}
         </ul>

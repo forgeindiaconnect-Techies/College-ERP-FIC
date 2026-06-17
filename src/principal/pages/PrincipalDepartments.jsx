@@ -101,13 +101,7 @@ export default function PrincipalDepartments() {
   }, []);
   
   // Dynamic approvals lists stored in local React state
-  const [approvals, setApprovals] = useState([
-    { id: 1, type: 'Leave Request', department: 'CSE', requester: 'Dr. Amit Sharma (HOD)', description: 'Medical Leave - 3 days due to scheduled surgery.', date: 'May 25, 2026', status: 'Pending' },
-    { id: 2, type: 'Department Event', department: 'ECE', requester: 'Dr. Ramesh Varma (HOD)', description: 'National Robotics Workshop 2026 - Budget: ₹45,000.', date: 'May 24, 2026', status: 'Pending' },
-    { id: 3, type: 'Special Announcement', department: 'CSE', requester: 'Prof. Ankit Mehta', description: 'Institutional Hackathon announcement to all students.', date: 'May 26, 2026', status: 'Pending' },
-    { id: 4, type: 'Exam Approval', department: 'MBA', requester: 'Dr. Sneha Reddy (HOD)', description: 'End-semester MBA exam schedules & committee list.', date: 'May 23, 2026', status: 'Pending' },
-    { id: 5, type: 'Leave Request', department: 'MECH', requester: 'Prof. Vikram Rao (HOD)', description: 'Casual Leave - 1 day for personal engagement.', date: 'May 25, 2026', status: 'Approved' }
-  ]);
+  const [approvals, setApprovals] = useState([]);
 
   // Form states for report exporting
   const [reportType, setReportType] = useState('Overview');
@@ -226,79 +220,89 @@ export default function PrincipalDepartments() {
 
       {/* 1. OVERVIEW GRID (Step 1) */}
       {activeTab === 'overview' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
-          {Object.keys(departmentsData).map((key) => {
-            const dept = departmentsData[key];
-            return (
-              <div 
-                key={key} 
-                className="glass-card animate-fade-in" 
-                style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}
-              >
-                {/* Visual Accent Corner */}
-                <div style={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', background: 'var(--primary-gradient)' }}></div>
-                
-                <div>
-                  <div className="flex justify-between items-start mb-3">
-                    <span className="dept-code-badge" style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', letterSpacing: '0.05em' }}>
-                      {dept.code}
-                    </span>
-                    <span style={{ fontSize: '0.8rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
-                      <CheckCircle size={14} /> Active Oversight
-                    </span>
-                  </div>
-
-                  <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.3rem' }}>{dept.name}</h3>
-                  <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>
-                    HOD: <strong style={{ color: 'var(--text-main)' }}>{dept.hodName}</strong>
-                  </p>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
-                    <div style={{ background: 'var(--bg-primary)', padding: '0.6rem', borderRadius: '10px' }}>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Students</span>
-                      <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>{dept.studentsCount.toLocaleString()}</strong>
-                    </div>
-                    <div style={{ background: 'var(--bg-primary)', padding: '0.6rem', borderRadius: '10px' }}>
-                      <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Staff Count</span>
-                      <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>{dept.staffCount}</strong>
-                    </div>
-                  </div>
-
-                  {/* Metrics Progress Rings/Bars */}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
+        <>
+          {Object.keys(departmentsData).length === 0 ? (
+            <div className="glass-card" style={{ padding: '3rem', textAlign: 'center', borderRadius: '16px' }}>
+              <Building2 size={48} className="text-muted" style={{ margin: '0 auto 1rem' }} />
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-main)' }}>No Departments Configured</h2>
+              <p style={{ color: 'var(--text-muted)', marginTop: '0.5rem' }}>Please ask the Admin to configure departments in the Admin Dashboard.</p>
+            </div>
+          ) : (
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))', gap: '1.5rem' }}>
+              {Object.keys(departmentsData).map((key) => {
+                const dept = departmentsData[key];
+                return (
+                  <div 
+                    key={key} 
+                    className="glass-card animate-fade-in" 
+                    style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', borderRadius: '16px', position: 'relative', overflow: 'hidden' }}
+                  >
+                    {/* Visual Accent Corner */}
+                    <div style={{ position: 'absolute', top: 0, right: 0, width: '4px', height: '100%', background: 'var(--primary-gradient)' }}></div>
+                    
                     <div>
-                      <div className="flex justify-between" style={{ fontSize: '0.78rem', marginBottom: '0.2rem' }}>
-                        <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><UserCheck size={14} /> Attendance</span>
-                        <strong style={{ color: 'var(--text-main)' }}>{dept.attendanceRate}%</strong>
+                      <div className="flex justify-between items-start mb-3">
+                        <span className="dept-code-badge" style={{ backgroundColor: 'rgba(79, 70, 229, 0.1)', color: 'var(--primary)', padding: '4px 10px', borderRadius: '6px', fontWeight: 700, fontSize: '0.75rem', letterSpacing: '0.05em' }}>
+                          {dept.code}
+                        </span>
+                        <span style={{ fontSize: '0.8rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 600 }}>
+                          <CheckCircle size={14} /> Active Oversight
+                        </span>
                       </div>
-                      <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '10px', overflow: 'hidden' }}>
-                        <div style={{ width: `${dept.attendanceRate}%`, height: '100%', background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '10px' }}></div>
+
+                      <h3 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '0.3rem' }}>{dept.name}</h3>
+                      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '1.2rem' }}>
+                        HOD: <strong style={{ color: 'var(--text-main)' }}>{dept.hodName}</strong>
+                      </p>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.2rem' }}>
+                        <div style={{ background: 'var(--bg-primary)', padding: '0.6rem', borderRadius: '10px' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Students</span>
+                          <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>{dept.studentsCount.toLocaleString()}</strong>
+                        </div>
+                        <div style={{ background: 'var(--bg-primary)', padding: '0.6rem', borderRadius: '10px' }}>
+                          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', display: 'block' }}>Staff Count</span>
+                          <strong style={{ fontSize: '1rem', color: 'var(--text-main)' }}>{dept.staffCount}</strong>
+                        </div>
+                      </div>
+
+                      {/* Metrics Progress Rings/Bars */}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.8rem', marginBottom: '1.5rem' }}>
+                        <div>
+                          <div className="flex justify-between" style={{ fontSize: '0.78rem', marginBottom: '0.2rem' }}>
+                            <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><UserCheck size={14} /> Attendance</span>
+                            <strong style={{ color: 'var(--text-main)' }}>{dept.attendanceRate}%</strong>
+                          </div>
+                          <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '10px', overflow: 'hidden' }}>
+                            <div style={{ width: `${dept.attendanceRate}%`, height: '100%', background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '10px' }}></div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <div className="flex justify-between" style={{ fontSize: '0.78rem', marginBottom: '0.2rem' }}>
+                            <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Percent size={14} /> Pass Percentage</span>
+                            <strong style={{ color: 'var(--text-main)' }}>{dept.passRate}%</strong>
+                          </div>
+                          <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '10px', overflow: 'hidden' }}>
+                            <div style={{ width: `${dept.passRate}%`, height: '100%', background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)', borderRadius: '10px' }}></div>
+                          </div>
+                        </div>
                       </div>
                     </div>
 
-                    <div>
-                      <div className="flex justify-between" style={{ fontSize: '0.78rem', marginBottom: '0.2rem' }}>
-                        <span style={{ color: 'var(--text-muted)', display: 'flex', alignItems: 'center', gap: '4px' }}><Percent size={14} /> Pass Percentage</span>
-                        <strong style={{ color: 'var(--text-main)' }}>{dept.passRate}%</strong>
-                      </div>
-                      <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '10px', overflow: 'hidden' }}>
-                        <div style={{ width: `${dept.passRate}%`, height: '100%', background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)', borderRadius: '10px' }}></div>
-                      </div>
-                    </div>
+                    <button 
+                      onClick={() => { setSelectedDept(dept.code); setActiveTab('detail'); }} 
+                      className="btn-primary w-full"
+                      style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.2rem', padding: '0.65rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }}
+                    >
+                      View {dept.code} Analytics <ChevronRight size={16} />
+                    </button>
                   </div>
-                </div>
-
-                <button 
-                  onClick={() => { setSelectedDept(dept.code); setActiveTab('detail'); }} 
-                  className="btn-primary w-full"
-                  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.2rem', padding: '0.65rem 0.5rem', borderRadius: '8px', fontSize: '0.85rem' }}
-                >
-                  View {dept.code} Department Analytics <ChevronRight size={16} />
-                </button>
-              </div>
-            );
-          })}
-        </div>
+                );
+              })}
+            </div>
+          )}
+        </>
       )}
 
       {/* 2. DETAIL VIEW (Step 2) */}
@@ -377,7 +381,7 @@ export default function PrincipalDepartments() {
 
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '2rem' }}>
             {/* Top Students Table */}
-            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', minWidth: 0, overflowX: 'auto' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <Award className="text-[#f59e0b]" size={20} /> Top Performers (Top Students)
               </h3>
@@ -410,7 +414,7 @@ export default function PrincipalDepartments() {
             </div>
 
             {/* Low Attendance Alert Table */}
-            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px' }}>
+            <div className="glass-card" style={{ padding: '1.5rem', borderRadius: '16px', minWidth: 0, overflowX: 'auto' }}>
               <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: 'var(--text-main)', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                 <AlertTriangle className="text-[#ef4444]" size={20} /> Low Attendance Students
               </h3>

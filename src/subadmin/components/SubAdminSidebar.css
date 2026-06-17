@@ -1,0 +1,7 @@
+﻿
+.nav-group-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; color: #475569; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; letter-spacing: 0.05em; }
+.nav-group-header:hover { color: var(--text-main); }
+.nav-group-items { overflow: hidden; transition: max-height 0.3s ease-in-out; }
+.nav-group-items.collapsed { max-height: 0; }
+.nav-group-items.expanded { max-height: 500px; }
+.dark .nav-group-header { color: #9CA3AF; }

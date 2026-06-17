@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { GraduationCap, Lock, Mail, Eye, EyeOff, ArrowRight, Shield, Award, Users, BookOpen, Briefcase } from 'lucide-react';
 import { loginUser } from '../api/index';
+import CustomSelect from '../components/CustomSelect';
 import './Login.css';
 
 
@@ -30,6 +31,7 @@ const applySession = (userData) => {
     referenceId: userData.referenceId || null,
     permissions: userData.permissions || [],
     tenantId: userData.tenantId || null,
+    collegeName: userData.collegeName || null,
     subscription: userData.subscription || null
   };
   if (role === 'HOD' || role === 'Staff') {
@@ -74,10 +76,34 @@ const UnifiedLogin = () => {
     setLoading(true);
     setError('');
 
+    if (!selectedRole) {
+      setError('Please select a User Role before logging in.');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Try backend first
       const res = await loginUser({ email, password });
       const userData = res.data;
+      
+      // Normalize roles to safely compare them
+      const roleMap = {
+        'super admin': 'Super Admin', 'superadmin': 'Super Admin',
+        'admin': 'Admin', 'sub admin': 'Sub Admin', 'subadmin': 'Sub Admin',
+        'principal': 'Principal', 'hod': 'HOD', 'staff': 'Staff',
+        'student': 'Student', 'parent': 'Parent', 'accounts': 'Accounts', 'accountant': 'Accounts', 'driver': 'Driver'
+      };
+      
+      const actualRole = roleMap[userData.role?.toLowerCase()] || userData.role;
+      const expectedRole = roleMap[selectedRole?.toLowerCase()] || selectedRole;
+      
+      // ENFORCE ROLE MATCH: Prevent cross-portal login with wrong credentials
+      if (actualRole !== expectedRole) {
+        setError(`Access Denied: These credentials are not authorized for the ${expectedRole} portal.`);
+        setLoading(false);
+        return;
+      }
       
       // If subscription is expired, redirect to upgrade
       if (userData.subscription && userData.subscription.status === 'Expired') {
@@ -155,23 +181,26 @@ const UnifiedLogin = () => {
 
           <form onSubmit={handleLogin} className="unified-form">
             {!initialRole && (
-              <div className="input-group">
+              <div className="input-group" style={{ marginBottom: '1.2rem' }}>
                 <label>User Role</label>
-                <div className="input-wrapper">
-                  <Users size={18} className="form-icon" />
-                  <select value={selectedRole} onChange={(e) => setSelectedRole(e.target.value)} required>
-                    <option value="">Select Role</option>
-                    <option value="Super Admin">Super Admin</option>
-                    <option value="Admin">Admin</option>
-                    <option value="Principal">Principal</option>
-                    <option value="HOD">HOD</option>
-                    <option value="Staff">Staff</option>
-                    <option value="Student">Student</option>
-                    <option value="Parent">Parent</option>
-                    <option value="Accounts">Accounts</option>
-                    <option value="Driver">Driver</option>
-                  </select>
-                </div>
+                <CustomSelect 
+                  value={selectedRole}
+                  onChange={(e) => setSelectedRole(e.target.value)}
+                  options={[
+                    { value: 'Super Admin', label: 'Super Admin' },
+                    { value: 'Admin', label: 'Admin' },
+                    { value: 'Principal', label: 'Principal' },
+                    { value: 'HOD', label: 'HOD' },
+                    { value: 'Staff', label: 'Staff' },
+                    { value: 'Student', label: 'Student' },
+                    { value: 'Parent', label: 'Parent' },
+                    { value: 'Accounts', label: 'Accounts' },
+                    { value: 'Driver', label: 'Driver' }
+                  ]}
+                  placeholder="Select Role"
+                  icon={Users}
+                  required={true}
+                />
               </div>
             )}
 

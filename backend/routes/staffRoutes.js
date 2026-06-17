@@ -13,7 +13,10 @@ const router = express.Router();
 router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_staff'), departmentScope, collegeScope, async (req, res) => {
   try {
     const dept = req.dept || req.query.dept;
-    const query = dept ? { $or: [{ dept: dept }, { department: dept }] } : {};
+    const query = { collegeId: req.collegeId || 'unassigned_college' };
+    if (dept) {
+      query.$or = [{ dept: dept }, { department: dept }];
+    }
     const staff = await Staff.find(query);
     res.json(staff);
   } catch (err) {
@@ -56,10 +59,11 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), r
         const user = new User({
           name: newStaff.name,
           email: newStaff.email,
-          password: 'password123',
+          password: req.body.password || 'password123',
           role: newStaff.designation === 'HOD' ? 'HOD' : 'Staff',
           department: newStaff.dept,
-          referenceId: newStaff.id
+          referenceId: newStaff.id,
+          tenantId: req.collegeId || 'unassigned_college'
         });
         await user.save();
       }
@@ -113,6 +117,10 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), r
 
     res.status(201).json(newStaff);
   } catch (err) {
+    if (err.code === 11000) {
+      const field = Object.keys(err.keyPattern)[0];
+      return res.status(400).json({ message: `A staff member with this ${field} already exists. Please use a different one.` });
+    }
     res.status(400).json({ message: err.message });
   }
 });
@@ -151,6 +159,22 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'),
       req.body,
       { new: true }
     );
+    
+    // Also update the User account if email or password changed
+    if (updatedStaff && updatedStaff.email) {
+      const updatePayload = {};
+      if (req.body.email) updatePayload.email = req.body.email;
+      
+      const user = await User.findOne({ referenceId: updatedStaff.id });
+      if (user) {
+        if (req.body.email) user.email = req.body.email;
+        if (req.body.password) user.password = req.body.password; // pre-save hook handles hashing
+        if (req.body.email || req.body.password) {
+          await user.save();
+        }
+      }
+    }
+
     req.app.get('io').emit('staffUpdated', { action: 'updated', staff: updatedStaff });
     req.app.get('io').emit('dataUpdated', { module: 'staff', action: 'updated' });
     res.json(updatedStaff);
@@ -162,7 +186,10 @@ router.put('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'),
 // Delete staff
 router.delete('/:id', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD'), requirePermission('manage_staff'), collegeScope, checkSubscription, async (req, res) => {
   try {
-    await Staff.findOneAndDelete({ id: req.params.id });
+    const deletedStaff = await Staff.findOneAndDelete({ id: req.params.id });
+    if (deletedStaff && deletedStaff.email) {
+      await User.findOneAndDelete({ email: deletedStaff.email });
+    }
     req.app.get('io').emit('staffUpdated', { action: 'deleted', id: req.params.id });
     req.app.get('io').emit('dataUpdated', { module: 'staff', action: 'deleted' });
     res.json({ message: 'Staff deleted' });

@@ -49,6 +49,14 @@ const collegeSchema = new mongoose.Schema({
     type: String,
     default: null
   },
+  principalEmail: {
+    type: String,
+    default: null
+  },
+  principalPassword: {
+    type: String,
+    default: null
+  },
   collegeId: { type: String } 
 }, { timestamps: true });
 

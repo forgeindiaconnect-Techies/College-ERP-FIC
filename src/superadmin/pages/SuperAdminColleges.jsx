@@ -78,7 +78,7 @@ const SuperAdminColleges = () => {
         </div>
       </div>
 
-      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--bg-secondary)', borderRadius: '12px', border: '1px solid var(--border-color)', overflowX: 'auto' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ background: 'var(--bg-primary)', borderBottom: '1px solid var(--border-color)', textAlign: 'left', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
@@ -97,21 +97,21 @@ const SuperAdminColleges = () => {
             ) : (
               filteredColleges.map((college) => (
                 <tr key={college._id} style={{ borderBottom: '1px solid var(--border-color)', transition: 'background 0.2s' }}>
-                  <td style={{ padding: '16px 20px' }}>
+                  <td style={{ padding: '16px 20px', verticalAlign: 'top' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                       <div style={{ width: '40px', height: '40px', borderRadius: '8px', background: 'rgba(59,130,246,0.1)', color: '#3b82f6', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                         <Building2 size={20} />
                       </div>
                       <div>
-                        <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>{college.name}</div>
-                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {college.tenantId}</div>
+                        <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '4px' }}>{college.name || 'Unknown College'}</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>ID: {college.tenantId || 'N/A'}</div>
                       </div>
                     </div>
                   </td>
-                  <td style={{ padding: '16px 20px' }}>
-                    {/* Admin name */}
-                    <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>{college.adminName}</div>
-                    {/* Credential card */}
+                  <td style={{ padding: '16px 20px', verticalAlign: 'top' }}>
+                    <div style={{ fontWeight: 600, color: 'var(--text-main)', marginBottom: '8px' }}>{college.adminName || 'Admin'}</div>
+                    
+                    {/* Admin Credential card */}
                     <div style={{
                       background: 'rgba(99,102,241,0.04)',
                       border: '1px solid rgba(99,102,241,0.15)',
@@ -121,16 +121,15 @@ const SuperAdminColleges = () => {
                       flexDirection: 'column',
                       gap: '5px',
                       width: 'fit-content',
-                      minWidth: '200px'
+                      minWidth: '200px',
+                      marginBottom: '8px'
                     }}>
-                      {/* Email row */}
+                      <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#4f46e5', marginBottom: '2px' }}>Admin</div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.04em', width: '42px', flexShrink: 0 }}>Email</span>
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontWeight: 500 }}>{college.email}</span>
                       </div>
-                      {/* Divider */}
                       <div style={{ height: '1px', background: 'rgba(99,102,241,0.1)' }} />
-                      {/* Password row */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.04em', width: '42px', flexShrink: 0 }}>Pass</span>
                         <span style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.03em' }}>
@@ -138,8 +137,36 @@ const SuperAdminColleges = () => {
                         </span>
                       </div>
                     </div>
+
+                    {/* Principal Credential card */}
+                    {college.principalEmail && (
+                      <div style={{
+                        background: 'rgba(16,185,129,0.04)',
+                        border: '1px solid rgba(16,185,129,0.15)',
+                        borderRadius: '8px',
+                        padding: '8px 10px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '5px',
+                        width: 'fit-content',
+                        minWidth: '200px'
+                      }}>
+                        <div style={{ fontSize: '0.7rem', fontWeight: 800, color: '#059669', marginBottom: '2px' }}>Principal</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.04em', width: '42px', flexShrink: 0 }}>Email</span>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontWeight: 500 }}>{college.principalEmail}</span>
+                        </div>
+                        <div style={{ height: '1px', background: 'rgba(16,185,129,0.1)' }} />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontSize: '0.68rem', fontWeight: 700, color: '#10b981', textTransform: 'uppercase', letterSpacing: '0.04em', width: '42px', flexShrink: 0 }}>Pass</span>
+                          <span style={{ fontSize: '0.78rem', color: 'var(--text-main)', fontFamily: 'monospace', fontWeight: 700, letterSpacing: '0.03em' }}>
+                            {college.principalPassword || '••••••••'}
+                          </span>
+                        </div>
+                      </div>
+                    )}
                   </td>
-                  <td style={{ padding: '16px 20px' }}>
+                  <td style={{ padding: '16px 20px', verticalAlign: 'top' }}>
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '4px' }}>
                       <span style={{
                         padding: '2px 8px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: 600,
@@ -173,10 +200,10 @@ const SuperAdminColleges = () => {
                       </div>
                     )}
                   </td>
-                  <td style={{ padding: '16px 20px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
+                  <td style={{ padding: '16px 20px', color: 'var(--text-muted)', fontSize: '0.9rem', fontWeight: 500, verticalAlign: 'top' }}>
                     {college.totalUsers || 0} Registered
                   </td>
-                  <td style={{ padding: '16px 20px', textAlign: 'right' }}>
+                  <td style={{ padding: '16px 20px', textAlign: 'right', verticalAlign: 'top' }}>
                     <button 
                       onClick={() => handleToggleStatus(college._id, college.subscriptionStatus)}
                       style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', padding: '8px', borderRadius: '8px' }}

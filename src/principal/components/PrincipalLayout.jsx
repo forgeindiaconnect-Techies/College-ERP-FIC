@@ -23,7 +23,7 @@ const PrincipalLayout = () => {
         <div className="sidebar-overlay" onClick={() => setSidebarOpen(false)}></div>
       )}
       
-      <div className="main-wrapper">
+      <div className={`main-wrapper ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <Navbar role="Principal" onMenuToggle={toggleSidebar} />
         <main className="main-content">
           <div className="page-content">

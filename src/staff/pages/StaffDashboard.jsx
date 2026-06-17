@@ -9,6 +9,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { getStudents, getAllMarks, getAllAttendance, getExams, getNotifications } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StaffDashboard.css';
+import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 // Fallback session
 const DEFAULT_SESSION = {

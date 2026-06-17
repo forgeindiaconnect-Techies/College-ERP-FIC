@@ -50,13 +50,15 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
         setUserRole(parsed.role || role);
         if (parsed.collegeName) {
           setCollegeName(parsed.collegeName);
-        } else if (parsed.role === 'Admin' || parsed.role === 'Sub Admin' || parsed.role === 'Principal') {
-          // If collegeName is missing from legacy session, fetch it
+        }
+        
+        if (role !== 'Super Admin') {
+          // ALWAYS fetch fresh data in background to prevent stale sessions
           import('../../api/index').then(({ getMyProfile }) => {
             getMyProfile().then(res => {
-              if (res.data && res.data.collegeName) {
+              if (res.data && res.data.collegeName && res.data.collegeName !== parsed.collegeName) {
                 setCollegeName(res.data.collegeName);
-                // Update session storage so we don't fetch next time
+                // Quietly update session storage
                 parsed.collegeName = res.data.collegeName;
                 sessionStorage.setItem(sessionKey, JSON.stringify(parsed));
               }
@@ -93,16 +95,21 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
     <header className="navbar glass-card">
       <div className="navbar-left" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
         {onMenuToggle && (
-          <button className="icon-btn mobile-menu-btn" onClick={onMenuToggle} style={{ display: 'none' }}>
+          <button className="icon-btn hamburger-btn" onClick={onMenuToggle}>
             <Menu size={20} />
           </button>
         )}
         <div className="navbar-greeting" style={{ display: 'flex', flexDirection: 'column' }}>
-          <h2 style={{ fontSize: '1.15rem', fontWeight: 800, margin: 0, color: 'var(--text-main)', letterSpacing: '-0.3px' }}>
-            Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {userName}! 👋
-          </h2>
-          <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '2px' }}>
-            {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+          {collegeName && (
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 800, margin: 0, color: 'var(--primary)', letterSpacing: '-0.3px' }}>
+              {collegeName}
+            </h2>
+          )}
+          <h3 style={{ fontSize: collegeName ? '0.95rem' : '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text-main)', marginTop: '2px' }}>
+            Welcome, {userRole}! 👋
+          </h3>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '2px' }}>
+            Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {userName} • {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
         </div>
       </div>
