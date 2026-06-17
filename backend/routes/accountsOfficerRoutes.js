@@ -1,8 +1,7 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import User from '../models/User.js';
-import { protect, authorize } from '../middleware/authMiddleware.js';
-import { checkSubscription } from '../utils/subscriptionHelper.js';
+import { protect, authorize, checkSubscription } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
