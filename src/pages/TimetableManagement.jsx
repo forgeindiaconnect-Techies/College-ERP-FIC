@@ -151,40 +151,52 @@ const TimetableManagement = () => {
       </div>
 
       <div className="glass-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-center border-collapse">
-            <thead>
-              <tr className="bg-[var(--bg-secondary)] border-b border-[var(--border-color)] text-[var(--text-main)]">
-                <th className="p-4 font-semibold border-r border-[var(--border-color)]">Day / Time</th>
-                {times.map(t => (
-                  <th key={t} className="p-4 font-semibold border-r border-[var(--border-color)] last:border-0">{t}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {days.map((day, dIdx) => (
-                <tr key={day} className="border-b border-[var(--border-color)] last:border-0">
-                  <td className="p-4 font-bold text-[var(--text-main)] border-r border-[var(--border-color)] bg-[var(--bg-secondary)]">
-                    {day}
-                  </td>
-                  {grid[dIdx] && grid[dIdx].map((_, tIdx) => (
-                    <td key={tIdx} className={`p-2 border-r border-[var(--border-color)] last:border-0 ${grid[dIdx][tIdx] === 'Lunch' ? 'bg-[var(--bg-secondary)]' : ''}`}>
-                      <input 
-                        type="text" 
-                        value={grid[dIdx][tIdx]}
-                        onChange={(e) => handleCellChange(dIdx, tIdx, e.target.value)}
-                        placeholder={grid[dIdx][tIdx] === 'Lunch' ? '' : '+ Add Subject'}
-                        className={`w-full text-center outline-none ${grid[dIdx][tIdx] === 'Lunch' ? 'bg-transparent border-none text-[var(--text-muted)] italic font-medium' : 'bg-[var(--bg-primary)] border border-[var(--border-color)] text-[var(--text-main)] font-medium focus:border-[#6366F1] focus:ring-1 focus:ring-[#6366F1] py-2 rounded transition-colors cursor-text placeholder:text-[var(--text-muted)] placeholder:font-normal placeholder:opacity-50'}`}
-                        readOnly={grid[dIdx][tIdx] === 'Lunch'}
-                      />
-                    </td>
+          <div className="overflow-x-auto">
+            <table style={{ width: '100%', textAlign: 'center', borderCollapse: 'collapse', minWidth: '800px' }}>
+              <thead>
+                <tr style={{ background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)', color: 'var(--text-main)' }}>
+                  <th style={{ padding: '1rem', fontWeight: 600, borderRight: '1px solid var(--border-color)' }}>Day / Time</th>
+                  {times.map(t => (
+                    <th key={t} style={{ padding: '1rem', fontWeight: 600, borderRight: '1px solid var(--border-color)' }}>{t}</th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {days.map((day, dIdx) => (
+                  <tr key={day} style={{ borderBottom: '1px solid var(--border-color)' }}>
+                    <td style={{ padding: '1rem', fontWeight: 700, color: 'var(--text-main)', borderRight: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
+                      {day}
+                    </td>
+                    {grid[dIdx] && grid[dIdx].map((_, tIdx) => (
+                      <td key={tIdx} style={{ padding: '0.5rem', borderRight: '1px solid var(--border-color)', background: grid[dIdx][tIdx] === 'Lunch' ? 'var(--bg-secondary)' : 'transparent' }}>
+                        <input 
+                          type="text" 
+                          value={grid[dIdx][tIdx] || ''}
+                          onChange={(e) => handleCellChange(dIdx, tIdx, e.target.value)}
+                          placeholder={grid[dIdx][tIdx] === 'Lunch' ? '' : '+ Add Subject'}
+                          style={{
+                            width: '100%',
+                            textAlign: 'center',
+                            outline: 'none',
+                            padding: '0.5rem',
+                            borderRadius: '4px',
+                            background: grid[dIdx][tIdx] === 'Lunch' ? 'transparent' : 'var(--bg-primary)',
+                            border: grid[dIdx][tIdx] === 'Lunch' ? 'none' : '1px solid var(--border-color)',
+                            color: grid[dIdx][tIdx] === 'Lunch' ? 'var(--text-muted)' : 'var(--text-main)',
+                            fontStyle: grid[dIdx][tIdx] === 'Lunch' ? 'italic' : 'normal',
+                            fontWeight: 500,
+                            transition: 'border-color 0.2s'
+                          }}
+                          readOnly={grid[dIdx][tIdx] === 'Lunch'}
+                        />
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
       {modalOpen && (
         <div className="modal-overlay" onClick={() => setModalOpen(false)}>
