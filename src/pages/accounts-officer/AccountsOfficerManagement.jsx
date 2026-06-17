@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Plus, Edit, Trash2, Search, CheckCircle, XCircle } from 'lucide-react';
-import { getAccountsOfficers, createAccountsOfficer, deleteAccountsOfficer } from '../../../api/index';
+import { getAccountsOfficers, createAccountsOfficer, deleteAccountsOfficer } from '../../api/index';
 
 const AccountsOfficerManagement = () => {
   const [officers, setOfficers] = useState([]);
