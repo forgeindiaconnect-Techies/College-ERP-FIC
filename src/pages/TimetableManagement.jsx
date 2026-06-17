@@ -78,6 +78,10 @@ const TimetableManagement = () => {
 
   const handleCellChange = (dayIndex, timeIndex, value) => {
     const newGrid = [...grid];
+    if (!newGrid[dayIndex]) newGrid[dayIndex] = [];
+    while (newGrid[dayIndex].length <= timeIndex) {
+      newGrid[dayIndex].push('');
+    }
     newGrid[dayIndex][timeIndex] = value;
     setGrid(newGrid);
   };
@@ -167,30 +171,34 @@ const TimetableManagement = () => {
                     <td style={{ padding: '1rem', fontWeight: 700, color: 'var(--text-main)', borderRight: '1px solid var(--border-color)', background: 'var(--bg-secondary)' }}>
                       {day}
                     </td>
-                    {grid[dIdx] && grid[dIdx].map((_, tIdx) => (
-                      <td key={tIdx} style={{ padding: '0.5rem', borderRight: '1px solid var(--border-color)', background: grid[dIdx][tIdx] === 'Lunch' ? 'var(--bg-secondary)' : 'transparent' }}>
-                        <input 
-                          type="text" 
-                          value={grid[dIdx][tIdx] || ''}
-                          onChange={(e) => handleCellChange(dIdx, tIdx, e.target.value)}
-                          placeholder={grid[dIdx][tIdx] === 'Lunch' ? '' : '+ Add Subject'}
-                          style={{
-                            width: '100%',
-                            textAlign: 'center',
-                            outline: 'none',
-                            padding: '0.5rem',
-                            borderRadius: '4px',
-                            background: grid[dIdx][tIdx] === 'Lunch' ? 'transparent' : 'var(--bg-primary)',
-                            border: grid[dIdx][tIdx] === 'Lunch' ? 'none' : '1px solid var(--border-color)',
-                            color: grid[dIdx][tIdx] === 'Lunch' ? 'var(--text-muted)' : 'var(--text-main)',
-                            fontStyle: grid[dIdx][tIdx] === 'Lunch' ? 'italic' : 'normal',
-                            fontWeight: 500,
-                            transition: 'border-color 0.2s'
-                          }}
-                          readOnly={grid[dIdx][tIdx] === 'Lunch'}
-                        />
-                      </td>
-                    ))}
+                    {times.map((_, tIdx) => {
+                      const cellValue = grid[dIdx]?.[tIdx] || '';
+                      const isLunch = cellValue === 'Lunch';
+                      return (
+                        <td key={tIdx} style={{ padding: '0.5rem', borderRight: '1px solid var(--border-color)', background: isLunch ? 'var(--bg-secondary)' : 'transparent' }}>
+                          <input 
+                            type="text" 
+                            value={cellValue}
+                            onChange={(e) => handleCellChange(dIdx, tIdx, e.target.value)}
+                            placeholder={isLunch ? '' : '+ Add Subject'}
+                            style={{
+                              width: '100%',
+                              textAlign: 'center',
+                              outline: 'none',
+                              padding: '0.5rem',
+                              borderRadius: '4px',
+                              background: isLunch ? 'transparent' : 'var(--bg-primary)',
+                              border: isLunch ? 'none' : '1px solid var(--border-color)',
+                              color: isLunch ? 'var(--text-muted)' : 'var(--text-main)',
+                              fontStyle: isLunch ? 'italic' : 'normal',
+                              fontWeight: 500,
+                              transition: 'border-color 0.2s'
+                            }}
+                            readOnly={isLunch}
+                          />
+                        </td>
+                      );
+                    })}
                   </tr>
                 ))}
               </tbody>
