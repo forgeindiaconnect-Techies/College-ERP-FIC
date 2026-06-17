@@ -7,10 +7,18 @@ const DEFAULT_DEPARTMENTS = [
   'Computer Science Engineering',
   'Information Technology',
   'Electronics & Communication Engineering',
+  'Electrical & Electronics Engineering',
   'Mechanical Engineering',
   'Civil Engineering',
+  'Artificial Intelligence & Data Science',
+  'Artificial Intelligence & Machine Learning',
   'Cyber Security',
-  'Artificial Intelligence & Data Science'
+  'Biomedical Engineering',
+  'Aeronautical Engineering',
+  'Automobile Engineering',
+  'Robotics Engineering',
+  'Chemical Engineering',
+  'Biotechnology Engineering'
 ];
 
 const DEFAULT_SUBJECTS = [
@@ -41,7 +49,8 @@ const AcademicStructure = () => {
 
       const savedDepts = localStorage.getItem('erp_departments');
       if (savedDepts) {
-        setDepartments(JSON.parse(savedDepts));
+        const parsed = JSON.parse(savedDepts);
+        setDepartments([...new Set([...DEFAULT_DEPARTMENTS, ...parsed])]);
       } else {
         localStorage.setItem('erp_departments', JSON.stringify(DEFAULT_DEPARTMENTS));
         setDepartments(DEFAULT_DEPARTMENTS);

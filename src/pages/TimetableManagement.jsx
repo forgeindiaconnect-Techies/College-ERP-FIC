@@ -6,10 +6,18 @@ const DEFAULT_DEPARTMENTS = [
   'Computer Science Engineering',
   'Information Technology',
   'Electronics & Communication Engineering',
+  'Electrical & Electronics Engineering',
   'Mechanical Engineering',
   'Civil Engineering',
+  'Artificial Intelligence & Data Science',
+  'Artificial Intelligence & Machine Learning',
   'Cyber Security',
-  'Artificial Intelligence & Data Science'
+  'Biomedical Engineering',
+  'Aeronautical Engineering',
+  'Automobile Engineering',
+  'Robotics Engineering',
+  'Chemical Engineering',
+  'Biotechnology Engineering'
 ];
 
 const SEMESTERS = ['Semester 1', 'Semester 2', 'Semester 3', 'Semester 4', 'Semester 5', 'Semester 6', 'Semester 7', 'Semester 8'];
@@ -37,7 +45,13 @@ const TimetableManagement = () => {
 
   useEffect(() => {
     const savedDepts = localStorage.getItem('erp_departments');
-    if (savedDepts) setDepartments(JSON.parse(savedDepts));
+    if (savedDepts) {
+      const parsed = JSON.parse(savedDepts);
+      // Merge unique departments so cached old arrays don't overwrite new defaults
+      setDepartments([...new Set([...DEFAULT_DEPARTMENTS, ...parsed])]);
+    } else {
+      setDepartments(DEFAULT_DEPARTMENTS);
+    }
     fetchData();
   }, [dept, sem]);
 
