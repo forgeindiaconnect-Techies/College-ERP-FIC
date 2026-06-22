@@ -92,17 +92,22 @@ router.post('/', protect, authorize('Admin', 'Principal', 'HOD', 'Staff'), colle
     if (Array.isArray(req.body)) {
       const processed = req.body.map(processMarkPayload);
       
-      const bulkOps = processed.map(record => ({
-        updateOne: {
-          filter: {
-            studentId: record.studentId,
-            semester: record.semester,
-            subject: record.subject
-          },
-          update: { $set: record },
-          upsert: true
-        }
-      }));
+      const bulkOps = processed.map(record => {
+        const collegeIdToSave = req.collegeId || 'unassigned_college';
+        record.collegeId = collegeIdToSave;
+        return {
+          updateOne: {
+            filter: {
+              studentId: record.studentId,
+              semester: record.semester,
+              subject: record.subject,
+              collegeId: collegeIdToSave
+            },
+            update: { $set: record },
+            upsert: true
+          }
+        };
+      });
       
       await Mark.bulkWrite(bulkOps);
       

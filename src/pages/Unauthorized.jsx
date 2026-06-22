@@ -50,6 +50,12 @@ const Unauthorized = () => {
           You do not have the required security credentials to access this department dashboard. Direct navigation to foreign portals is restricted.
         </p>
         <div className="space-y-3">
+          <button
+            onClick={handleBackToDashboard}
+            className="w-full flex items-center justify-center gap-2 bg-[#3b82f6] text-white py-3 rounded-xl font-semibold shadow-lg hover:bg-blue-600 active:scale-95 transition-all"
+          >
+            <ArrowLeft size={18} /> Back to My Dashboard
+          </button>
           
           <button
             onClick={handleLogout}

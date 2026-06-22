@@ -95,7 +95,7 @@ const DriverStudents = () => {
                 onMouseOut={(e) => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(0,0,0,0.05)'; }}
               >
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem', marginBottom: '1.5rem' }}>
-                  <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.25rem', flexShrink: 0, boxShadow: '0 2px 4px rgba(37,99,235,0.3)' }}>
+                  <div style={{ width: '3rem', height: '3rem', borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '1.25rem', flexShrink: 0, boxShadow: '0 2px 4px rgba(37,99,235,0.3)' }}>
                     {student.name.charAt(0)}
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>

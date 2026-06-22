@@ -268,10 +268,9 @@ const StaffDashboard = () => {
     <div className={`staff-dashboard ${animate ? 'animate-fade-in' : ''}`}>
       {/* Welcome Banner */}
       <div className="staff-welcome-banner">
-        <div className="staff-welcome-text">
-
-          <h1>Welcome, <span className="gradient-text-blue">{staffName?.replace('Dr. ', '')?.replace('Prof. ', '') || 'Faculty'}</span></h1>
-          <p className="staff-welcome-sub">Department of <strong>{staffDept}</strong> · Classroom Instructor</p>
+        <div className="staff-welcome-text" style={{ color: '#fff' }}>
+          <h1 style={{ fontSize: '1.5rem', color: '#fff' }}>Welcome, {staffName?.replace('Dr. ', '')?.replace('Prof. ', '') || 'Faculty'}</h1>
+          <p className="staff-welcome-sub" style={{ color: '#fff' }}>Department of <strong>{staffDept}</strong> · Classroom Instructor</p>
         </div>
       </div>
 
@@ -355,7 +354,7 @@ const StaffDashboard = () => {
             <h3>Average Class Performance (%)</h3>
             <p className="text-muted text-sm">Class average tracker across evaluation milestones</p>
             <div style={{ height: '240px', width: '100%', marginTop: '1.25rem' }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="staffPerfGrad" x1="0" y1="0" x2="0" y2="1">

@@ -211,7 +211,7 @@ const HodMarks = () => {
         <div className="glass-card chart-box col-span-2">
           <h3>Semester Performance Trend</h3>
           <div style={{ height: '230px', marginTop: '1.25rem' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={CGPA_TREND_DATA_FALLBACK}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="sem" stroke="var(--text-muted)" />

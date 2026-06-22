@@ -214,7 +214,7 @@ const SubAdminReports = () => {
             <h3><BarChart2 size={15}/> Department Performance</h3>
             <p>CGPA, Attendance &amp; Fees % across departments</p>
             <div style={{height:230}}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={DEPT_PERF} barSize={14}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)"/>
                   <XAxis dataKey="dept" stroke="var(--text-muted)" fontSize={11} tickLine={false}/>
@@ -234,7 +234,7 @@ const SubAdminReports = () => {
             <h3><TrendingUp size={15}/> Semester-wise Exam Trend</h3>
             <p>Average CGPA progression across semesters</p>
             <div style={{height:230}}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={SEM_CGPA}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)"/>
                   <XAxis dataKey="sem" stroke="var(--text-muted)" fontSize={11} tickLine={false}/>
@@ -252,7 +252,7 @@ const SubAdminReports = () => {
               <h3><BarChart2 size={15}/> Attendance Analytics</h3>
               <p>Monthly average attendance percentage</p>
               <div style={{height:230}}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={ATT_DATA}>
                     <defs>
                       <linearGradient id="attGrad" x1="0" y1="0" x2="0" y2="1">
@@ -277,7 +277,7 @@ const SubAdminReports = () => {
               <h3><DollarSign size={15}/> Fees Analytics</h3>
               <p>Monthly collected vs pending fees</p>
               <div style={{height:230}}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={FEES_DATA} barSize={16}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)"/>
                     <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={11} tickLine={false}/>

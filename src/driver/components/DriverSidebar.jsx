@@ -1,9 +1,9 @@
 ﻿import React from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LayoutDashboard, Bus, MapPin, Users, Bell, Wrench, Calendar, Navigation, LogOut, ChevronRight, ChevronDown, CheckSquare, DollarSign } from 'lucide-react';
-import './DriverSidebar.css';
+import '../../components/layout/Sidebar.css';
 
-const DriverSidebar = () => {
+const DriverSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const session = JSON.parse(sessionStorage.getItem('driver_session') || '{}');
 
@@ -16,27 +16,27 @@ const DriverSidebar = () => {
   const menuGroups = [
     {
       name: 'Transport Ops',
-      icon: <Bus size={18} />,
+      icon: <Bus size={20} />,
       items: [
-        { name: 'My Vehicle', path: '/driver/vehicle', icon: <Wrench size={19} /> },
-        { name: 'My Route', path: '/driver/route', icon: <MapPin size={19} /> }
+        { name: 'My Vehicle', path: '/driver/vehicle', icon: <Wrench size={20} /> },
+        { name: 'My Route', path: '/driver/route', icon: <MapPin size={20} /> }
       ]
     },
     {
       name: 'Student Transit',
-      icon: <Users size={18} />,
+      icon: <Users size={20} />,
       items: [
-        { name: 'Student List', path: '/driver/students', icon: <Users size={19} /> },
-        { name: 'Attendance', path: '/driver/attendance', icon: <Calendar size={19} /> }
+        { name: 'Student List', path: '/driver/students', icon: <Users size={20} /> },
+        { name: 'Attendance', path: '/driver/attendance', icon: <Calendar size={20} /> }
       ]
     },
     {
       name: 'Admin & Tasks',
-      icon: <CheckSquare size={18} />,
+      icon: <CheckSquare size={20} />,
       items: [
-        { name: 'My Tasks', path: '/driver/tasks', icon: <CheckSquare size={19} /> },
-        { name: 'Payroll', path: '/driver/payroll', icon: <DollarSign size={19} /> },
-        { name: 'Notifications', path: '/driver/notifications', icon: <Bell size={19} /> }
+        { name: 'My Tasks', path: '/driver/tasks', icon: <CheckSquare size={20} /> },
+        { name: 'Payroll', path: '/driver/payroll', icon: <DollarSign size={20} /> },
+        { name: 'Notifications', path: '/driver/notifications', icon: <Bell size={20} /> }
       ]
     }
   ];
@@ -48,21 +48,21 @@ const DriverSidebar = () => {
   };
 
   return (
-    <aside className="driver-sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       {/* Brand */}
-      <div className="driver-sidebar-header" >
-        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+      <div className="sidebar-header" >
+        <img src="/logo.svg?v=1782115707229" alt="ERPSYS Logo" style={{ height: '32px', objectFit: 'contain' }} />
       </div>
 
       {/* Nav links */}
-      <nav className="driver-nav">
+      <nav className="sidebar-nav">
         <ul>
           <li style={{ marginBottom: '0.5rem' }}>
             <NavLink
               to="/driver/dashboard"
-              className={({ isActive }) => isActive ? 'driver-nav-link active' : 'driver-nav-link'}
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
             >
-              <LayoutDashboard size={19} />
+              <LayoutDashboard size={20} />
               <span>Dashboard</span>
             </NavLink>
           </li>
@@ -85,8 +85,8 @@ const DriverSidebar = () => {
                   <li key={i}>
                     <NavLink
                       to={item.path}
-                      className={({ isActive }) => isActive ? 'driver-nav-link active' : 'driver-nav-link'}
-                      style={{ paddingLeft: '3rem' }}
+                      className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                      style={{ paddingLeft: '2.8rem' }}
                     >
                       {item.icon}
                       <span>{item.name}</span>
@@ -98,14 +98,14 @@ const DriverSidebar = () => {
           ))}
         </ul>
       </nav>
-      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--sidebar-border)' }}>
         <button 
           onClick={handleLogout} 
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ffffff', background: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           <span>Logout</span>
         </button>
       </div>

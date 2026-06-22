@@ -294,21 +294,54 @@ router.get('/colleges', protect, collegeScope, async (req, res) => {
 
 // Get Current User
 router.get('/me', protect, collegeScope, async (req, res) => {
-  let collegeName = null;
-  if (req.user.tenantId && req.user.tenantId !== 'system') {
-    const college = await College.findOne({ tenantId: req.user.tenantId });
-    if (college) collegeName = college.name;
-  }
+  try {
+    let collegeName = null;
+    let subscriptionStatus = 'Active';
+    let isTrial = false;
+    let isGracePeriod = false;
+    let planName = 'N/A';
+    let expiryDate = null;
+    let daysExpired = 0;
 
-  res.json({
-    _id: req.user._id,
-    name: req.user.name,
-    email: req.user.email,
-    role: req.user.role,
-    department: req.user.department,
-    collegeName: collegeName,
-    referenceId: req.user.referenceId
-  });
+    if (req.user.tenantId && req.user.tenantId !== 'system') {
+      const college = await College.findOne({ tenantId: req.user.tenantId });
+      if (college) {
+        collegeName = college.name;
+        const { calculateSubscriptionStatus } = await import('../utils/subscriptionHelper.js');
+        const liveStatus = calculateSubscriptionStatus(college);
+        subscriptionStatus = liveStatus.status;
+        isTrial = liveStatus.isTrial;
+        isGracePeriod = liveStatus.isGracePeriod;
+        planName = liveStatus.planName;
+        expiryDate = college.subscriptionEndDate || college.trialEndDate || null;
+        
+        if (subscriptionStatus === 'Expired' && expiryDate) {
+          const now = new Date();
+          const end = new Date(expiryDate);
+          const diffTime = Math.abs(now - end);
+          daysExpired = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        }
+      }
+    }
+
+    res.json({
+      _id: req.user._id,
+      name: req.user.name,
+      email: req.user.email,
+      role: req.user.role,
+      department: req.user.department,
+      collegeName: collegeName,
+      referenceId: req.user.referenceId,
+      subscriptionStatus,
+      isTrial,
+      isGracePeriod,
+      planName,
+      expiryDate,
+      daysExpired
+    });
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 });
 
 // Dev Only: Repair orphaned users

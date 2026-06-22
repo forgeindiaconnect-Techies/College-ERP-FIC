@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Users, TrendingUp, AlertCircle, Star, Search, X, Award, 
+  Users, UserMinus, TrendingUp, AlertCircle, Star, Search, X, Award, 
   BookOpen, Calendar, Mail, Phone, MapPin, CheckCircle, 
   ChevronDown, FileText, Bell, SlidersHorizontal 
 } from 'lucide-react';
@@ -266,18 +266,20 @@ export default function PrincipalStaffOverview() {
       {/* 6 Top Analytics Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(160px,1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
         {[
-          { label: 'Total Faculty', value: staffList.length, icon: <Users size={18} />, color: '#6366f1' },
-          { label: 'On Leave', value: staffList.filter(s => s.status === 'On Leave').length, icon: <AlertCircle size={18} />, color: '#ef4444' },
-          { label: 'Avg Attendance', value: staffList.length ? `${(staffList.reduce((acc, curr) => acc + curr.attendance, 0) / staffList.length).toFixed(1)}%` : '0%', icon: <Calendar size={18} />, color: '#10b981' },
-          { label: 'Avg Rating', value: staffList.length ? (staffList.reduce((acc, curr) => acc + curr.rating, 0) / staffList.length).toFixed(1) : '0', icon: <Star size={18} />, color: '#f59e0b' },
-          { label: 'Departments', value: Object.keys(deptCounts).length, icon: <BookOpen size={18} />, color: '#0ea5e9' },
+          { label: 'Total Faculty', value: staffList.length, icon: <Users size={18} />, bgTint: '#EEEDFE', iconColor: '#3C3489', sub: 'All departments' },
+          { label: 'On Leave', value: 0, icon: <UserMinus size={18} />, bgTint: '#EEEDFE', iconColor: '#3C3489', sub: 'No absences' },
+          { label: 'Avg Attendance', value: staffList.length ? `${(staffList.reduce((acc, curr) => acc + curr.attendance, 0) / staffList.length).toFixed(1)}%` : '0%', icon: <Calendar size={18} />, bgTint: '#E1F5EE', iconColor: '#047857', sub: 'Above target', subColor: '#047857' },
+          { label: 'Avg Rating', value: staffList.length ? (staffList.reduce((acc, curr) => acc + curr.rating, 0) / staffList.length).toFixed(1) : '0', icon: <Star size={18} />, bgTint: '#EEEDFE', iconColor: '#3C3489', sub: 'Out of 5.0' },
+          { label: 'Departments', value: Object.keys(deptCounts).length, icon: <BookOpen size={18} />, bgTint: '#EEEDFE', iconColor: '#3C3489', sub: 'Active divisions' },
         ].map((s, i) => (
-          <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>
-            <div className="stat-icon-wrapper" style={{ background: s.color }}>{s.icon}</div>
-            <div className="stat-details">
-              <h3>{s.label}</h3>
-              <p className="stat-value">{s.value}</p>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{s.sub}</span>
+                    <div key={i} className="stat-card" style={{ padding: '1.25rem', background: '#FFFFFF', border: '1px solid #E3E5EC', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: 'none' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: s.bgTint, color: s.iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {s.icon}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>{s.label}</span>
+              <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: '1.1' }}>{s.value}</span>
+              <span style={{ fontSize: '0.75rem', color: s.subColor || 'var(--text-muted)', fontWeight: s.subColor ? 600 : 400 }}>{s.sub}</span>
             </div>
           </div>
         ))}
@@ -535,7 +537,7 @@ export default function PrincipalStaffOverview() {
             {modalType === 'profile' && (
               <div>
                 <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: '1.2rem' }}>
-                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'linear-gradient(135deg,#6366F1,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '1.3rem' }}>{selectedStaff.name.charAt(0)}</div>
+                  <div style={{ width: 56, height: 56, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 900, fontSize: '1.3rem' }}>{selectedStaff.name.charAt(0)}</div>
                   <div>
                     <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--text-main)', margin: 0 }}>{selectedStaff.name}</h3>
                     <p style={{ fontSize: '0.8rem', color: '#6366F1', fontWeight: 700, margin: 0 }}>{selectedStaff.designation} · {selectedStaff.dept}</p>

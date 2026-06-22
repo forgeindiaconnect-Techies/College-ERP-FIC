@@ -38,7 +38,7 @@ const SuperAdminSidebar = ({ isOpen, onClose }) => {
     <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-header" style={{ justifyContent: 'space-between' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+          <img src="/logo.svg?v=1782115707259" alt="ERPSYS Logo" style={{ height: '32px', objectFit: 'contain' }} />
           <span style={{ background: 'rgba(239, 68, 68, 0.1)', color: '#ef4444', padding: '2px 8px', borderRadius: '12px', fontSize: '0.65rem', fontWeight: 700, border: '1px solid rgba(239, 68, 68, 0.2)' }}>SUPER ADMIN</span>
         </div>
         <button className="sidebar-close-btn" onClick={onClose}>
@@ -70,22 +70,17 @@ const SuperAdminSidebar = ({ isOpen, onClose }) => {
       </nav>
 
       <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <button 
-          onClick={handleLogout} 
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
-        >
-          <LogOut size={18} />
-          <span>Logout</span>
-        </button>
+        <button onClick={handleLogout} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ffffff', background: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }} onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'} onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}>
+            <LogOut size={20} />
+            <span>Logout</span>
+          </button>
       </div>
     </aside>
   );
 };
 
 const SuperAdminLayout = () => {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
   const { theme } = useContext(ThemeContext);
 
   const toggleSidebar = () => {

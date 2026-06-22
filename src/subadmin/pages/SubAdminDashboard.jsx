@@ -38,7 +38,7 @@ const SubAdminDashboard = () => {
       <div className="dashboard-header">
       <CollegeInfoCard />
         <div>
-          <h1 className="page-title">Welcome back, {userName}</h1>
+          <h1 className="page-title" style={{ color: '#fff' }}>Welcome back, {userName}</h1>
           <p className="text-muted">Here's your permitted administrative access overview.</p>
         </div>
       </div>

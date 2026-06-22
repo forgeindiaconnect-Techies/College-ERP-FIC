@@ -104,7 +104,7 @@ const CollegeInfoCard = () => {
           <CreditCard size={18} color="var(--text-muted)" />
           <div>
             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Plan</p>
-            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: '#8b5cf6' }}>{collegeData.plan}</p>
+            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-muted)' }}>{collegeData.plan}</p>
           </div>
         </div>
         
@@ -113,8 +113,8 @@ const CollegeInfoCard = () => {
           <div>
             <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-muted)' }}>Status</p>
             <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: collegeData.status === 'Active' ? '#10b981' : '#ef4444' }}></span>
-              <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: collegeData.status === 'Active' ? '#10b981' : '#ef4444' }}>{collegeData.status}</p>
+              <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: collegeData.status === 'Active' ? 'var(--success)' : 'var(--danger)' }}></span>
+              <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 600, color: collegeData.status === 'Active' ? 'var(--success)' : 'var(--danger)' }}>{collegeData.status}</p>
             </div>
           </div>
         </div>

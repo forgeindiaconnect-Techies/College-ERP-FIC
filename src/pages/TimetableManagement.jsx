@@ -62,7 +62,8 @@ const TimetableManagement = () => {
         if (res.data) {
           setTimes(res.data.times?.length > 0 ? res.data.times : ['09:00 - 10:00', '10:00 - 11:00', '11:15 - 12:15', '01:00 - 02:00', '02:00 - 04:00']);
           const fetchedGrid = res.data.schedule;
-          setGrid(fetchedGrid && fetchedGrid.length > 0 ? fetchedGrid : [
+          const is2DArray = Array.isArray(fetchedGrid) && fetchedGrid.length > 0 && Array.isArray(fetchedGrid[0]);
+          setGrid(is2DArray ? fetchedGrid : [
             ['', '', '', 'Lunch', ''],
             ['', '', '', 'Lunch', ''],
             ['', '', '', 'Lunch', ''],

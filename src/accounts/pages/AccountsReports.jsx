@@ -75,7 +75,7 @@ const AccountsReports = () => {
           </h1>
           <p className="text-[var(--text-muted)] mt-1">Analytics and summaries of the institution's finances.</p>
         </div>
-        <button style={{ background: 'linear-gradient(to right, #6366F1, #9333ea)' }} className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all">
+        <button style={{ background: 'var(--primary)' }} className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all">
           <FileBarChart size={18} /> Generate Master Report
         </button>
       </div>
@@ -89,7 +89,7 @@ const AccountsReports = () => {
           <div className="glass-card p-6">
             <h3 className="font-semibold text-[var(--text-main)] mb-6">Revenue Breakdown (Year to Date)</h3>
             <div className="h-64 flex items-center justify-center">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <PieChart>
                   <Pie data={collectionData} cx="50%" cy="50%" innerRadius={70} outerRadius={100} paddingAngle={5} dataKey="value">
                     {collectionData.map((entry, index) => (
@@ -116,7 +116,7 @@ const AccountsReports = () => {
           <div className="glass-card p-6">
             <h3 className="font-semibold text-[var(--text-main)] mb-6">Monthly Revenue Trend (in Lakhs)</h3>
             <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={monthlyTrend} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                   <XAxis dataKey="month" stroke="var(--text-muted)" fontSize={12} tickLine={false} axisLine={false} />

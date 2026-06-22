@@ -33,28 +33,28 @@ const AccountsSidebar = ({ isOpen, onClose }) => {
   const menuGroups = [
     {
       name: 'Fees & Collections',
-      icon: <Wallet size={18} />,
+      icon: <Wallet size={20} />,
       items: [
-        { name: 'Fees Collection', path: '/accounts/fees-collection', icon: <CreditCard size={18} /> },
-        { name: 'Pending Fees', path: '/accounts/pending-fees', icon: <AlertCircle size={18} /> },
-        { name: 'Payment History', path: '/accounts/payment-history', icon: <History size={18} /> }
+        { name: 'Fees Collection', path: '/accounts/fees-collection', icon: <CreditCard size={20} /> },
+        { name: 'Pending Fees', path: '/accounts/pending-fees', icon: <AlertCircle size={20} /> },
+        { name: 'Payment History', path: '/accounts/payment-history', icon: <History size={20} /> }
       ]
     },
     {
       name: 'Financial Operations',
-      icon: <Banknote size={18} />,
+      icon: <Banknote size={20} />,
       items: [
-        { name: 'Salary Management', path: '/accounts/salary', icon: <Banknote size={18} /> },
-        { name: 'Expense Tracking', path: '/accounts/expenses', icon: <PieChart size={18} /> },
-        { name: 'Receipt Generation', path: '/accounts/receipts', icon: <Receipt size={18} /> },
-        { name: 'Scholarships', path: '/accounts/scholarships', icon: <Award size={18} /> }
+        { name: 'Salary Management', path: '/accounts/salary', icon: <Banknote size={20} /> },
+        { name: 'Expense Tracking', path: '/accounts/expenses', icon: <PieChart size={20} /> },
+        { name: 'Receipt Generation', path: '/accounts/receipts', icon: <Receipt size={20} /> },
+        { name: 'Scholarships', path: '/accounts/scholarships', icon: <Award size={20} /> }
       ]
     },
     {
       name: 'Reports & Analytics',
-      icon: <FileBarChart size={18} />,
+      icon: <FileBarChart size={20} />,
       items: [
-        { name: 'Financial Reports', path: '/accounts/reports', icon: <FileText size={18} /> }
+        { name: 'Financial Reports', path: '/accounts/reports', icon: <FileText size={20} /> }
       ]
     }
   ];
@@ -79,7 +79,7 @@ const AccountsSidebar = ({ isOpen, onClose }) => {
               end={true}
               className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
             >
-              <LayoutDashboard size={18} />
+              <LayoutDashboard size={20} />
               <span>Dashboard</span>
             </NavLink>
           </li>
@@ -104,7 +104,7 @@ const AccountsSidebar = ({ isOpen, onClose }) => {
                       to={item.path} 
                       end={item.exact}
                       className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
-                      style={{ paddingLeft: '3rem' }}
+                      style={{ paddingLeft: '2.8rem' }}
                     >
                       {item.icon}
                       <span>{item.name}</span>
@@ -117,14 +117,14 @@ const AccountsSidebar = ({ isOpen, onClose }) => {
         </ul>
       </nav>
       
-      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--sidebar-border)' }}>
         <button 
           onClick={handleLogout} 
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ffffff', background: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           <span>Logout</span>
         </button>
       </div>

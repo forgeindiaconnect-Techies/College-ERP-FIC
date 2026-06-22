@@ -6,7 +6,7 @@ import {
   ClipboardList, Megaphone, ShieldCheck, Settings, ChevronRight, ChevronDown, 
   Wallet, Activity, PieChart, LogOut, Library, Bus, Building, Briefcase, Bot, Layers 
 } from 'lucide-react';
-import './Sidebar.css';
+import '../../components/layout/Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
@@ -25,69 +25,69 @@ const Sidebar = ({ isOpen, onClose }) => {
   const menuGroups = [
     {
       name: 'User Management',
-      icon: <Users size={18} />,
+      icon: <Users size={20} />,
       items: [
-        { name: 'Accounts Officer', path: '/admin/accounts-management', icon: <Wallet size={18} /> },
-        { name: 'HODs', path: '/admin/hods', icon: <GraduationCap size={18} style={{ color: 'var(--primary)' }} /> },
-        { name: 'Staff', path: '/admin/staff', icon: <GraduationCap size={18} /> },
-        { name: 'Students', path: '/admin/students', icon: <Users size={18} /> },
-        { name: 'Parents', path: '/admin/parents', icon: <Heart size={18} /> }
+        { name: 'Accounts Officer', path: '/admin/accounts-management', icon: <Wallet size={20} /> },
+        { name: 'HODs', path: '/admin/hods', icon: <GraduationCap size={20} style={{ color: 'var(--primary)' }} /> },
+        { name: 'Staff', path: '/admin/staff', icon: <GraduationCap size={20} /> },
+        { name: 'Students', path: '/admin/students', icon: <Users size={20} /> },
+        { name: 'Parents', path: '/admin/parents', icon: <Heart size={20} /> }
       ]
     },
     {
       name: 'Academic',
-      icon: <Layers size={18} />,
+      icon: <Layers size={20} />,
       items: [
-        { name: 'Departments', path: '/admin/departments', icon: <Building2 size={18} /> },
-        { name: 'Subjects', path: '/admin/subjects', icon: <BookOpen size={18} /> },
-        { name: 'Timetable', path: '/admin/timetable', icon: <Calendar size={18} /> },
-        { name: 'Attendance', path: '/admin/attendance', icon: <CalendarCheck size={18} /> },
-        { name: 'Exams', path: '/admin/exams', icon: <FileSpreadsheet size={18} /> },
-        { name: 'Results', path: '/admin/marks', icon: <BookOpenCheck size={18} /> },
-        { name: 'Assignments', path: '/admin/assignments', icon: <ClipboardList size={18} /> }
+        { name: 'Departments', path: '/admin/departments', icon: <Building2 size={20} /> },
+        { name: 'Subjects', path: '/admin/subjects', icon: <BookOpen size={20} /> },
+        { name: 'Timetable', path: '/admin/timetable', icon: <Calendar size={20} /> },
+        { name: 'Attendance', path: '/admin/attendance', icon: <CalendarCheck size={20} /> },
+        { name: 'Exams', path: '/admin/exams', icon: <FileSpreadsheet size={20} /> },
+        { name: 'Results', path: '/admin/marks', icon: <BookOpenCheck size={20} /> },
+        { name: 'Assignments', path: '/admin/assignments', icon: <ClipboardList size={20} /> }
       ]
     },
     {
       name: 'Finance',
-      icon: <Wallet size={18} />,
+      icon: <Wallet size={20} />,
       items: [
-        { name: 'Fees', path: '/admin/fees', icon: <Wallet size={18} /> },
-        { name: 'Payroll', path: '/admin/payroll', icon: <FileSpreadsheet size={18} /> }
+        { name: 'Fees', path: '/admin/fees', icon: <Wallet size={20} /> },
+        { name: 'Payroll', path: '/admin/payroll', icon: <FileSpreadsheet size={20} /> }
       ]
     },
     {
       name: 'Resources',
-      icon: <Library size={18} />,
+      icon: <Library size={20} />,
       items: [
-        { name: 'Library', path: '/admin/library', icon: <Library size={18} /> },
-        { name: 'Transport', path: '/admin/transport', icon: <Bus size={18} /> },
-        { name: 'Hostel', path: '/admin/hostel', icon: <Building size={18} /> },
-        { name: 'Placement', path: '/admin/placement', icon: <Briefcase size={18} /> }
+        { name: 'Library', path: '/admin/library', icon: <Library size={20} /> },
+        { name: 'Transport', path: '/admin/transport', icon: <Bus size={20} /> },
+        { name: 'Hostel', path: '/admin/hostel', icon: <Building size={20} /> },
+        { name: 'Placement', path: '/admin/placement', icon: <Briefcase size={20} /> }
       ]
     },
     {
       name: 'Communication',
-      icon: <Megaphone size={18} />,
+      icon: <Megaphone size={20} />,
       items: [
-        { name: 'Announcements', path: '/admin/announcements', icon: <Megaphone size={18} /> },
-        { name: 'Leave Requests', path: '/admin/leaves', icon: <Inbox size={18} /> }
+        { name: 'Announcements', path: '/admin/announcements', icon: <Megaphone size={20} /> },
+        { name: 'Leave Requests', path: '/admin/leaves', icon: <Inbox size={20} /> }
       ]
     },
     {
       name: 'Reports & Analytics',
-      icon: <PieChart size={18} />,
+      icon: <PieChart size={20} />,
       items: [
-        { name: 'Reports', path: '/admin/reports', icon: <FileBarChart size={18} /> },
-        { name: 'Analytics', path: '/admin/analytics', icon: <PieChart size={18} /> },
-        { name: 'Activity Logs', path: '/admin/activity-logs', icon: <Activity size={18} /> }
+        { name: 'Reports', path: '/admin/reports', icon: <FileBarChart size={20} /> },
+        { name: 'Analytics', path: '/admin/analytics', icon: <PieChart size={20} /> },
+        { name: 'Activity Logs', path: '/admin/activity-logs', icon: <Activity size={20} /> }
       ]
     },
     {
       name: 'Administration',
-      icon: <Settings size={18} />,
+      icon: <Settings size={20} />,
       items: [
-        { name: 'Settings & Security', path: '/admin/settings', icon: <ShieldCheck size={18} className="text-red-500" /> },
-        { name: 'My Subscription', path: '/admin/subscription', icon: <Wallet size={18} style={{ color: '#f59e0b' }} /> }
+        { name: 'Settings & Security', path: '/admin/settings', icon: <ShieldCheck size={20} className="text-red-500" /> },
+        { name: 'My Subscription', path: '/admin/subscription', icon: <Wallet size={20} style={{ color: '#f59e0b' }} /> }
       ]
     }
   ];
@@ -98,7 +98,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       
       <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
         <div className="sidebar-header">
-          <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+          <img src="/logo.svg?v=1782115707199" alt="ERPSYS Logo" style={{ height: '32px', objectFit: 'contain' }} />
           <button className="sidebar-close-btn" onClick={onClose}>
             <X size={20} />
           </button>
@@ -112,7 +112,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                 end={true}
                 className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
               >
-                <LayoutDashboard size={18} />
+                <LayoutDashboard size={20} />
                 <span>Dashboard</span>
               </NavLink>
             </li>
@@ -137,7 +137,7 @@ const Sidebar = ({ isOpen, onClose }) => {
                         to={item.path} 
                         end={item.exact}
                         className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
-                        style={{ paddingLeft: '3rem' }}
+                        style={{ paddingLeft: '2.8rem' }}
                       >
                         {item.icon}
                         <span>{item.name}</span>
@@ -150,14 +150,14 @@ const Sidebar = ({ isOpen, onClose }) => {
           </ul>
         </nav>
 
-        <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--sidebar-border)' }}>
           <button 
             onClick={handleLogout} 
-            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
-            onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-            onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+            style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ffffff', background: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+            onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+            onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
           >
-            <LogOut size={18} />
+            <LogOut size={20} />
             <span>Logout</span>
           </button>
         </div>

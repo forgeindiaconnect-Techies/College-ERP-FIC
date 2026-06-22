@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Outlet, Navigate } from 'react-router-dom';
 import DriverSidebar from './DriverSidebar';
 import Navbar from '../../components/layout/Navbar';
@@ -11,15 +11,17 @@ const DriverGuard = ({ children }) => {
 };
 
 const DriverLayout = () => {
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
+
   return (
     <div className="layout-container" style={{
       '--primary': '#06B6D4',
       '--primary-gradient': 'linear-gradient(135deg, #0891B2, #22D3EE)',
       '--shadow-glow': '0 4px 14px 0 rgba(6, 182, 212, 0.25)'
     }}>
-      <DriverSidebar />
-      <div className="main-wrapper">
-        <Navbar role="Driver" onMenuToggle={() => {}} />
+      <DriverSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className={`main-wrapper ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        <Navbar role="Driver" onMenuToggle={() => setSidebarOpen(o => !o)} />
         <main className="main-content">
           <Outlet />
         </main>

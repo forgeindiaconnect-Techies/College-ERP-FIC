@@ -20,9 +20,9 @@
 
 /* Welcome Banner */
 .student-welcome-banner {
-  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  background: var(--color-primary, #3730A5);
   border-radius: var(--border-radius-lg);
-  padding: 1.25rem 1.5rem;
+  padding: 1rem 1.25rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -30,15 +30,15 @@
   box-shadow: var(--shadow-glow);
   border: none;
 }
-.banner-left h1 { font-size: 1.6rem; font-weight: 700; margin: 0 0 0.4rem; }
-.banner-left p { font-size: 0.88rem; color: #ccfbf1; margin: 0; opacity: 0.9; }
+.banner-left h1 { font-size: 1.35rem; font-weight: 700; margin: 0 0 0.25rem; line-height: 1.2; }
+.banner-left p { font-size: 0.85rem; color: rgba(255,255,255,0.9); margin: 0; line-height: 1.4; }
 
 .student-badge-number {
   background: rgba(255,255,255,0.12);
   border: 1px solid rgba(255,255,255,0.2);
-  padding: 0.5rem 1rem;
+  padding: 0.35rem 0.8rem;
   border-radius: 30px;
-  font-size: 0.85rem;
+  font-size: 0.8rem;
 }
 
 /* Metrics */
@@ -78,12 +78,6 @@
   width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
-.metric-icon-s.teal   { background: rgba(20, 184, 166, 0.1); color: #14b8a6; }
-.metric-icon-s.blue   { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
-.metric-icon-s.orange { background: rgba(245, 158, 11, 0.1); color: #f59e0b; }
-.metric-icon-s.purple { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
-.metric-icon-s.green  { background: rgba(16, 185, 129, 0.1); color: #10b981; }
-.metric-icon-s.red    { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
 .metric-value-s {
   font-size: 1.3rem; font-weight: 700; color: var(--text-main); margin: 0 0 0.1rem 0; line-height: 1.2;

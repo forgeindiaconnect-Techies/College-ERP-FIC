@@ -3,7 +3,8 @@
 /* Welcome Banner */
 .staff-welcome-banner {
   display: flex; justify-content: space-between; align-items: center;
-  background: linear-gradient(135deg, #4F46E5, #7C3AED);
+  background: #3730A5;
+    box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.3);
   color: white;
   border: none;
   border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem;
@@ -60,12 +61,15 @@
   width: 42px; height: 42px; border-radius: 10px; flex-shrink: 0;
   display: flex; align-items: center; justify-content: center;
 }
-.staff-stat-icon.blue    { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
-.staff-stat-icon.emerald { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-.staff-stat-icon.indigo  { background: rgba(79, 70, 229, 0.12); color: var(--primary); }
-.staff-stat-icon.amber   { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.staff-stat-icon.red     { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-.staff-stat-icon.purple  { background: rgba(168, 85, 247, 0.12); color: #a855f7; }
+/* Forced Deep Indigo aesthetic */
+.staff-stat-icon { background: rgba(55, 48, 165, 0.1) !important; color: #3730A5 !important; }
+
+
+
+
+
+
+
 
 .staff-stat-details { display: flex; flex-direction: column; flex: 1; }
 .staff-stat-label { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; margin: 0 0 0.15rem 0; line-height: 1.2; }

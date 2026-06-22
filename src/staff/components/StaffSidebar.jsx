@@ -4,7 +4,7 @@ import {
   LayoutDashboard, Users, CalendarCheck, BookOpenCheck,
   ClipboardList, Calendar, LogOut, ChevronRight, ChevronDown, FileText, Megaphone, GraduationCap, IndianRupee, Briefcase, Library, LifeBuoy
 } from 'lucide-react';
-import './StaffSidebar.css';
+import '../../components/layout/Sidebar.css';
 
 // Staff session data — in a real app, this comes from JWT / sessionStorage
 const getStaffSession = () => {
@@ -16,7 +16,7 @@ const getStaffSession = () => {
   };
 };
 
-const StaffSidebar = () => {
+const StaffSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const staffSession = getStaffSession();
 
@@ -29,44 +29,44 @@ const StaffSidebar = () => {
   const menuGroups = [
     {
       name: 'Academic Management',
-      icon: <BookOpenCheck size={18} />,
+      icon: <BookOpenCheck size={20} />,
       items: [
-        { name: 'Take Attendance', path: '/staff/attendance', icon: <CalendarCheck size={18} /> },
-        { name: 'Upload Marks', path: '/staff/marks', icon: <BookOpenCheck size={18} /> },
-        { name: 'Assignments', path: '/staff/assignments', icon: <ClipboardList size={18} /> },
-        { name: 'Exams', path: '/staff/exams', icon: <GraduationCap size={18} /> },
-        { name: 'Timetable', path: '/staff/timetable', icon: <Calendar size={18} /> }
+        { name: 'Take Attendance', path: '/staff/attendance', icon: <CalendarCheck size={20} /> },
+        { name: 'Upload Marks', path: '/staff/marks', icon: <BookOpenCheck size={20} /> },
+        { name: 'Assignments', path: '/staff/assignments', icon: <ClipboardList size={20} /> },
+        { name: 'Exams', path: '/staff/exams', icon: <GraduationCap size={20} /> },
+        { name: 'Timetable', path: '/staff/timetable', icon: <Calendar size={20} /> }
       ]
     },
     {
       name: 'Class & Students',
-      icon: <Users size={18} />,
+      icon: <Users size={20} />,
       items: [
-        { name: 'Student List', path: '/staff/students', icon: <Users size={18} /> }
+        { name: 'Student List', path: '/staff/students', icon: <Users size={20} /> }
       ]
     },
     {
       name: 'Resources & Career',
-      icon: <Library size={18} />,
+      icon: <Library size={20} />,
       items: [
-        { name: 'Library', path: '/staff/library', icon: <Library size={18} /> },
-        { name: 'Placement', path: '/staff/placement', icon: <Briefcase size={18} /> }
+        { name: 'Library', path: '/staff/library', icon: <Library size={20} /> },
+        { name: 'Placement', path: '/staff/placement', icon: <Briefcase size={20} /> }
       ]
     },
     {
       name: 'Communication',
-      icon: <Megaphone size={18} />,
+      icon: <Megaphone size={20} />,
       items: [
-        { name: 'Announcements', path: '/staff/announcements', icon: <Megaphone size={18} /> },
-        { name: 'Leaves', path: '/staff/leaves', icon: <FileText size={18} /> },
-        { name: 'Support Center', path: '/staff/support', icon: <LifeBuoy size={18} /> }
+        { name: 'Announcements', path: '/staff/announcements', icon: <Megaphone size={20} /> },
+        { name: 'Leaves', path: '/staff/leaves', icon: <FileText size={20} /> },
+        { name: 'Support Center', path: '/staff/support', icon: <LifeBuoy size={20} /> }
       ]
     },
     {
       name: 'Finance',
-      icon: <IndianRupee size={18} />,
+      icon: <IndianRupee size={20} />,
       items: [
-        { name: 'Payroll', path: '/staff/payroll', icon: <IndianRupee size={18} /> }
+        { name: 'Payroll', path: '/staff/payroll', icon: <IndianRupee size={20} /> }
       ]
     }
   ];
@@ -78,22 +78,22 @@ const StaffSidebar = () => {
   };
 
   return (
-    <aside className="staff-sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       {/* Brand */}
-      <div className="staff-sidebar-header" >
-        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+      <div className="sidebar-header" >
+        <img src="/logo.svg?v=1782115707245" alt="ERPSYS Logo" style={{ height: '32px', objectFit: 'contain' }} />
       </div>
 
       {/* Nav */}
-      <nav className="staff-nav">
+      <nav className="sidebar-nav">
         <ul>
           <li style={{ marginBottom: '0.5rem' }}>
             <NavLink
               to="/staff/dashboard"
               end={true}
-              className={({ isActive }) => isActive ? 'staff-nav-link active' : 'staff-nav-link'}
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
             >
-              <LayoutDashboard size={18} />
+              <LayoutDashboard size={20} />
               <span>Dashboard</span>
             </NavLink>
           </li>
@@ -116,8 +116,8 @@ const StaffSidebar = () => {
                   <li key={i}>
                     <NavLink 
                       to={item.path} 
-                      className={({ isActive }) => isActive ? "staff-nav-link active" : "staff-nav-link"}
-                      style={{ paddingLeft: '3rem' }}
+                      className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+                      style={{ paddingLeft: '2.8rem' }}
                     >
                       {item.icon}
                       <span>{item.name}</span>
@@ -129,14 +129,14 @@ const StaffSidebar = () => {
           ))}
         </ul>
       </nav>
-      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--sidebar-border)' }}>
         <button 
           onClick={handleLogout} 
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ffffff', background: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           <span>Logout</span>
         </button>
       </div>

@@ -19,52 +19,38 @@
   color: var(--text-muted);
 }
 
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
-}
+/* Removed to use premium global styles */
 
 @media (max-width: 1024px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  /* Removed to use premium global styles */
 }
 
 @media (max-width: 640px) {
-  .stats-grid { grid-template-columns: 1fr; }
+  /* Removed to use premium global styles */
 }
 
-.stat-card {
-  display: flex; flex-direction: row; align-items: center; gap: 0.75rem;
-  overflow: hidden;
-}
+/* Removed to use premium global styles */
 
-.stat-icon-wrapper {
-  width: 32px; height: 32px; border-radius: 8px; flex-shrink: 0;
-  display: flex; align-items: center; justify-content: center;
-}
+/* Removed to use premium global styles */
 .stat-icon-wrapper svg { color: inherit !important; }
 
-.bg-gradient-blue { background: rgba(37, 99, 235, 0.1) !important; color: #2563EB !important; }
-.bg-gradient-purple { background: rgba(124, 58, 237, 0.1) !important; color: #7C3AED !important; }
-.bg-gradient-orange { background: rgba(249, 115, 22, 0.1) !important; color: #F97316 !important; }
-.bg-gradient-green { background: rgba(16, 185, 129, 0.1) !important; color: #10B981 !important; }
-.bg-gradient-pink { background: rgba(236, 72, 153, 0.1) !important; color: #EC4899 !important; }
-.bg-gradient-teal { background: rgba(20, 184, 166, 0.1) !important; color: #14B8A6 !important; }
+
+
+
+
+
+
 
 .stat-details { display: flex; flex-direction: column; flex: 1; }
-.stat-details h3 { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; margin: 0 0 0.15rem 0; line-height: 1.2; }
-.stat-card .stat-value, .stat-value { font-size: 1.15rem; font-weight: 700; color: var(--text-main) !important; margin: 0 0 0.1rem 0; line-height: 1.2; }
-.stat-change { display: flex; align-items: center; gap: 0.25rem; font-size: 0.72rem; font-weight: 500; margin: 0; }
+/* Removed to use premium global styles */
+.stat-card .stat-value, /* Removed to use premium global styles */
+/* Removed to use premium global styles */
 
 .stat-change.positive {
   color: var(--success);
 }
 
-.dashboard-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
+/* Removed to use premium global styles */
 
 .col-span-2 {
   grid-column: span 2;
@@ -84,6 +70,7 @@
   font-size: 1.1rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
+  text-transform: none !important;
 }
 
 .chart-container {

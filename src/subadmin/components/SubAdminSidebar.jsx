@@ -23,7 +23,7 @@ import {
 } from 'lucide-react';
 import '../../components/layout/Sidebar.css';
 
-const SubAdminSidebar = () => {
+const SubAdminSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const [permissions, setPermissions] = useState([]);
   const [userName, setUserName] = useState('Sub Admin');
@@ -56,43 +56,43 @@ const SubAdminSidebar = () => {
   const allMenuGroups = [
     {
       name: 'User Management',
-      icon: <Users size={18} />,
+      icon: <Users size={20} />,
       items: [
-        { name: 'Students', path: '/subadmin/students', icon: <Users size={18} />, module: 'manage_students' },
-        { name: 'Staff', path: '/subadmin/staff', icon: <GraduationCap size={18} />, module: 'manage_staff' }
+        { name: 'Students', path: '/subadmin/students', icon: <Users size={20} />, module: 'manage_students' },
+        { name: 'Staff', path: '/subadmin/staff', icon: <GraduationCap size={20} />, module: 'manage_staff' }
       ]
     },
     {
       name: 'Academic',
-      icon: <BookOpenCheck size={18} />,
+      icon: <BookOpenCheck size={20} />,
       items: [
-        { name: 'Departments', path: '/subadmin/departments', icon: <Building2 size={18} />, module: 'view_departments' },
-        { name: 'Attendance', path: '/subadmin/attendance', icon: <CalendarCheck size={18} />, module: 'view_attendance' },
-        { name: 'Timetable', path: '/subadmin/timetable', icon: <Calendar size={18} />, module: 'always' },
-        { name: 'Placement', path: '/subadmin/placement', icon: <Briefcase size={19} />, module: 'always' }
+        { name: 'Departments', path: '/subadmin/departments', icon: <Building2 size={20} />, module: 'view_departments' },
+        { name: 'Attendance', path: '/subadmin/attendance', icon: <CalendarCheck size={20} />, module: 'view_attendance' },
+        { name: 'Timetable', path: '/subadmin/timetable', icon: <Calendar size={20} />, module: 'always' },
+        { name: 'Placement', path: '/subadmin/placement', icon: <Briefcase size={20} />, module: 'always' }
       ]
     },
     {
       name: 'Communication',
-      icon: <Megaphone size={18} />,
+      icon: <Megaphone size={20} />,
       items: [
-        { name: 'Announcements', path: '/subadmin/announcements', icon: <Megaphone size={18} />, module: 'create_announcements' },
-        { name: 'Notifications', path: '/subadmin/notifications', icon: <Bell size={18} />, module: 'always' }
+        { name: 'Announcements', path: '/subadmin/announcements', icon: <Megaphone size={20} />, module: 'create_announcements' },
+        { name: 'Notifications', path: '/subadmin/notifications', icon: <Bell size={20} />, module: 'always' }
       ]
     },
     {
       name: 'Reports & Logs',
-      icon: <FileBarChart size={18} />,
+      icon: <FileBarChart size={20} />,
       items: [
-        { name: 'Reports', path: '/subadmin/reports', icon: <ClipboardList size={19} />, module: 'reports' },
-        { name: 'Activity Logs', path: '/subadmin/activity-logs', icon: <Activity size={18} />, module: 'always' }
+        { name: 'Reports', path: '/subadmin/reports', icon: <ClipboardList size={20} />, module: 'reports' },
+        { name: 'Activity Logs', path: '/subadmin/activity-logs', icon: <Activity size={20} />, module: 'always' }
       ]
     },
     {
       name: 'Settings',
-      icon: <User size={18} />,
+      icon: <User size={20} />,
       items: [
-        { name: 'Profile', path: '/subadmin/profile', icon: <User size={18} />, module: 'always' }
+        { name: 'Profile', path: '/subadmin/profile', icon: <User size={20} />, module: 'always' }
       ]
     }
   ];
@@ -104,9 +104,9 @@ const SubAdminSidebar = () => {
   })).filter(group => group.items.length > 0);
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       <div className="sidebar-header">
-        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+        <img src="/logo.svg?v=1782115707254" alt="ERPSYS Logo" style={{ height: '32px', objectFit: 'contain' }} />
       </div>
       
       <nav className="sidebar-nav">
@@ -117,7 +117,7 @@ const SubAdminSidebar = () => {
               end={true}
               className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
             >
-              <LayoutDashboard size={18} />
+              <LayoutDashboard size={20} />
               <span>Dashboard</span>
             </NavLink>
           </li>
@@ -141,7 +141,7 @@ const SubAdminSidebar = () => {
                     <NavLink 
                       to={item.path} 
                       className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
-                      style={{ paddingLeft: '3rem' }}
+                      style={{ paddingLeft: '2.8rem' }}
                     >
                       {item.icon}
                       <span>{item.name}</span>
@@ -157,11 +157,11 @@ const SubAdminSidebar = () => {
       <div className="sidebar-footer">
         <button 
           onClick={handleLogout} 
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s', marginBottom: '8px' }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ffffff', background: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s', marginBottom: '8px' }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           <span>Logout</span>
         </button>
         <div className="admin-badge">

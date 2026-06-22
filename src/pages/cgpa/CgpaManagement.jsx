@@ -240,7 +240,7 @@ const CgpaManagement = () => {
         <div className="glass-card chart-box col-span-2">
           <h3><TrendingUp size={16} /> Average CGPA Trend (All Semesters)</h3>
           <div style={{height:230,marginTop:'1rem'}}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={CGPA_TREND}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="sem" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
@@ -300,7 +300,7 @@ const CgpaManagement = () => {
         <div className="glass-card chart-box col-span-3">
           <h3><BookOpen size={16}/> GPA Distribution Across Students</h3>
           <div style={{height:200,marginTop:'1rem'}}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={gpaDist} barSize={40}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="range" stroke="var(--text-muted)" fontSize={12} tickLine={false} />

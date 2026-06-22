@@ -15,7 +15,6 @@ import {
 } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './StudentDashboard.css';
-import CollegeInfoCard from '../../components/common/CollegeInfoCard';
 
 const DEPT_SUBJECTS = {
   'Computer Science Engineering': ['Data Structures', 'DBMS', 'Networks', 'OS', 'Machine Learning', 'AI', 'Cloud Computing', 'Cryptography'],
@@ -394,7 +393,6 @@ const StudentDashboard = () => {
 
   return (
     <div className="student-dashboard animate-fade-in">
-      <CollegeInfoCard />
       {hasOverdueBooks && (
         <div className="bg-red-500/10 border border-red-500/50 text-red-600 dark:text-red-400 p-5 rounded-2xl mb-8 flex items-start gap-4 shadow-sm">
           <ShieldAlert size={28} className="shrink-0 mt-0.5" />
@@ -409,12 +407,12 @@ const StudentDashboard = () => {
       )}
 
       {/* Welcome Banner */}
-      <div className="student-welcome-banner">
-        <div className="banner-left">
-          <h1>Welcome back, {studentDetails.name}!</h1>
-          <p>Here is an overview of your academic stats, schedules, and alerts for {studentDetails.sem}.</p>
+      <div className="student-welcome-banner" style={{ background: 'var(--color-primary, #3730A5)', borderRadius: 'var(--border-radius-lg, 12px)', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#ffffff', boxShadow: 'var(--shadow-glow)' }}>
+        <div className="banner-left" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: '700', margin: 0, lineHeight: 1.2, color: '#ffffff' }}>Welcome back, {studentDetails.name}!</h1>
+          <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.9)', margin: 0, lineHeight: 1.4 }}>Here is an overview of your academic stats, schedules, and alerts for {studentDetails.sem}.</p>
         </div>
-        <div className="student-badge-number">
+        <div className="student-badge-number" style={{ background: 'rgba(255, 255, 255, 0.12)', border: '1px solid rgba(255, 255, 255, 0.2)', padding: '0.35rem 0.8rem', borderRadius: '30px', fontSize: '0.8rem', color: '#ffffff' }}>
           <span>REG NO: <strong>{studentDetails.id}</strong></span>
         </div>
       </div>
@@ -436,8 +434,8 @@ const StudentDashboard = () => {
 
       {/* Metrics Row */}
       <div className="student-metrics-grid">
-        <div className="glass-card s-metric-card">
-          <div className="metric-icon-s teal"><Percent size={22} /></div>
+        <div className="glass-card s-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-s" style={{ background: 'var(--color-primary-tint, #e0e7ff)', color: 'var(--color-primary-text-on-tint, #3730A5)' }}><Percent size={22} /></div>
           <div className="s-metric-details">
             <span className="card-title-s">Attendance Rate</span>
             <h2 className="metric-value-s">{studentDetails.attendance}%</h2>
@@ -447,8 +445,8 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card s-metric-card">
-          <div className="metric-icon-s blue"><BookOpen size={22} /></div>
+        <div className="glass-card s-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-s" style={{ background: 'var(--color-primary-tint, #e0e7ff)', color: 'var(--color-primary-text-on-tint, #3730A5)' }}><BookOpen size={22} /></div>
           <div className="s-metric-details">
             <span className="card-title-s">Current CGPA</span>
             <h2 className="metric-value-s">{studentDetails.cgpa}</h2>
@@ -456,8 +454,11 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card s-metric-card">
-          <div className="metric-icon-s orange"><AlertCircle size={22} /></div>
+        <div className="glass-card s-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-s" style={{
+            background: studentDetails.feeStatus === 'Pending' ? 'var(--color-danger-tint, #fee2e2)' : 'var(--color-primary-tint, #e0e7ff)',
+            color: studentDetails.feeStatus === 'Pending' ? 'var(--color-danger-text-on-tint, #b91c1c)' : 'var(--color-primary-text-on-tint, #3730A5)'
+          }}><AlertCircle size={22} /></div>
           <div className="s-metric-details">
             <span className="card-title-s">Pending Fees</span>
             <h2 className="metric-value-s">
@@ -469,8 +470,8 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card s-metric-card">
-          <div className="metric-icon-s purple"><Calendar size={22} /></div>
+        <div className="glass-card s-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-s" style={{ background: 'var(--color-primary-tint, #e0e7ff)', color: 'var(--color-primary-text-on-tint, #3730A5)' }}><Calendar size={22} /></div>
           <div className="s-metric-details">
             <span className="card-title-s">Upcoming Exams</span>
             <h2 className="metric-value-s">{myExams.length} Exams</h2>
@@ -480,8 +481,8 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card s-metric-card">
-          <div className="metric-icon-s green"><ClipboardList size={22} /></div>
+        <div className="glass-card s-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-s" style={{ background: 'var(--color-primary-tint, #e0e7ff)', color: 'var(--color-primary-text-on-tint, #3730A5)' }}><ClipboardList size={22} /></div>
           <div className="s-metric-details">
             <span className="card-title-s">Assignments Pending</span>
             <h2 className="metric-value-s">{assignmentsCount} Tasks</h2>
@@ -489,13 +490,16 @@ const StudentDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card s-metric-card" style={{ cursor: 'pointer', transition: 'all 0.3s' }} onClick={() => navigate('/student/placement')} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'none'}>
-          <div className={`metric-icon-s ${isPlacementEligible ? 'teal' : 'red'}`}>
+        <div className="glass-card s-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb', cursor: 'pointer', transition: 'all 0.3s' }} onClick={() => navigate('/student/placement')} onMouseOver={(e) => e.currentTarget.style.transform = 'translateY(-2px)'} onMouseOut={(e) => e.currentTarget.style.transform = 'none'}>
+          <div className="metric-icon-s" style={{
+            background: isPlacementEligible ? 'var(--color-primary-tint, #e0e7ff)' : 'var(--color-danger-tint, #fee2e2)',
+            color: isPlacementEligible ? 'var(--color-primary-text-on-tint, #3730A5)' : 'var(--color-danger-text-on-tint, #b91c1c)'
+          }}>
             <Briefcase size={22} />
           </div>
           <div className="s-metric-details">
             <span className="card-title-s">Placement Status</span>
-            <h2 className="metric-value-s">{isPlacementEligible ? 'Eligible ✅' : 'Not Eligible ❌'}</h2>
+            <h2 className="metric-value-s">{isPlacementEligible ? 'Eligible' : 'Not Eligible'}</h2>
             <div className={`metric-sub-s ${isPlacementEligible ? 'text-success' : 'text-danger'}`}>
               {isPlacementEligible ? 'Eligible Drives: 12' : 'Action Required'}
             </div>

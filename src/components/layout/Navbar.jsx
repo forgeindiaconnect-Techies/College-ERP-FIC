@@ -99,12 +99,13 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
             <Menu size={20} />
           </button>
         )}
+        <img src={theme === 'dark' ? '/logo.svg' : '/logo-dark.svg'} alt="ERPSYS Logo" className="navbar-logo" />
         <div className="navbar-greeting" style={{ display: 'flex', flexDirection: 'column' }}>
           <h3 style={{ fontSize: '1.15rem', fontWeight: 600, margin: 0, color: 'var(--text-main)', marginTop: '2px' }}>
-            Welcome, {userRole}! 👋
+            {userRole === 'Admin' || userRole === 'Super Admin' ? 'Welcome back! 👋' : (collegeName || 'Antigravity ERP')}
           </h3>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontWeight: 500, marginTop: '2px' }}>
-            Good {new Date().getHours() < 12 ? 'Morning' : new Date().getHours() < 18 ? 'Afternoon' : 'Evening'}, {userName} • {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
+            {userRole} Portal • {new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' })}
           </span>
         </div>
       </div>
@@ -188,9 +189,9 @@ const Navbar = ({ role = 'Admin', onMenuToggle }) => {
         <div className="navbar-profile-wrapper" style={{ position: 'relative' }}>
           <div className="navbar-profile" onClick={() => setShowProfileDropdown(!showProfileDropdown)}>
             <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=4f46e5&color=fff`} alt="Profile" className="profile-img" />
-            <div className="user-info">
-              <span className="user-name">{userName}</span>
-              <span className="user-role">{userRole}</span>
+            <div className="profile-info">
+              <span className="profile-name">{userName}</span>
+              <span className="profile-role">{userRole}</span>
             </div>
             <ChevronDown size={16} className="text-muted" />
           </div>

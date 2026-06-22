@@ -388,7 +388,7 @@ export default function PrincipalCommunicationCenter() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><Bell size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Bell size={18} /></div>
           <div className="stat-details">
             <h3>Today Notifications</h3>
             <p className="stat-value">{todayNotifications}</p>
@@ -397,7 +397,7 @@ export default function PrincipalCommunicationCenter() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)' }}><FileText size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><FileText size={18} /></div>
           <div className="stat-details">
             <h3>Pending Circulars</h3>
             <p className="stat-value">{pendingCirculars}</p>
@@ -406,7 +406,7 @@ export default function PrincipalCommunicationCenter() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><Users size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Users size={18} /></div>
           <div className="stat-details">
             <h3>Department Notices</h3>
             <p className="stat-value">{deptNotices}</p>
@@ -415,7 +415,7 @@ export default function PrincipalCommunicationCenter() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><Clock size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Clock size={18} /></div>
           <div className="stat-details">
             <h3>Unread / Scheduled</h3>
             <p className="stat-value">{unreadCount}</p>
@@ -1105,7 +1105,7 @@ export default function PrincipalCommunicationCenter() {
                         <strong>{activeLog.delivery.email}%</strong>
                       </div>
                       <div style={{ width: '100%', height: '8px', background: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${activeLog.delivery.email}%`, height: '100%', background: 'linear-gradient(90deg, #3b82f6, #60a5fa)', borderRadius: '4px' }}></div>
+                        <div style={{ width: `${activeLog.delivery.email}%`, height: '100%', background: 'var(--primary)', borderRadius: '4px' }}></div>
                       </div>
                     </div>
                   )}
@@ -1117,7 +1117,7 @@ export default function PrincipalCommunicationCenter() {
                         <strong>{activeLog.delivery.sms}%</strong>
                       </div>
                       <div style={{ width: '100%', height: '8px', background: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${activeLog.delivery.sms}%`, height: '100%', background: 'linear-gradient(90deg, #10b981, #34d399)', borderRadius: '4px' }}></div>
+                        <div style={{ width: `${activeLog.delivery.sms}%`, height: '100%', background: 'var(--primary)', borderRadius: '4px' }}></div>
                       </div>
                     </div>
                   )}
@@ -1129,7 +1129,7 @@ export default function PrincipalCommunicationCenter() {
                         <strong>{activeLog.delivery.push}%</strong>
                       </div>
                       <div style={{ width: '100%', height: '8px', background: 'var(--bg-primary)', borderRadius: '4px', overflow: 'hidden' }}>
-                        <div style={{ width: `${activeLog.delivery.push}%`, height: '100%', background: 'linear-gradient(90deg, #6366F1, #a78bfa)', borderRadius: '4px' }}></div>
+                        <div style={{ width: `${activeLog.delivery.push}%`, height: '100%', background: 'var(--primary)', borderRadius: '4px' }}></div>
                       </div>
                     </div>
                   )}

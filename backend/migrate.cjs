@@ -1,18 +1,15 @@
-const mongoose = require('mongoose'); 
-mongoose.connect('mongodb://localhost:27017/college_erp').then(async () => { 
-  const db = mongoose.connection.db; 
-  const staffs = await db.collection('staffs').find().toArray(); 
-  for(const s of staffs) { 
-    if(s.collegeId && s.email) { 
-      await db.collection('users').updateOne({email: s.email}, {$set: {tenantId: s.collegeId}}); 
-    } 
-  } 
-  const students = await db.collection('students').find().toArray(); 
-  for(const s of students) { 
-    if(s.collegeId && s.email) { 
-      await db.collection('users').updateOne({email: s.email}, {$set: {tenantId: s.collegeId}}); 
-    } 
-  } 
-  console.log('Migration complete'); 
-  process.exit(0); 
+const mongoose = require('mongoose');
+mongoose.connect('mongodb+srv://college:college1@cluster0.y8so5pd.mongodb.net/college_erp?appName=Cluster0').then(async () => {
+  const db = mongoose.connection;
+  const collections = ['students', 'staffs', 'departments', 'marks', 'exams', 'fees', 'timetables'];
+  for (const c of collections) {
+    try {
+      const res = await db.collection(c).updateMany(
+        { $or: [{ collegeId: { $exists: false } }, { collegeId: null }] },
+        { $set: { collegeId: 'unassigned_college' } }
+      );
+      console.log('Migrated', c, res.modifiedCount);
+    } catch(e) {}
+  }
+  process.exit(0);
 });

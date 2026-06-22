@@ -533,7 +533,7 @@ export default function PrincipalStudentWelfare() {
       <div className="stats-grid mb-6 animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '1rem' }}>
         
         <div className="stat-card" style={{ borderBottom: '3px solid var(--danger)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ef4444, #b91c1c)' }}><AlertOctagon size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><AlertOctagon size={18} /></div>
           <div className="stat-details">
             <h3>Disciplinary Cases</h3>
             <p className="stat-value">{activeDisciplineCount}</p>
@@ -542,7 +542,7 @@ export default function PrincipalStudentWelfare() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid var(--warning)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><MessageSquare size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><MessageSquare size={18} /></div>
           <div className="stat-details">
             <h3>Pending Complaints</h3>
             <p className="stat-value">{pendingComplaintsCount}</p>
@@ -551,7 +551,7 @@ export default function PrincipalStudentWelfare() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid #6366F1' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><UserCheck size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><UserCheck size={18} /></div>
           <div className="stat-details">
             <h3>Counseling Sessions</h3>
             <p className="stat-value">{activeCounselingCount}</p>
@@ -560,7 +560,7 @@ export default function PrincipalStudentWelfare() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid var(--success)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><Award size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Award size={18} /></div>
           <div className="stat-details">
             <h3>Scholarship Waiver</h3>
             <p className="stat-value">{scholarshipCount}</p>
@@ -569,7 +569,7 @@ export default function PrincipalStudentWelfare() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid #db2777' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #db2777, #be185d)' }}><Heart size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Heart size={18} /></div>
           <div className="stat-details">
             <h3>High Risk Cases</h3>
             <p className="stat-value">{highRiskCount}</p>
@@ -888,7 +888,7 @@ export default function PrincipalStudentWelfare() {
                 Student Mental Wellness Index vs Handled Cases
               </h4>
               <div style={{ width: '100%', height: '220px' }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={wellnessData}>
                     <defs>
                       <linearGradient id="colorWellness" x1="0" y1="0" x2="0" y2="1">
@@ -913,7 +913,7 @@ export default function PrincipalStudentWelfare() {
                 Incident Categories Mapping by Engineering Department
               </h4>
               <div style={{ width: '100%', height: '220px' }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={departmentIncidentData}>
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="name" />

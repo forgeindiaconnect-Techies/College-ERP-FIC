@@ -194,7 +194,7 @@ const HodAttendance = () => {
         <div className="glass-card chart-section col-span-2">
           <h3>Weekly Attendance Trend (%)</h3>
           <div style={{ height: '230px', marginTop: '1.25rem' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={WEEKLY_DATA} barSize={26}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="day" stroke="var(--text-muted)" />

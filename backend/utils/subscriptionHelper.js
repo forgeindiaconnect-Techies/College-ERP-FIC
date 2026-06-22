@@ -43,12 +43,13 @@ export const calculateSubscriptionStatus = (college) => {
     let finalStatus = 'Active';
     let daysRemaining = diffDays > 0 ? diffDays : 0;
     let isGracePeriod = false;
+    const isTrial = planName === 'Trial';
 
     if (diffDays <= 0) {
       const expiredDays = Math.abs(diffDays);
       const GRACE_PERIOD_DAYS = 2;
 
-      if (expiredDays <= GRACE_PERIOD_DAYS) {
+      if (expiredDays <= GRACE_PERIOD_DAYS && !isTrial) {
         finalStatus = 'Grace Period';
         isGracePeriod = true;
         daysRemaining = GRACE_PERIOD_DAYS - expiredDays;
@@ -63,7 +64,7 @@ export const calculateSubscriptionStatus = (college) => {
       status: finalStatus,
       expiryDate: endDate.toISOString(),
       daysRemaining,
-      isTrial: planName === 'Trial',
+      isTrial,
       isGracePeriod
     };
   } catch (err) {

@@ -353,7 +353,7 @@ const SubAdminAttendance = () => {
           <div className="glass-card chart-section col-span-2">
             <h3><Calendar size={18} className="text-primary" /> Daily Attendance Trend (Mon - Sat)</h3>
             <div style={{ height: '230px', width: '100%', marginTop: '1rem' }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <BarChart data={weeklyData} barSize={32}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                   <XAxis dataKey="day" stroke="var(--text-muted)" fontSize={12} tickLine={false} />
@@ -410,7 +410,7 @@ const SubAdminAttendance = () => {
           <div className="glass-card chart-section col-span-3">
             <h3><TrendingUp size={18} className="text-primary" /> Monthly Attendance Analytics (6-Month Trend)</h3>
             <div style={{ height: '240px', width: '100%', marginTop: '1rem' }}>
-              <ResponsiveContainer width="100%" height="100%">
+              <ResponsiveContainer width="100%" height={300}>
                 <AreaChart data={MONTHLY_ANALYTICS}>
                   <defs>
                     <linearGradient id="colorAvg" x1="0" y1="0" x2="0" y2="1">

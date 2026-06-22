@@ -274,7 +274,7 @@ export default function PrincipalDepartments() {
                             <strong style={{ color: 'var(--text-main)' }}>{dept.attendanceRate}%</strong>
                           </div>
                           <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '10px', overflow: 'hidden' }}>
-                            <div style={{ width: `${dept.attendanceRate}%`, height: '100%', background: 'linear-gradient(90deg, #3b82f6 0%, #2563eb 100%)', borderRadius: '10px' }}></div>
+                            <div style={{ width: `${dept.attendanceRate}%`, height: '100%', background: 'var(--primary)', borderRadius: '10px' }}></div>
                           </div>
                         </div>
 
@@ -284,7 +284,7 @@ export default function PrincipalDepartments() {
                             <strong style={{ color: 'var(--text-main)' }}>{dept.passRate}%</strong>
                           </div>
                           <div style={{ height: '6px', background: 'var(--border-color)', borderRadius: '10px', overflow: 'hidden' }}>
-                            <div style={{ width: `${dept.passRate}%`, height: '100%', background: 'linear-gradient(90deg, #10b981 0%, #059669 100%)', borderRadius: '10px' }}></div>
+                            <div style={{ width: `${dept.passRate}%`, height: '100%', background: 'var(--primary)', borderRadius: '10px' }}></div>
                           </div>
                         </div>
                       </div>
@@ -343,7 +343,7 @@ export default function PrincipalDepartments() {
           {/* Core Analytics Cards Grid */}
           <div className="stats-grid mb-6" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
             <div className="stat-card">
-              <div className="stat-icon-wrapper bg-gradient-blue text-white" style={{ background: 'linear-gradient(135deg, #3b82f6, #2563eb)' }}><Users size={20} /></div>
+              <div className="stat-icon-wrapper bg-gradient-blue text-white" style={{ background: 'var(--primary)' }}><Users size={20} /></div>
               <div className="stat-details">
                 <h3>Student Strength</h3>
                 <p className="stat-value">{departmentsData[selectedDept].studentsCount}</p>
@@ -352,7 +352,7 @@ export default function PrincipalDepartments() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4F46E5, #6d28d9)' }}><GraduationCap size={20} /></div>
+              <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><GraduationCap size={20} /></div>
               <div className="stat-details">
                 <h3>Staff Performance</h3>
                 <p className="stat-value">9.2 / 10</p>
@@ -361,7 +361,7 @@ export default function PrincipalDepartments() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><UserCheck size={20} /></div>
+              <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><UserCheck size={20} /></div>
               <div className="stat-details">
                 <h3>Attendance Analytics</h3>
                 <p className="stat-value">{departmentsData[selectedDept].attendanceRate}%</p>
@@ -370,7 +370,7 @@ export default function PrincipalDepartments() {
             </div>
 
             <div className="stat-card">
-              <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><Percent size={20} /></div>
+              <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Percent size={20} /></div>
               <div className="stat-details">
                 <h3>Exam Results</h3>
                 <p className="stat-value">{departmentsData[selectedDept].passRate}%</p>

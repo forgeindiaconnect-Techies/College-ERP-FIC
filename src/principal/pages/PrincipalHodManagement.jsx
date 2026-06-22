@@ -118,18 +118,20 @@ export default function PrincipalHodManagement() {
       {/* Stats */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(170px,1fr))', gap: '1rem', marginBottom: '1.5rem' }}>
         {[
-          { label: 'Total HODs', value: hodList.length, icon: <Users size={18} />, color: '#6366f1', sub: 'Active departments' },
-          { label: 'Active HODs', value: hodList.filter(h => h.status === 'Active').length, icon: <CheckCircle size={18} />, color: '#10b981', sub: 'Currently present' },
-          { label: 'Avg Attendance', value: hodList.length ? `${(hodList.reduce((a,b) => a + b.attendance, 0) / hodList.length).toFixed(1)}%` : '0%', icon: <TrendingUp size={18} />, color: '#f59e0b', sub: 'This semester' },
-          { label: 'Avg Pass Rate', value: hodList.length ? `${(hodList.reduce((a,b) => a + b.passRate, 0) / hodList.length).toFixed(1)}%` : '0%', icon: <Star size={18} />, color: '#6366F1', sub: 'All departments' },
-          { label: 'Pending Reviews', value: 0, icon: <AlertCircle size={18} />, color: '#ef4444', sub: 'Action needed' },
+          { label: 'Total HODs', value: hodList.length, icon: <Users size={18} />, bgTint: '#EEEDFE', iconColor: '#3C3489', sub: 'Active departments' },
+          { label: 'Active HODs', value: hodList.filter(h => h.status === 'Active').length, icon: <CheckCircle size={18} />, bgTint: '#E1F5EE', iconColor: '#047857', sub: 'Currently present', subColor: '#047857' },
+          { label: 'Avg Attendance', value: hodList.length ? `${(hodList.reduce((a,b) => a + b.attendance, 0) / hodList.length).toFixed(1)}%` : '0%', icon: <TrendingUp size={18} />, bgTint: '#E1F5EE', iconColor: '#047857', sub: 'This semester', subColor: '#047857' },
+          { label: 'Avg Pass Rate', value: hodList.length ? `${(hodList.reduce((a,b) => a + b.passRate, 0) / hodList.length).toFixed(1)}%` : '0%', icon: <Star size={18} />, bgTint: '#EEEDFE', iconColor: '#3C3489', sub: 'All departments' },
+          { label: 'Pending Reviews', value: 0, icon: <AlertCircle size={18} />, bgTint: '#FAEEDA', iconColor: '#B45309', sub: 'Action needed', subColor: '#B45309' },
         ].map((s, i) => (
-          <div key={i} className="stat-card" style={{ borderBottom: `3px solid ${s.color}` }}>
-            <div className="stat-icon-wrapper" style={{ background: s.color }}>{s.icon}</div>
-            <div className="stat-details">
-              <h3>{s.label}</h3>
-              <p className="stat-value">{s.value}</p>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)' }}>{s.sub}</span>
+                    <div key={i} className="stat-card" style={{ padding: '1.25rem', background: '#FFFFFF', border: '1px solid #E3E5EC', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.75rem', boxShadow: 'none' }}>
+            <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: s.bgTint, color: s.iconColor, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {s.icon}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+              <span style={{ fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.5px' }}>{s.label}</span>
+              <span style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--text-main)', lineHeight: '1.1' }}>{s.value}</span>
+              <span style={{ fontSize: '0.75rem', color: s.subColor || 'var(--text-muted)', fontWeight: s.subColor ? 600 : 400 }}>{s.sub}</span>
             </div>
           </div>
         ))}
@@ -194,7 +196,7 @@ export default function PrincipalHodManagement() {
             <div className="glass-card animate-fade-in" style={{ padding: '1.5rem', borderRadius: 16 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' }}>
                 <div>
-                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg,#6366f1,#6366F1)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '1.2rem', marginBottom: 8 }}>{selected.name.charAt(0)}</div>
+                  <div style={{ width: 48, height: 48, borderRadius: '50%', background: 'var(--primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 800, fontSize: '1.2rem', marginBottom: 8 }}>{selected.name.charAt(0)}</div>
                   <h3 style={{ fontWeight: 800, color: 'var(--text-main)', fontSize: '1rem' }}>{selected.name}</h3>
                   <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>{selected.dept}</p>
                 </div>

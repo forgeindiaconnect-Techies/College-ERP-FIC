@@ -196,7 +196,7 @@ export default function PrincipalReports() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #4F46E5, #6d28d9)' }}><GraduationCap size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><GraduationCap size={18} /></div>
           <div className="stat-details">
             <h3>Total Staff</h3>
             <p className="stat-value">{departmentStats.reduce((acc, curr) => acc + curr.staffs, 0).toLocaleString()}</p>
@@ -205,7 +205,7 @@ export default function PrincipalReports() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #06b6d4, #0891b2)' }}><Calendar size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Calendar size={18} /></div>
           <div className="stat-details">
             <h3>Average Attendance</h3>
             <p className="stat-value">{departmentStats.length > 0 ? (departmentStats.reduce((acc, curr) => acc + parseFloat(curr.averageAttendance || 0), 0) / departmentStats.length).toFixed(1) : '0'}%</p>
@@ -214,7 +214,7 @@ export default function PrincipalReports() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><Percent size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Percent size={18} /></div>
           <div className="stat-details">
             <h3>Pass Percentage</h3>
             <p className="stat-value">{departmentStats.length > 0 ? (departmentStats.reduce((acc, curr) => acc + parseFloat(curr.passRate || 0), 0) / departmentStats.length).toFixed(1) : '0'}%</p>
@@ -223,7 +223,7 @@ export default function PrincipalReports() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><DollarSign size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><DollarSign size={18} /></div>
           <div className="stat-details">
             <h3>Pending Fees</h3>
             <p className="stat-value">₹{departmentStats.reduce((acc, curr) => acc + (curr.students * 1100), 0).toLocaleString()}</p>
@@ -232,7 +232,7 @@ export default function PrincipalReports() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #db2777)' }}><Briefcase size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Briefcase size={18} /></div>
           <div className="stat-details">
             <h3>Placement Count</h3>
             <p className="stat-value">{placementStats.reduce((acc, curr) => acc + parseInt(curr.hired || 0), 0).toLocaleString()}</p>
@@ -241,7 +241,7 @@ export default function PrincipalReports() {
         </div>
 
         <div className="stat-card" style={{ borderLeft: '4px solid var(--success)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><Award size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Award size={18} /></div>
           <div className="stat-details">
             <h3>Top Department</h3>
             <p className="stat-value">{departmentStats.length > 0 ? [...departmentStats].sort((a, b) => b.passRate - a.passRate)[0].code : 'N/A'}</p>
@@ -250,7 +250,7 @@ export default function PrincipalReports() {
         </div>
 
         <div className="stat-card" style={{ borderLeft: '4px solid var(--danger)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}><AlertTriangle size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><AlertTriangle size={18} /></div>
           <div className="stat-details">
             <h3>Low Performance</h3>
             <p className="stat-value">{departmentStats.length > 0 ? [...departmentStats].sort((a, b) => a.passRate - b.passRate)[0].code : 'N/A'}</p>

@@ -352,7 +352,7 @@ export default function PrincipalApprovals() {
       {/* STEP 2: METRICS CARDS GRID */}
       <div className="stats-grid mb-6 animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
         <div className="stat-card" style={{ borderLeft: '4px solid var(--warning)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><Clock size={20} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Clock size={20} /></div>
           <div className="stat-details">
             <h3>Pending Approvals</h3>
             <p className="stat-value" style={{ color: 'var(--text-main)' }}>{countPending}</p>
@@ -361,7 +361,7 @@ export default function PrincipalApprovals() {
         </div>
 
         <div className="stat-card" style={{ borderLeft: '4px solid var(--success)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><CheckCircle size={20} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><CheckCircle size={20} /></div>
           <div className="stat-details">
             <h3>Approved Requests</h3>
             <p className="stat-value" style={{ color: 'var(--text-main)' }}>{countApproved}</p>
@@ -370,7 +370,7 @@ export default function PrincipalApprovals() {
         </div>
 
         <div className="stat-card" style={{ borderLeft: '4px solid var(--danger)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}><XCircle size={20} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><XCircle size={20} /></div>
           <div className="stat-details">
             <h3>Rejected Requests</h3>
             <p className="stat-value" style={{ color: 'var(--text-main)' }}>{countRejected}</p>
@@ -379,7 +379,7 @@ export default function PrincipalApprovals() {
         </div>
 
         <div className="stat-card" style={{ borderLeft: '4px solid #3b82f6' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)' }}><AlertTriangle size={20} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><AlertTriangle size={20} /></div>
           <div className="stat-details">
             <h3>Urgent Action</h3>
             <p className="stat-value" style={{ color: 'var(--text-main)' }}>{countUrgent}</p>

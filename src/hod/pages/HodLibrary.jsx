@@ -128,7 +128,7 @@ const HodLibrary = () => {
             <TrendingUp size={18} className="text-indigo-500"/> Borrowing Trend (6 Months)
           </h3>
           <div className="h-[250px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={TREND_DATA}>
                 <defs>
                   <linearGradient id="colorBorrows" x1="0" y1="0" x2="0" y2="1">

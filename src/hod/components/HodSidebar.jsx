@@ -5,7 +5,7 @@ import {
   BookOpenCheck, Calendar, BookOpen, FileText, ClipboardList, Inbox,
   LogOut, ChevronRight, ChevronDown, Megaphone, Settings, IndianRupee, Briefcase, Library, LifeBuoy
 } from 'lucide-react';
-import './HodSidebar.css';
+import '../../components/layout/Sidebar.css';
 
 const DEPT_CODE_MAP = {
   'Computer Science Engineering': 'CSE',
@@ -31,7 +31,7 @@ const DEPT_CODE_MAP = {
   'Master of Business Admin.': 'MBA'
 };
 
-const HodSidebar = () => {
+const HodSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
 
   // Read HOD session inside the component to keep it reactive
@@ -53,48 +53,48 @@ const HodSidebar = () => {
   const menuGroups = [
     {
       name: 'Department Management',
-      icon: <Users size={18} />,
+      icon: <Users size={20} />,
       items: [
-        { name: 'Students', path: '/hod/students', icon: <Users size={18} /> },
-        { name: 'Staff', path: '/hod/staff', icon: <GraduationCap size={18} /> }
+        { name: 'Students', path: '/hod/students', icon: <Users size={20} /> },
+        { name: 'Staff', path: '/hod/staff', icon: <GraduationCap size={20} /> }
       ]
     },
     {
       name: 'Academic Operations',
-      icon: <BookOpenCheck size={18} />,
+      icon: <BookOpenCheck size={20} />,
       items: [
-        { name: 'Subjects', path: '/hod/subjects', icon: <BookOpen size={18} /> },
-        { name: 'Assignments', path: '/hod/assignments', icon: <FileText size={18} /> },
-        { name: 'Attendance', path: '/hod/attendance', icon: <CalendarCheck size={18} /> },
-        { name: 'Timetable', path: '/hod/timetable', icon: <Calendar size={18} /> },
-        { name: 'Exams', path: '/hod/exams', icon: <FileText size={18} /> },
-        { name: 'Results', path: '/hod/marks', icon: <BookOpenCheck size={18} /> }
+        { name: 'Subjects', path: '/hod/subjects', icon: <BookOpen size={20} /> },
+        { name: 'Assignments', path: '/hod/assignments', icon: <FileText size={20} /> },
+        { name: 'Attendance', path: '/hod/attendance', icon: <CalendarCheck size={20} /> },
+        { name: 'Timetable', path: '/hod/timetable', icon: <Calendar size={20} /> },
+        { name: 'Exams', path: '/hod/exams', icon: <FileText size={20} /> },
+        { name: 'Results', path: '/hod/marks', icon: <BookOpenCheck size={20} /> }
       ]
     },
     {
       name: 'Resources & Career',
-      icon: <Library size={18} />,
+      icon: <Library size={20} />,
       items: [
-        { name: 'Placement', path: '/hod/placement', icon: <Briefcase size={18} /> },
-        { name: 'Library', path: '/hod/library', icon: <Library size={18} /> }
+        { name: 'Placement', path: '/hod/placement', icon: <Briefcase size={20} /> },
+        { name: 'Library', path: '/hod/library', icon: <Library size={20} /> }
       ]
     },
     {
       name: 'Communication & Workflow',
-      icon: <Megaphone size={18} />,
+      icon: <Megaphone size={20} />,
       items: [
-        { name: 'Leave Approvals', path: '/hod/leaves', icon: <Inbox size={18} /> },
-        { name: 'Announcements', path: '/hod/announcements', icon: <Megaphone size={18} /> },
-        { name: 'Support Center', path: '/hod/support', icon: <LifeBuoy size={18} /> }
+        { name: 'Leave Approvals', path: '/hod/leaves', icon: <Inbox size={20} /> },
+        { name: 'Announcements', path: '/hod/announcements', icon: <Megaphone size={20} /> },
+        { name: 'Support Center', path: '/hod/support', icon: <LifeBuoy size={20} /> }
       ]
     },
     {
       name: 'Analytics & Admin',
-      icon: <ClipboardList size={18} />,
+      icon: <ClipboardList size={20} />,
       items: [
-        { name: 'Reports', path: '/hod/reports', icon: <ClipboardList size={18} /> },
-        { name: 'Payroll', path: '/hod/payroll', icon: <IndianRupee size={18} /> },
-        { name: 'Settings', path: '/hod/settings', icon: <Settings size={18} /> }
+        { name: 'Reports', path: '/hod/reports', icon: <ClipboardList size={20} /> },
+        { name: 'Payroll', path: '/hod/payroll', icon: <IndianRupee size={20} /> },
+        { name: 'Settings', path: '/hod/settings', icon: <Settings size={20} /> }
       ]
     }
   ];
@@ -106,24 +106,24 @@ const HodSidebar = () => {
   };
 
   return (
-    <aside className="hod-sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       {/* Brand */}
-      <div className="hod-sidebar-header" >
-        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+      <div className="sidebar-header" >
+        <img src="/logo.svg?v=1782115707234" alt="ERPSYS Logo" style={{ height: '32px', objectFit: 'contain' }} />
       </div>
 
       
 
       {/* Nav */}
-      <nav className="hod-nav">
+      <nav className="sidebar-nav">
         <ul>
           <li style={{ marginBottom: '0.5rem' }}>
             <NavLink
               to="/hod"
               end={true}
-              className={({ isActive }) => isActive ? 'hod-nav-link active' : 'hod-nav-link'}
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
             >
-              <LayoutDashboard size={18} />
+              <LayoutDashboard size={20} />
               <span>Dashboard</span>
             </NavLink>
           </li>
@@ -146,8 +146,8 @@ const HodSidebar = () => {
                   <li key={i}>
                     <NavLink 
                       to={item.path} 
-                      className={({ isActive }) => isActive ? "hod-nav-link active" : "hod-nav-link"}
-                      style={{ paddingLeft: '3rem' }}
+                      className={({ isActive }) => isActive ? "nav-link active" : "nav-link"}
+                      style={{ paddingLeft: '2.8rem' }}
                     >
                       {item.icon}
                       <span>{item.name}</span>
@@ -159,14 +159,14 @@ const HodSidebar = () => {
           ))}
         </ul>
       </nav>
-      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--sidebar-border)' }}>
         <button 
           onClick={handleLogout} 
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ffffff', background: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           <span>Logout</span>
         </button>
       </div>

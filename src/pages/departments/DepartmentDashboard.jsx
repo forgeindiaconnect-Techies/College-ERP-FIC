@@ -297,7 +297,7 @@ const DepartmentDashboard = () => {
 
           <div className="dd-quick-stats advanced-stats">
             {ADVANCED_METRICS.map((metric, idx) => (
-              <div key={idx} className="dd-stat advanced-stat-box">
+              <div key={idx} className="dd-stat advanced-stat-box" style={{ background: "#ffffff", border: "1px solid #e5e7eb" }}>
                 <span className="dd-stat-label">{metric.label}</span>
                 <span className="dd-stat-value" style={{ color: metric.color }}>
                   {metric.value(dept)}

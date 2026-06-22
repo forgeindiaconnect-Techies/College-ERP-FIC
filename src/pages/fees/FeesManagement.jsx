@@ -310,7 +310,7 @@ const FeesManagement = () => {
             <div className="glass-card chart-box">
               <h3><TrendingUp size={15}/> Monthly Fee Collection</h3>
               <div style={{height:280, marginTop:'1rem'}}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={MONTHLY_COLLECTION} barSize={40}>
                     <defs>
                       <linearGradient id="feesBarGrad" x1="0" y1="0" x2="0" y2="1">
@@ -330,7 +330,7 @@ const FeesManagement = () => {
             <div className="glass-card chart-box">
               <h3><Receipt size={15}/> Payment Status Breakdown</h3>
               <div style={{height:280, marginTop:'0.4rem'}}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie data={pieData} cx="50%" cy="45%" innerRadius={70} outerRadius={100} paddingAngle={3} dataKey="value">
                       {pieData.map(e=><Cell key={e.name} fill={PIE_COLORS[e.name]}/>)}

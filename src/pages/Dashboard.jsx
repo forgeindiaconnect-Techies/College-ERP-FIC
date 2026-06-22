@@ -20,7 +20,9 @@ import {
   Activity,
   Heart,
   Inbox,
-  Crown
+  Crown,
+  ClipboardList,
+  Rocket
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -164,8 +166,8 @@ const Dashboard = () => {
   const totalFeesCollected = fees.reduce((sum, f) => sum + (f.paidAmount || 0), 0);
   
   const feesDisplay = totalFeesCollected >= 100000 
-    ? `â‚¹${(totalFeesCollected / 100000).toFixed(1)}L`
-    : `â‚¹${totalFeesCollected.toLocaleString()}`;
+    ? `₹${(totalFeesCollected / 100000).toFixed(1)}L`
+    : `₹${totalFeesCollected.toLocaleString()}`;
 
   // Calculate dynamic average attendance
   const averageAttendance = students.length > 0
@@ -222,7 +224,7 @@ const Dashboard = () => {
       <CollegeInfoCard />
       {(isTrial && isActivePlan) && (
         <div style={{
-          background: 'linear-gradient(90deg, #f59e0b, #ef4444)',
+          background: 'var(--primary)',
           color: 'white',
           padding: '12px 24px',
           borderRadius: '8px',
@@ -251,7 +253,7 @@ const Dashboard = () => {
 
       {isGracePeriod && (
         <div style={{
-          background: 'linear-gradient(90deg, #ef4444, #b91c1c)',
+          background: 'var(--primary)',
           color: 'white',
           padding: '12px 24px',
           borderRadius: '8px',
@@ -280,7 +282,7 @@ const Dashboard = () => {
 
       {isExpired && !isGracePeriod && (
         <div style={{
-          background: 'linear-gradient(90deg, #991b1b, #7f1d1d)',
+          background: 'var(--primary)',
           color: 'white',
           padding: '12px 24px',
           borderRadius: '8px',
@@ -309,7 +311,7 @@ const Dashboard = () => {
 
       {!isTrial && isActivePlan && (
         <div style={{
-          background: 'linear-gradient(90deg, #3b82f6, #8b5cf6)',
+          background: 'var(--primary)',
           color: 'white',
           padding: '12px 24px',
           borderRadius: '8px',
@@ -354,7 +356,7 @@ const Dashboard = () => {
         </div>
         <div className="header-actions" style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '5px 12px', background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)', borderRadius: 20, fontSize: '0.75rem', fontWeight: 700, color: '#10b981' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', display: 'inline-block', boxShadow: '0 0 0 2px rgba(16,185,129,0.3)', animation: 'pulse 2s infinite' }} />
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: 'var(--success)', display: 'inline-block', boxShadow: '0 0 0 2px rgba(15, 110, 86, 0.2)', animation: 'pulse 2s infinite' }} />
             Live Sync
           </div>
           <button className="btn-primary" onClick={() => navigate('/admin/reports')}>
@@ -367,7 +369,7 @@ const Dashboard = () => {
       {/* Primary KPI Stats Grid */}
       <div className="stats-grid">
         <div className="stat-card glass-card">
-          <div className="stat-icon-wrapper bg-icon-blue">
+          <div className="stat-icon-wrapper bg-icon-primary" style={{ background: "#EEEDFE", color: "#3C3489" }}>
             <Users size={18} />
           </div>
           <div className="stat-details">
@@ -380,7 +382,7 @@ const Dashboard = () => {
         </div>
 
         <div className="stat-card glass-card">
-          <div className="stat-icon-wrapper bg-icon-purple">
+          <div className="stat-icon-wrapper bg-icon-primary" style={{ background: "#EEEDFE", color: "#3C3489" }}>
             <GraduationCap size={18} />
           </div>
           <div className="stat-details">
@@ -393,7 +395,7 @@ const Dashboard = () => {
         </div>
 
         <div className="stat-card glass-card">
-          <div className="stat-icon-wrapper bg-icon-orange">
+          <div className="stat-icon-wrapper bg-icon-primary" style={{ background: "#EEEDFE", color: "#3C3489" }}>
             <Building2 size={18} />
           </div>
           <div className="stat-details">
@@ -404,7 +406,7 @@ const Dashboard = () => {
         </div>
 
         <div className="stat-card glass-card">
-          <div className="stat-icon-wrapper bg-icon-green">
+          <div className="stat-icon-wrapper bg-icon-warning" style={{ background: "rgba(133, 79, 11, 0.1)", color: "#854F0B" }}>
             <CalendarCheck size={18} />
           </div>
           <div className="stat-details">
@@ -417,7 +419,7 @@ const Dashboard = () => {
         </div>
 
         <div className="stat-card glass-card">
-          <div className="stat-icon-wrapper bg-icon-emerald">
+          <div className="stat-icon-wrapper bg-icon-primary" style={{ background: "#EEEDFE", color: "#3C3489" }}>
             <Wallet size={18} />
           </div>
           <div className="stat-details">
@@ -430,7 +432,7 @@ const Dashboard = () => {
         </div>
 
         <div className="stat-card glass-card">
-          <div className="stat-icon-wrapper bg-icon-teal">
+          <div className="stat-icon-wrapper bg-icon-primary" style={{ background: "#EEEDFE", color: "#3C3489" }}>
             <Heart size={18} />
           </div>
           <div className="stat-details">
@@ -450,7 +452,7 @@ const Dashboard = () => {
             <h3>Global Attendance Trends</h3>
           </div>
           <div className="chart-container" style={{ minHeight: '300px', height: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={attendanceData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <defs>
                   <linearGradient id="colorStudents" x1="0" y1="0" x2="0" y2="1">
@@ -479,7 +481,7 @@ const Dashboard = () => {
             <h3>Departmental Grades & KPI</h3>
           </div>
           <div className="chart-container" style={{ minHeight: '300px', height: '100%' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={finalDeptScores} margin={{ top: 10, right: 10, left: -20, bottom: 0 }} barSize={16}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
@@ -504,7 +506,7 @@ const Dashboard = () => {
             <h3>College CGPA Academic Curve</h3>
           </div>
           <div className="chart-container" style={{ minHeight: '300px' }}>
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={cgpaData} margin={{ top: 10, right: 30, left: 0, bottom: 0 }}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="semester" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
@@ -525,19 +527,19 @@ const Dashboard = () => {
           </div>
           <div className="quick-actions-grid p-6">
             <button className="quick-action-btn" onClick={() => navigate('/admin/hods')}>
-              <div className="action-icon bg-icon-purple"><UserPlus size={20} /></div>
+              <div className="action-icon bg-icon-primary"><UserPlus size={20} /></div>
               <span>Register HOD</span>
             </button>
             <button className="quick-action-btn" onClick={() => navigate('/admin/staff')}>
-              <div className="action-icon bg-icon-violet"><GraduationCap size={20} /></div>
+              <div className="action-icon bg-icon-primary"><GraduationCap size={20} /></div>
               <span>Register Staff</span>
             </button>
             <button className="quick-action-btn" onClick={() => navigate('/admin/announcements')}>
-              <div className="action-icon bg-icon-amber"><Megaphone size={20} /></div>
+              <div className="action-icon bg-icon-primary"><Megaphone size={20} /></div>
               <span>Publish News</span>
             </button>
             <button className="quick-action-btn" onClick={() => navigate('/admin/settings')}>
-              <div className="action-icon bg-icon-skyblue"><Settings size={20} /></div>
+              <div className="action-icon bg-icon-primary"><Settings size={20} /></div>
               <span>Manage Settings</span>
             </button>
           </div>
@@ -545,10 +547,15 @@ const Dashboard = () => {
       </div>
 
       {/* Scoped Details Rows */}
-      <div className="stats-grid" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))' }}>
+      <div className="dashboard-grid">
         <div className="glass-card" style={{ padding: '1.5rem' }}>
-          <h3>ðŸ“‹ Recent Global Operations Logs</h3>
-          <div style={{ marginTop: '1rem', maxHeight: '200px', overflowY: 'auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div className="bg-icon-primary" style={{ padding: '8px', borderRadius: '10px', display: 'flex' }}>
+              <ClipboardList size={20} />
+            </div>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.02em', textTransform: 'none' }}>Recent Global Operations Logs</h3>
+          </div>
+          <div style={{ maxHeight: '200px', overflowY: 'auto' }}>
             <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.8rem' }}>
               {activityLogs.length > 0 ? (
                 activityLogs.slice(0, 5).map((log, i) => {
@@ -574,8 +581,13 @@ const Dashboard = () => {
         </div>
 
         <div className="glass-card" style={{ padding: '1.5rem' }}>
-          <h3>ðŸš€ Secondary System Modules</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginTop: '1rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1rem' }}>
+            <div className="bg-icon-primary" style={{ padding: '8px', borderRadius: '10px', display: 'flex' }}>
+              <Rocket size={20} />
+            </div>
+            <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: 'var(--text-main)', letterSpacing: '0.02em', textTransform: 'none' }}>Secondary System Modules</h3>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
             {[
               { title: 'Subjects', val: totalSubjectsCount, path: '/admin/subjects', icon: <BookOpen size={16} /> },
               { title: 'Timetables', val: activeTimetablesCount, path: '/admin/timetable', icon: <Calendar size={16} /> },

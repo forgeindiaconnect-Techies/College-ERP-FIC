@@ -2,16 +2,17 @@
   min-height: 70px;
   background-color: var(--bg-card);
   border-bottom: 1px solid var(--border-color);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.75rem 2rem;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  padding: 0.75rem 2rem !important;
   position: sticky;
   top: 0;
   z-index: 90;
   border-radius: 0 !important;
   box-shadow: var(--shadow-sm);
-  flex-wrap: wrap;
+  flex-wrap: nowrap !important;
   gap: 1rem;
 }
 
@@ -19,9 +20,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  position: relative;
+  z-index: 9999;
+  cursor: pointer;
 }
 
 .navbar-left {
+  justify-content: flex-start !important;
+
   display: flex;
   align-items: center;
   flex: 1;
@@ -264,4 +270,15 @@
   height: 1px;
   background-color: var(--border-color);
   margin: 4px 0;
+}
+
+.navbar-logo {
+  height: 28px;
+  object-fit: contain;
+  display: none;
+  transition: all 0.3s ease;
+}
+/* removed problematic logo rule */
+@media (max-width: 768px) {
+  .navbar-logo { display: block; }
 }

@@ -212,7 +212,7 @@ const LibraryManagement = () => {
             <div className="glass-card p-6">
               <h3 className="text-lg font-bold mb-4 flex items-center gap-2"><TrendingUp size={18}/> Monthly Issue Trends</h3>
               <div style={{ height: 280 }}>
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={MOCK_CHART_DATA}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)"/>
                     <XAxis dataKey="month" stroke="var(--text-muted)" tickLine={false}/>

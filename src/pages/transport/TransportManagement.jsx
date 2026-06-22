@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import {
   Bus, Users, Navigation, Plus, Search, Download, 
-  CreditCard, UserCheck, ShieldCheck, FileText, BarChart, Clock
+  CreditCard, UserCheck, ShieldCheck, FileText, BarChart, Clock,
+  CheckCircle, AlertCircle
 } from 'lucide-react';
 import { getTransportRoutes, getTransportDrivers, getTransportStudents, getStudents } from '../../api/index';
 import {
@@ -20,11 +21,17 @@ const CHART_DATA = [
 
 const TransportManagement = () => {
   const [activeTab, setActiveTab] = useState('Dashboard');
+  const [toast, setToast] = useState({ show: false, message: '', type: 'success' });
   const [search, setSearch] = useState('');
   const [routes, setRoutes] = useState([]);
   const [drivers, setDrivers] = useState([]);
   const [students, setStudents] = useState([]);
   const [driverAttendanceLogs, setDriverAttendanceLogs] = useState([]);
+
+  const showToast = (message, type = 'success') => {
+    setToast({ show: true, message, type });
+    setTimeout(() => setToast({ show: false, message: '', type: 'success' }), 3000);
+  };
 
   // Assign Student Modal State
   const [showAssignModal, setShowAssignModal] = useState(false);
@@ -45,6 +52,65 @@ const TransportManagement = () => {
     rows: []
   });
 
+  // Create Route Modal State
+  const [showDriverModal, setShowDriverModal] = useState(false);
+  const [driverForm, setDriverForm] = useState({
+    driverId: '', name: '', experience: '', license: '', phone: '', status: 'Active'
+  });
+
+  const handleAddDriver = (e) => {
+    e.preventDefault();
+    if (!driverForm.name || !driverForm.driverId) return;
+
+    const newDriver = {
+      _id: Date.now().toString(),
+      ...driverForm
+    };
+
+    setDrivers(prev => {
+      const updated = [newDriver, ...prev];
+      localStorage.setItem(`erp_transport_drivers_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
+      return updated;
+    });
+    showToast(`Successfully added driver ${driverForm.name}`);
+    setShowDriverModal(false);
+    setDriverForm({ driverId: '', name: '', experience: '', license: '', phone: '', status: 'Active' });
+  };
+  const [showRouteModal, setShowRouteModal] = useState(false);
+  const [routeForm, setRouteForm] = useState({
+    routeId: '',
+    name: '',
+    vehicle: '',
+    driver: '',
+    capacity: 50,
+    points: ''
+  });
+
+  const handleCreateRoute = (e) => {
+    e.preventDefault();
+    if (!routeForm.name || !routeForm.routeId) return;
+
+    const newRoute = {
+      _id: Date.now().toString(),
+      routeId: routeForm.routeId,
+      name: routeForm.name,
+      vehicle: routeForm.vehicle,
+      driver: routeForm.driver,
+      capacity: Number(routeForm.capacity) || 50,
+      occupied: 0,
+      points: routeForm.points.split(',').map(p => p.trim()).filter(Boolean)
+    };
+
+    setRoutes(prev => {
+      const updated = [newRoute, ...prev];
+      localStorage.setItem(`erp_transport_routes_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`, JSON.stringify(updated));
+      return updated;
+    });
+    showToast(`Successfully created route ${routeForm.name}`);
+    setShowRouteModal(false);
+    setRouteForm({ routeId: '', name: '', vehicle: '', driver: '', capacity: 50, points: '' });
+  };
+
   const handleAssignStudent = (e) => {
     e.preventDefault();
     if (!assignForm.studentId || !assignForm.routeId) return;
@@ -59,8 +125,16 @@ const TransportManagement = () => {
       amount: Number(assignForm.amount) || 0
     };
 
+    // Persist to localStorage so the Driver dashboard can read assigned students
+    const tenantId = sessionStorage.getItem('tenantId') || 'mock_college_id';
+    const storageKey = `erp_transport_students_${tenantId}`;
+    const existing = JSON.parse(localStorage.getItem(storageKey) || '[]');
+    // Avoid duplicates — replace if same studentId already present
+    const filtered = existing.filter(s => s.studentId !== newStudent.studentId);
+    localStorage.setItem(storageKey, JSON.stringify([newStudent, ...filtered]));
+
     setStudents(prev => [newStudent, ...prev]);
-    alert(`Successfully assigned ${assignForm.studentId} to route ${assignForm.routeId}`);
+    showToast(`Successfully assigned ${assignForm.studentId} to route ${assignForm.routeId}`);
     setShowAssignModal(false);
     setAssignForm({ studentId: '', name: '', routeId: '', pickupPoint: '', feeStatus: 'Pending', amount: '' });
   };
@@ -113,8 +187,15 @@ const TransportManagement = () => {
         getTransportStudents(),
         getStudents().catch(() => ({ data: [] }))
       ]);
-      setRoutes(routesRes.data);
-      setDrivers(driversRes.data);
+      const localRoutes = JSON.parse(localStorage.getItem(`erp_transport_routes_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
+      const combinedRoutes = [...routesRes.data, ...localRoutes];
+      const uniqueRoutes = Array.from(new Map(combinedRoutes.map(item => [item.routeId, item])).values());
+      setRoutes(uniqueRoutes);
+
+      const localDrivers = JSON.parse(localStorage.getItem(`erp_transport_drivers_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
+      const combinedDrivers = [...driversRes.data, ...localDrivers];
+      const uniqueDrivers = Array.from(new Map(combinedDrivers.map(item => [item.driverId, item])).values());
+      setDrivers(uniqueDrivers);
       
       let combinedTransportStudents = [...studentsRes.data];
 
@@ -153,8 +234,8 @@ const TransportManagement = () => {
             const driverData = JSON.parse(localStorage.getItem(key) || '[]');
             const driverId = key.split('erp_driver_attendance_')[1];
             // Find driver name from drivers array
-            const driverObj = driversRes.data.find(d => d.driverId === driverId) || 
-                             driversRes.data.find(d => d.name === driverId); // Fallback
+            const driverObj = uniqueDrivers.find(d => d.driverId === driverId) || 
+                             uniqueDrivers.find(d => d.name === driverId); // Fallback
             
             driverData.forEach(record => {
               logs.push({
@@ -203,7 +284,7 @@ const TransportManagement = () => {
     <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       {/* Premium Header Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+        background: 'var(--primary)',
         borderRadius: '16px',
         padding: '1.5rem 2rem',
         marginBottom: '1.5rem',
@@ -344,7 +425,7 @@ const TransportManagement = () => {
         <div className="animate-fade-in">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold">Manage Bus Routes</h2>
-            <button className="btn-primary flex items-center gap-2"><Plus size={16}/> Create Route</button>
+            <button className="btn-primary flex items-center gap-2" onClick={() => setShowRouteModal(true)}><Plus size={16}/> Create Route</button>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {routes.map(route => (
@@ -424,7 +505,14 @@ const TransportManagement = () => {
       )}
 
       {activeTab === 'Drivers' && (
-        <div className="animate-fade-in grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="animate-fade-in">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold">Manage Transport Drivers</h2>
+            <button className="btn-primary flex items-center gap-2" onClick={() => setShowDriverModal(true)}>
+              <Plus size={16}/> Add Driver
+            </button>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {drivers.map(driver => (
             <div key={driver.driverId} className="glass-card p-6 flex flex-col items-center text-center">
               <div className="w-20 h-20 bg-gray-200 dark:bg-gray-700 rounded-full mb-4 flex items-center justify-center text-gray-500">
@@ -440,6 +528,7 @@ const TransportManagement = () => {
               </span>
             </div>
           ))}
+          </div>
         </div>
       )}
 
@@ -605,6 +694,116 @@ const TransportManagement = () => {
                 <button type="submit" className="btn-primary flex-1">Assign Student</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Create Route Modal */}
+      {showRouteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Create New Route</h2>
+              <button className="text-muted hover:text-danger" onClick={() => setShowRouteModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleCreateRoute}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label>Route ID</label>
+                  <input type="text" required placeholder="e.g., R-01" className="input-field" value={routeForm.routeId} onChange={e => setRouteForm({...routeForm, routeId: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Route Name</label>
+                  <input type="text" required placeholder="e.g., North City" className="input-field" value={routeForm.name} onChange={e => setRouteForm({...routeForm, name: e.target.value})} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="form-group">
+                  <label>Vehicle (Bus No)</label>
+                  <input type="text" required placeholder="e.g., TN 01 AB 1234" className="input-field" value={routeForm.vehicle} onChange={e => setRouteForm({...routeForm, vehicle: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Driver Name</label>
+                  <select className="input-field" required value={routeForm.driver} onChange={e => setRouteForm({...routeForm, driver: e.target.value})}>
+                    <option value="">Select Driver</option>
+                    {drivers.filter(d => d.status === 'Active').map(d => (
+                      <option key={d.driverId} value={d.name}>{d.name} ({d.driverId})</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              <div className="form-group mt-3">
+                <label>Seating Capacity</label>
+                <input type="number" required placeholder="50" className="input-field" value={routeForm.capacity} onChange={e => setRouteForm({...routeForm, capacity: e.target.value})} />
+              </div>
+              <div className="form-group mt-3">
+                <label>Route Points (Comma separated)</label>
+                <textarea required placeholder="Stop A, Stop B, Stop C" className="input-field" rows="3" value={routeForm.points} onChange={e => setRouteForm({...routeForm, points: e.target.value})}></textarea>
+              </div>
+              <div className="flex gap-4 mt-6">
+                <button type="button" className="btn-secondary flex-1" onClick={() => setShowRouteModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Create Route</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Add Driver Modal */}
+      {showDriverModal && (
+        <div className="modal-overlay">
+          <div className="modal-content glass-card max-w-md w-full">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold">Add New Driver</h2>
+              <button className="text-muted hover:text-danger" onClick={() => setShowDriverModal(false)}>✕</button>
+            </div>
+            <form onSubmit={handleAddDriver}>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="form-group">
+                  <label>Driver ID</label>
+                  <input type="text" required placeholder="e.g., D-101" className="input-field" value={driverForm.driverId} onChange={e => setDriverForm({...driverForm, driverId: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>Driver Name</label>
+                  <input type="text" required placeholder="e.g., Ramesh Kumar" className="input-field" value={driverForm.name} onChange={e => setDriverForm({...driverForm, name: e.target.value})} />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4 mt-3">
+                <div className="form-group">
+                  <label>Experience</label>
+                  <input type="text" required placeholder="e.g., 5 Years" className="input-field" value={driverForm.experience} onChange={e => setDriverForm({...driverForm, experience: e.target.value})} />
+                </div>
+                <div className="form-group">
+                  <label>License No.</label>
+                  <input type="text" required placeholder="e.g., TN-XX-XXXX" className="input-field" value={driverForm.license} onChange={e => setDriverForm({...driverForm, license: e.target.value})} />
+                </div>
+              </div>
+              <div className="form-group mt-3">
+                <label>Phone Number</label>
+                <input type="text" required placeholder="e.g., +91 9876543210" className="input-field" value={driverForm.phone} onChange={e => setDriverForm({...driverForm, phone: e.target.value})} />
+              </div>
+              <div className="form-group mt-3">
+                <label>Status</label>
+                <select className="input-field" value={driverForm.status} onChange={e => setDriverForm({...driverForm, status: e.target.value})}>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                </select>
+              </div>
+              <div className="flex gap-4 mt-6">
+                <button type="button" className="btn-secondary flex-1" onClick={() => setShowDriverModal(false)}>Cancel</button>
+                <button type="submit" className="btn-primary flex-1">Add Driver</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toast.show && (
+        <div className="fixed bottom-4 right-4 z-50 animate-fade-in" style={{ animation: 'fade-in 0.3s ease-out' }}>
+          <div className={`flex items-center gap-3 px-6 py-4 rounded-lg shadow-2xl text-white ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+            {toast.type === 'success' ? <CheckCircle size={20} /> : <AlertCircle size={20} />}
+            <span className="font-bold">{toast.message}</span>
           </div>
         </div>
       )}

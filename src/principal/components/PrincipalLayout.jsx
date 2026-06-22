@@ -5,7 +5,7 @@ import Navbar from '../../components/layout/Navbar';
 import '../../components/layout/Layout.css';
 
 const PrincipalLayout = () => {
-  const [isSidebarOpen, setSidebarOpen] = useState(false);
+  const [isSidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
 
   const toggleSidebar = () => {
     setSidebarOpen(!isSidebarOpen);

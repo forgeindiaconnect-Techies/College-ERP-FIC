@@ -717,7 +717,7 @@ export default function PrincipalAcademicPlanning() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid var(--success)', transition: 'none' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><Calendar size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Calendar size={18} /></div>
           <div className="stat-details">
             <h3>Upcoming Holidays</h3>
             <p className="stat-value">{upcomingHolidays}</p>
@@ -726,7 +726,7 @@ export default function PrincipalAcademicPlanning() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid var(--warning)', transition: 'none' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><AlertCircle size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><AlertCircle size={18} /></div>
           <div className="stat-details">
             <h3>Pending Tasks</h3>
             <p className="stat-value">{pendingTasks}</p>
@@ -735,7 +735,7 @@ export default function PrincipalAcademicPlanning() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid #6366F1', transition: 'none' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><Users size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Users size={18} /></div>
           <div className="stat-details">
             <h3>Dept Schedules</h3>
             <p className="stat-value">{activeDeptSchedules}</p>
@@ -745,7 +745,7 @@ export default function PrincipalAcademicPlanning() {
 
         {/* SEMESTER PROGRESS CARD */}
         <div className="stat-card" style={{ borderBottom: '3px solid var(--secondary)', minWidth: '240px', transition: 'none' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #db2777)' }}><Clock size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Clock size={18} /></div>
           <div className="stat-details" style={{ width: '100%' }}>
             <h3>Odd Semester Progress</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', margin: '4px 0' }}>

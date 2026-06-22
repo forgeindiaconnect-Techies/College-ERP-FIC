@@ -16,7 +16,7 @@ const LOCKED_MODULES = [
 ];
 
 const Layout = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(window.innerWidth > 768);
   const [subscription, setSubscription] = useState(null);
   const [loading, setLoading] = useState(true);
   const location = useLocation();
@@ -118,7 +118,7 @@ const Layout = () => {
 
             {/* Title */}
             <h1 style={{ fontSize: '1.7rem', fontWeight: 800, color: '#0F172A', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
-              Subscription Expired
+              {subscription?.isTrial ? 'Trial Expired' : 'Subscription Expired'}
             </h1>
 
             {/* College name */}
@@ -130,7 +130,9 @@ const Layout = () => {
 
             {/* Description */}
             <p style={{ fontSize: '0.9rem', color: '#64748B', lineHeight: 1.6, margin: '0 0 24px 0', maxWidth: '420px', marginLeft: 'auto', marginRight: 'auto' }}>
-              Your ERP subscription has expired. You can no longer access most features of the system. Please renew your subscription to continue using all modules.
+              {subscription?.isTrial 
+                ? 'Your free trial has expired. You can no longer access most features of the system. Please upgrade to a paid plan to continue using all modules.'
+                : 'Your ERP subscription has expired. You can no longer access most features of the system. Please renew your subscription to continue using all modules.'}
             </p>
 
             {/* Info card: Plan / Expiry / Days expired */}

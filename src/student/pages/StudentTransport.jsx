@@ -161,7 +161,7 @@ const StudentTransport = () => {
 
         {!isTransportUser ? (
           <div className="glass-card" style={{ padding: '4rem', textAlign: 'center', maxWidth: '600px', margin: '0 auto', borderRadius: '24px' }}>
-            <div style={{ background: 'linear-gradient(135deg, #fecaca 0%, #fca5a5 100%)', color: '#dc2626', display: 'inline-flex', padding: '24px', borderRadius: '50%', marginBottom: '1.5rem', boxShadow: '0 10px 25px -5px rgba(220, 38, 38, 0.4)' }}>
+            <div style={{ background: 'var(--primary)', color: '#dc2626', display: 'inline-flex', padding: '24px', borderRadius: '50%', marginBottom: '1.5rem', boxShadow: '0 10px 25px -5px rgba(220, 38, 38, 0.4)' }}>
               <AlertCircle size={48} />
             </div>
             <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '1rem', fontWeight: 800 }}>Not Registered</h2>
@@ -179,7 +179,7 @@ const StudentTransport = () => {
                   </h2>
                   <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginTop: '6px' }}>Current academic year allocation</p>
                 </div>
-                <div style={{ background: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)', color: 'white', padding: '10px 20px', borderRadius: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)' }}>
+                <div style={{ background: 'var(--primary)', color: 'white', padding: '10px 20px', borderRadius: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)' }}>
                   <CheckCircle2 size={18} /> Active Pass
                 </div>
               </div>

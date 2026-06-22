@@ -435,7 +435,7 @@ export default function PrincipalFacultyPerformance() {
       <div className="stats-grid mb-6 animate-fade-in" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
         
         <div className="stat-card" style={{ borderBottom: '3px solid var(--success)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><Award size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Award size={18} /></div>
           <div className="stat-details">
             <h3>Top Performing Staff</h3>
             <p className="stat-value">{topStaff}</p>
@@ -444,7 +444,7 @@ export default function PrincipalFacultyPerformance() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid var(--danger)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ef4444, #dc2626)' }}><AlertTriangle size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><AlertTriangle size={18} /></div>
           <div className="stat-details">
             <h3>Low Performance Staff</h3>
             <p className="stat-value">{reviewCount}</p>
@@ -462,7 +462,7 @@ export default function PrincipalFacultyPerformance() {
         </div>
 
         <div className="stat-card" style={{ borderBottom: '3px solid var(--secondary)' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #db2777)' }}><CalendarCheck size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><CalendarCheck size={18} /></div>
           <div className="stat-details">
             <h3>Average Attendance</h3>
             <p className="stat-value">{avgAttendance}%</p>
@@ -472,7 +472,7 @@ export default function PrincipalFacultyPerformance() {
 
         {/* Pending review tasks card */}
         <div className="stat-card" style={{ borderBottom: '3px solid #6366F1' }}>
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><FileText size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><FileText size={18} /></div>
           <div className="stat-details">
             <h3>Pending Appraisal Reviews</h3>
             <p className="stat-value">2</p>
@@ -815,7 +815,7 @@ export default function PrincipalFacultyPerformance() {
                     Teaching Hours Allocation vs Benchmark (Max 24 hrs)
                   </h4>
                   <div style={{ width: '100%', height: '200px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={workloadChartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />
@@ -833,7 +833,7 @@ export default function PrincipalFacultyPerformance() {
                     Performance Score (out of 10) vs Student Feedback (scaled *2)
                   </h4>
                   <div style={{ width: '100%', height: '200px' }}>
-                    <ResponsiveContainer width="100%" height="100%">
+                    <ResponsiveContainer width="100%" height={300}>
                       <BarChart data={ratingChartData}>
                         <CartesianGrid strokeDasharray="3 3" />
                         <XAxis dataKey="name" />

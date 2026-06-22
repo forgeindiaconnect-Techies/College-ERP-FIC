@@ -92,8 +92,8 @@ const StudentAttendance = () => {
 
         // Daily Logs
         const logs = records.map(r => ({
-          date: new Date(r.date).toLocaleDateString('en-GB').replace(/\//g, '-'),
-          subject: r.subject || 'General',
+          date: new Date(r.attendanceDate || r.date).toLocaleDateString('en-GB').replace(/\//g, '-'),
+          subject: r.subjectId || r.subject || 'General',
           status: r.status?.toLowerCase() || 'present',
           faculty: r.markedBy || 'System'
         }));
@@ -103,7 +103,7 @@ const StudentAttendance = () => {
         // Subject-Wise Aggregation
         const subjectsMap = {};
         records.forEach(r => {
-          const sub = r.subject || 'General';
+          const sub = r.subjectId || r.subject || 'General';
           if (!subjectsMap[sub]) subjectsMap[sub] = { total: 0, present: 0 };
           subjectsMap[sub].total += 1;
           if (r.status?.toLowerCase() === 'present') subjectsMap[sub].present += 1;
@@ -120,7 +120,7 @@ const StudentAttendance = () => {
         // Monthly Aggregation
         const monthsMap = {};
         records.forEach(r => {
-          const d = new Date(r.date);
+          const d = new Date(r.attendanceDate || r.date);
           const monthStr = d.toLocaleString('default', { month: 'long', year: 'numeric' });
           if (!monthsMap[monthStr]) monthsMap[monthStr] = { total: 0, present: 0, sortKey: d.getTime() };
           monthsMap[monthStr].total += 1;

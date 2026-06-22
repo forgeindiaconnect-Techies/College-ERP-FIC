@@ -7,12 +7,13 @@ import '../../components/layout/Layout.css';
 
 const SubAdminLayout = () => {
   const { theme } = useContext(ThemeContext);
+  const [sidebarOpen, setSidebarOpen] = React.useState(window.innerWidth > 768);
 
   return (
     <div className={`layout-container ${theme}`}>
-      <SubAdminSidebar />
-      <div className="main-wrapper">
-        <Navbar role="Sub Admin" />
+      <SubAdminSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className={`main-wrapper ${sidebarOpen ? 'sidebar-open' : ''}`}>
+        <Navbar role="Sub Admin" onMenuToggle={() => setSidebarOpen(o => !o)} />
         <main className="main-content">
           <Outlet />
         </main>

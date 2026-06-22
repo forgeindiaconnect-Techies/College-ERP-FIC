@@ -222,7 +222,7 @@ export default function PrincipalAnnouncements() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><GraduationCap size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><GraduationCap size={18} /></div>
           <div className="stat-details">
             <h3>Staff Directives</h3>
             <p className="stat-value">{targetStaff}</p>
@@ -231,7 +231,7 @@ export default function PrincipalAnnouncements() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #3b82f6, #0ea5e9)' }}><Users size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Users size={18} /></div>
           <div className="stat-details">
             <h3>Student Notices</h3>
             <p className="stat-value">{targetStudents}</p>
@@ -240,7 +240,7 @@ export default function PrincipalAnnouncements() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f97316, #ea580c)' }}><CalendarCheck size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><CalendarCheck size={18} /></div>
           <div className="stat-details">
             <h3>Parent Feeds</h3>
             <p className="stat-value">{targetParents}</p>
@@ -249,7 +249,7 @@ export default function PrincipalAnnouncements() {
         </div>
 
         <div className="stat-card">
-          <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #d946ef)' }}><ClipboardList size={18} /></div>
+          <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><ClipboardList size={18} /></div>
           <div className="stat-details">
             <h3>Accounts Alerts</h3>
             <p className="stat-value">{targetAccounts}</p>

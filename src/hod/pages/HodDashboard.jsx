@@ -185,10 +185,9 @@ const HodDashboard = () => {
     <div className={`hod-dashboard ${animate ? 'animate-fade-in' : ''}`}>
       {/* Welcome Banner */}
       <div className="hod-welcome-banner">
-        <div className="hod-welcome-text">
-
-          <h1>Welcome, <span className="gradient-text-purple">{deptCode} HOD Dashboard</span></h1>
-          <p className="hod-welcome-sub">Managing and scoping data for the <strong>{HOD_DEPT}</strong> department.</p>
+        <div className="hod-welcome-text" style={{ color: '#fff' }}>
+          <h1 style={{ fontSize: '1.5rem', color: '#fff' }}>Welcome, {deptCode} HOD Dashboard</h1>
+          <p className="hod-welcome-sub" style={{ color: '#fff' }}>Managing and scoping data for the <strong>{HOD_DEPT}</strong> department.</p>
         </div>
       </div>
 
@@ -222,7 +221,7 @@ const HodDashboard = () => {
         <div className="hod-chart-card">
           <h3>Weekly Scoped Attendance (%)</h3>
           <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <AreaChart data={attendanceWeek}>
                 <defs>
                   <linearGradient id="hodAttGrad" x1="0" y1="0" x2="0" y2="1">
@@ -243,7 +242,7 @@ const HodDashboard = () => {
         <div className="hod-chart-card">
           <h3>Semester-wise Avg CGPA</h3>
           <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <LineChart data={cgpaTrend}>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                 <XAxis dataKey="sem" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
@@ -258,7 +257,7 @@ const HodDashboard = () => {
         <div className="hod-chart-card">
           <h3>Performance Scoping metrics</h3>
           <div className="chart-wrap">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height={300}>
               <BarChart data={performanceKPIs} barSize={26}>
                 <defs>
                   <linearGradient id="hodPerfGrad" x1="0" y1="0" x2="0" y2="1">

@@ -27,22 +27,21 @@ mongoose.plugin((schema) => {
   });
 
   schema.pre('insertMany', function(next, docs) {
+    if (this.modelName && ['College', 'SystemSetting', 'User', 'Subscription', 'Attendance'].includes(this.modelName)) {
+      if (typeof next === 'function') return next();
+      return;
+    }
     const store = context.getStore();
-    if (store && store.get('collegeId')) {
-      if (this.modelName && ['College', 'SystemSetting', 'User', 'Subscription', 'Attendance'].includes(this.modelName)) {
-        if (typeof next === 'function') return next();
-        return;
-      }
-      const cid = store.get('collegeId');
-      if (Array.isArray(docs)) {
-        docs.forEach(doc => {
-          if (!doc.collegeId) doc.collegeId = cid;
-        });
-      } else if (Array.isArray(next)) { // Sometimes next is the docs array in modern mongoose
-        next.forEach(doc => {
-          if (!doc.collegeId) doc.collegeId = cid;
-        });
-      }
+    const cid = (store && store.get('collegeId')) ? store.get('collegeId') : 'unassigned_college';
+    
+    if (Array.isArray(docs)) {
+      docs.forEach(doc => {
+        if (!doc.collegeId) doc.collegeId = cid;
+      });
+    } else if (Array.isArray(next)) {
+      next.forEach(doc => {
+        if (!doc.collegeId) doc.collegeId = cid;
+      });
     }
     if (typeof next === 'function') next();
   });
@@ -61,15 +60,15 @@ mongoose.plugin((schema) => {
   });
 
   schema.pre('save', function(next) {
+    if (this.constructor && ['College', 'SystemSetting', 'User', 'Subscription', 'Attendance'].includes(this.constructor.modelName)) {
+      if (typeof next === 'function') return next();
+      return;
+    }
     const store = context.getStore();
-    if (store && store.get('collegeId')) {
-      if (this.constructor && ['College', 'SystemSetting', 'User', 'Subscription', 'Attendance'].includes(this.constructor.modelName)) {
-        if (typeof next === 'function') return next();
-        return;
-      }
-      if (!this.collegeId) {
-        this.collegeId = store.get('collegeId');
-      }
+    const cid = (store && store.get('collegeId')) ? store.get('collegeId') : 'unassigned_college';
+    
+    if (!this.collegeId) {
+      this.collegeId = cid;
     }
     if (typeof next === 'function') next();
   });

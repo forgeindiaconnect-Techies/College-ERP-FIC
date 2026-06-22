@@ -129,7 +129,7 @@ const DriverTripManagement = () => {
     <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       {/* Premium Header Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+        background: 'var(--primary)',
         borderRadius: '20px',
         padding: '2.5rem',
         marginBottom: '2.5rem',

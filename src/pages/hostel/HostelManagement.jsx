@@ -451,7 +451,7 @@ const HostelManagement = () => {
             <div className="glass-card p-6">
               <h2 className="text-lg font-bold mb-4">Overall Capacity Status</h2>
               <div className="flex items-center justify-center h-64">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <PieChart>
                     <Pie data={dynamicChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={80} paddingAngle={5} dataKey="value">
                       {dynamicChartData.map((entry, index) => (

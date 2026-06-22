@@ -162,7 +162,7 @@ const Scholarships = () => {
         </div>
         <button 
           onClick={() => setIsModalOpen(true)}
-          style={{ background: 'linear-gradient(to right, #6366F1, #9333ea)' }}
+          style={{ background: 'var(--primary)' }}
           className="flex items-center gap-2 px-4 py-2 text-white font-medium rounded-lg hover:shadow-lg transition-all"
         >
           <Plus size={18} /> Grant Scholarship

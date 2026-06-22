@@ -117,7 +117,7 @@ const AdminSubscription = () => {
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             <div style={{ 
               width: '64px', height: '64px', borderRadius: '16px', 
-              background: 'linear-gradient(135deg, #4f46e5 0%, #8b5cf6 100%)',
+              background: 'var(--primary)',
               display: 'flex', justifyContent: 'center', alignItems: 'center',
               color: 'white', boxShadow: '0 8px 16px rgba(79, 70, 229, 0.25)'
             }}>
@@ -147,7 +147,7 @@ const AdminSubscription = () => {
               onClick={handleUpgradeRenew}
               className="hover-card-anim"
               style={{
-                background: 'linear-gradient(135deg, #111827 0%, #374151 100%)',
+                background: 'var(--primary)',
                 color: 'white', padding: '14px 28px', borderRadius: '12px', fontWeight: 600, border: 'none', cursor: 'pointer',
                 display: 'flex', alignItems: 'center', gap: '10px', boxShadow: '0 8px 20px rgba(0,0,0,0.15)', fontSize: '0.95rem'
               }}

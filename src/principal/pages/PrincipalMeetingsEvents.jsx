@@ -1113,7 +1113,7 @@ export default function PrincipalMeetingsEvents() {
           </div>
 
           <div className="stat-card" style={{ borderBottom: '3px solid var(--success)' }}>
-            <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #10b981, #059669)' }}><Calendar size={18} /></div>
+            <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Calendar size={18} /></div>
             <div className="stat-details">
               <h3>Today Events</h3>
               <p className="stat-value">{todayEventsCount}</p>
@@ -1122,7 +1122,7 @@ export default function PrincipalMeetingsEvents() {
           </div>
 
           <div className="stat-card" style={{ borderBottom: '3px solid var(--warning)' }}>
-            <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #f59e0b, #d97706)' }}><AlertTriangle size={18} /></div>
+            <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><AlertTriangle size={18} /></div>
             <div className="stat-details">
               <h3>Pending Approvals</h3>
               <p className="stat-value">{pendingApprovalsCount}</p>
@@ -1131,7 +1131,7 @@ export default function PrincipalMeetingsEvents() {
           </div>
 
           <div className="stat-card" style={{ borderBottom: '3px solid var(--secondary)' }}>
-            <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #ec4899, #db2777)' }}><BookOpen size={18} /></div>
+            <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><BookOpen size={18} /></div>
             <div className="stat-details">
               <h3>Scheduled Seminars</h3>
               <p className="stat-value">{scheduledSeminarsCount}</p>
@@ -1140,7 +1140,7 @@ export default function PrincipalMeetingsEvents() {
           </div>
 
           <div className="stat-card" style={{ borderBottom: '3px solid #6366F1' }}>
-            <div className="stat-icon-wrapper text-white" style={{ background: 'linear-gradient(135deg, #6366F1, #4F46E5)' }}><Users size={18} /></div>
+            <div className="stat-icon-wrapper text-white" style={{ background: 'var(--primary)' }}><Users size={18} /></div>
             <div className="stat-details">
               <h3>Department Events</h3>
               <p className="stat-value">{departmentEventsCount}</p>
@@ -1207,7 +1207,7 @@ export default function PrincipalMeetingsEvents() {
               </h3>
               <div style={{ width: '100%', height: 300 }}>
                 {attendanceChartData.length > 0 ? (
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={attendanceChartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                       <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" vertical={false} />
                       <XAxis dataKey="name" stroke="var(--text-muted)" fontSize={11} tickLine={false} />
@@ -1233,7 +1233,7 @@ export default function PrincipalMeetingsEvents() {
               </h3>
               <div style={{ width: '100%', height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <div style={{ width: '60%', height: '100%' }}>
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height={300}>
                     <PieChart>
                       <Pie
                         data={typeChartData}

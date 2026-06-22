@@ -86,7 +86,7 @@ export default function StudentWelfare() {
     <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       {/* Header Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #ec4899, #8b5cf6)',
+        background: 'var(--primary)',
         borderRadius: '20px',
         padding: '2rem 2.5rem',
         marginBottom: '2.5rem',

@@ -34,6 +34,8 @@ api.interceptors.request.use(
         token = sessionStorage.getItem('parent_token');
       } else if (path.startsWith('/accounts')) {
         token = sessionStorage.getItem('accounts_token');
+      } else if (path.startsWith('/driver')) {
+        token = sessionStorage.getItem('driver_token');
       } else {
         // Fallback: Check all in priority
         token = sessionStorage.getItem('superadmin_token')
@@ -45,6 +47,7 @@ api.interceptors.request.use(
           || sessionStorage.getItem('student_token')
           || sessionStorage.getItem('parent_token')
           || sessionStorage.getItem('accounts_token')
+          || sessionStorage.getItem('driver_token')
           || sessionStorage.getItem('token');
       }
     } catch (e) {
@@ -73,13 +76,20 @@ api.interceptors.response.use(
 
       // Do not redirect if using a mock token (fallback mode)
       let isMock = false;
-      const allTokens = ['superadmin_token', 'admin_token', 'subadmin_token', 'principal_token', 'hod_token', 'staff_token', 'student_token', 'parent_token', 'accounts_token', 'driver_token'];
-      for (const k of allTokens) {
-        const t = sessionStorage.getItem(k);
-        if (t && t.startsWith('mock-')) isMock = true;
+      if (error.config && error.config.headers && error.config.headers.Authorization) {
+        if (error.config.headers.Authorization.includes('mock-')) {
+          isMock = true;
+        }
       }
 
       if (isMock) {
+        return Promise.reject(error);
+      }
+
+      // CRITICAL: Do not wipe session or redirect if on the /driver route.
+      // Driver auth is local-only (mock token), the backend will always return 401.
+      // Clearing the session here would boot the driver back to the landing page.
+      if (window.location.pathname.startsWith('/driver')) {
         return Promise.reject(error);
       }
 

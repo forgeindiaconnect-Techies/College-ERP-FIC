@@ -29,6 +29,7 @@ class ErrorBoundary extends React.Component {
 }
 
 // Admin Layout & Pages
+import GlobalLockdown from './components/layout/GlobalLockdown';
 import Layout from './components/layout/Layout';
 import Dashboard from './pages/Dashboard';
 import StudentManagement from './pages/students/StudentManagement';
@@ -203,7 +204,7 @@ import './index.css';
 export const ThemeContext = createContext();
 
 const hasAnyOtherSession = (excludeKey) => {
-  const keys = ['superadmin_session', 'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session'];
+  const keys = ['superadmin_session', 'admin_session', 'subadmin_session', 'principal_session', 'hod_session', 'staff_session', 'student_session', 'parent_session', 'accounts_session', 'driver_session'];
   return keys.some(key => key !== excludeKey && sessionStorage.getItem(key));
 };
 
@@ -273,18 +274,13 @@ const DriverGuard = ({ children }) => {
 };
 
 function App() {
-  const [theme, setTheme] = useState('dark');
+  const [theme, setTheme] = useState('light');
 
   useEffect(() => {
-    const savedTheme = localStorage.getItem('erp-theme');
-    if (savedTheme === 'light') {
-      setTheme('light');
-      document.body.classList.remove('dark');
-    } else {
-      setTheme('dark');
-      document.body.classList.add('dark');
-      localStorage.setItem('erp-theme', 'dark');
-    }
+    // Force reset to light theme since user dislikes dark mode
+    setTheme('light');
+    document.body.classList.remove('dark');
+    localStorage.setItem('erp-theme', 'light');
   }, []);
 
   const toggleTheme = () => {
@@ -333,7 +329,7 @@ function App() {
             </Route>
 
             {/* ── ADMIN ROUTES ── */}
-            <Route path="/admin" element={<AdminGuard><Layout /></AdminGuard>}>
+            <Route path="/admin" element={<AdminGuard><GlobalLockdown><Layout /></GlobalLockdown></AdminGuard>}>
               <Route index element={<Navigate to="/admin/dashboard" replace />} />
               <Route path="dashboard"     element={<Dashboard />} />
               <Route path="departments"   element={<DepartmentManagement />} />
@@ -357,7 +353,8 @@ function App() {
               <Route path="transport"     element={<TransportManagement />} />
               <Route path="hostel"        element={<HostelManagement />} />
               <Route path="placement"     element={<PlacementManagement />} />
-              <Route path="assignments"   element={<AdminAssignments />} />`n                <Route path="accounts-management" element={<AccountsOfficerManagement />} />
+              <Route path="assignments"   element={<AdminAssignments />} />
+              <Route path="accounts-management" element={<AccountsOfficerManagement />} />
               <Route path="ai"            element={<AIAssistant />} />
               <Route path="announcements" element={<AnnouncementsManagement />} />
               <Route path="permissions"   element={<RolePermissions />} />
@@ -370,7 +367,7 @@ function App() {
 
 
             {/* ── PRINCIPAL ROUTES ── */}
-            <Route path="/principal" element={<PrincipalGuard><PrincipalLayout /></PrincipalGuard>}>
+            <Route path="/principal" element={<PrincipalGuard><GlobalLockdown><PrincipalLayout /></GlobalLockdown></PrincipalGuard>}>
               <Route index element={<Navigate to="/principal/dashboard" replace />} />
               <Route path="dashboard"     element={<PrincipalDashboard />} />
               <Route path="approvals"     element={<PrincipalApprovals />} />
@@ -394,7 +391,7 @@ function App() {
             </Route>
 
             {/* ── HOD ROUTES ── */}
-            <Route path="/hod" element={<HodGuard><HodLayout /></HodGuard>}>
+            <Route path="/hod" element={<HodGuard><GlobalLockdown><HodLayout /></GlobalLockdown></HodGuard>}>
               <Route index element={<HodDashboard />} />
               <Route path="students"      element={<HodStudents />} />
               <Route path="staff"         element={<HodStaff />} />
@@ -415,7 +412,7 @@ function App() {
             </Route>
 
             {/* ── STAFF ROUTES ── */}
-            <Route path="/staff" element={<StaffGuard><StaffLayout /></StaffGuard>}>
+            <Route path="/staff" element={<StaffGuard><GlobalLockdown><StaffLayout /></GlobalLockdown></StaffGuard>}>
               <Route index element={<Navigate to="/staff/dashboard" replace />} />
               <Route path="dashboard"  element={<StaffDashboard />} />
               <Route path="attendance" element={<StaffAttendance />} />
@@ -433,7 +430,7 @@ function App() {
             </Route>
 
             {/* ── STUDENT ROUTES ── */}
-            <Route path="/student" element={<StudentGuard><StudentLayout /></StudentGuard>}>
+            <Route path="/student" element={<StudentGuard><GlobalLockdown><StudentLayout /></GlobalLockdown></StudentGuard>}>
               <Route index element={<Navigate to="/student/dashboard" replace />} />
               <Route path="dashboard"   element={<StudentDashboard />} />
               <Route path="attendance"  element={<StudentAttendance />} />
@@ -452,7 +449,7 @@ function App() {
             </Route>
 
             {/* ── PARENT ROUTES ── */}
-            <Route path="/parent" element={<ParentGuard><ParentLayout /></ParentGuard>}>
+            <Route path="/parent" element={<ParentGuard><GlobalLockdown><ParentLayout /></GlobalLockdown></ParentGuard>}>
               <Route index element={<Navigate to="/parent/dashboard" replace />} />
               <Route path="dashboard" element={<ParentDashboard />} />
               <Route path="attendance" element={<ParentAttendance />} />
@@ -464,7 +461,7 @@ function App() {
             </Route>
 
             {/* ── ACCOUNTS ROUTES ── */}
-            <Route path="/accounts" element={<AccountsGuard><AccountsLayout /></AccountsGuard>}>
+            <Route path="/accounts" element={<AccountsGuard><GlobalLockdown><AccountsLayout /></GlobalLockdown></AccountsGuard>}>
               <Route index element={<Navigate to="/accounts/dashboard" replace />} />
               <Route path="dashboard" element={<AccountsDashboard />} />
               <Route path="fees-collection" element={<FeesCollection />} />
@@ -478,7 +475,7 @@ function App() {
             </Route>
 
             {/* ── DRIVER ROUTES ── */}
-            <Route path="/driver" element={<DriverGuard><DriverLayout /></DriverGuard>}>
+            <Route path="/driver" element={<DriverGuard><GlobalLockdown><DriverLayout /></GlobalLockdown></DriverGuard>}>
               <Route index element={<Navigate to="/driver/dashboard" replace />} />
               <Route path="dashboard" element={<DriverDashboard />} />
               <Route path="route" element={<DriverRoute />} />
@@ -492,23 +489,10 @@ function App() {
             </Route>
           </Routes>
         </BrowserRouter>
-        <ChatbotPortal />
       </ThemeContext.Provider>
     </ErrorBoundary>
   );
 }
-
-// Only show chatbot when NOT on the public landing page
-const ChatbotPortal = () => {
-  const [path, setPath] = React.useState(window.location.pathname);
-  React.useEffect(() => {
-    const onPop = () => setPath(window.location.pathname);
-    window.addEventListener('popstate', onPop);
-    return () => window.removeEventListener('popstate', onPop);
-  }, []);
-  if (path === '/') return null;
-  return <FloatingChatbot />;
-};
 
 export default App;
 

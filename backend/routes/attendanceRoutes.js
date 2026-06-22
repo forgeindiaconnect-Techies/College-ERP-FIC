@@ -35,12 +35,33 @@ router.get('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'St
 router.get('/student/:studentId', protect, collegeScope, async (req, res) => {
   try {
     console.log(`[GET /student/:studentId] Request for: ${req.params.studentId}. User role: ${req.user.role}, Ref ID: ${req.user.referenceId}`);
-    if ((req.user.role === 'Student' || req.user.role === 'Parent') && req.user.referenceId !== req.params.studentId) {
-      console.log('=> 403 Forbidden: Unauthorized');
-      return res.status(403).json({ message: 'Unauthorized to view this record' });
+    
+    let studentData = null;
+    let queryCondition = [{ id: req.user.referenceId }];
+    if (req.user.referenceId && req.user.referenceId.length === 24 && /^[0-9a-fA-F]{24}$/.test(req.user.referenceId)) {
+      queryCondition.push({ _id: req.user.referenceId });
     }
+    
+    studentData = await Student.findOne({ $or: queryCondition });
+
+    // If student/parent, verify they are requesting their own record
+    if (req.user.role === 'Student' || req.user.role === 'Parent') {
+      const isDirectMatch = req.user.referenceId === req.params.studentId;
+      const isRollNoMatch = studentData && (studentData.id === req.params.studentId || studentData._id.toString() === req.params.studentId);
+      
+      if (!isDirectMatch && !isRollNoMatch) {
+        console.log('=> 403 Forbidden: Unauthorized');
+        return res.status(403).json({ message: 'Unauthorized to view this record' });
+      }
+    }
+    
+    const searchIds = [req.params.studentId];
+    if (studentData && studentData.id) searchIds.push(studentData.id);
+    if (studentData && studentData._id) searchIds.push(studentData._id.toString());
+    
     const records = await Attendance.find({ 
-      studentId: req.params.studentId, tenantId: { $in: [req.collegeId, 'unassigned_college'] } 
+      studentId: { $in: searchIds }, 
+      tenantId: { $in: [req.collegeId, 'unassigned_college'] } 
     }).sort({ attendanceDate: -1, date: -1 });
     console.log(`=> Found ${records.length} records`);
     res.json(records);
@@ -61,7 +82,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
         const exactDate = new Date(record.attendanceDate || record.date);
         exactDate.setUTCHours(0, 0, 0, 0);
         record.attendanceDate = exactDate;
-        record.tenantId = record.tenantId || req.collegeId || 'unassigned_college';
+        record.tenantId = req.collegeId || 'unassigned_college';
         
         return {
           updateOne: {
@@ -93,7 +114,7 @@ router.post('/', protect, authorize('Admin', 'Sub Admin', 'Principal', 'HOD', 'S
       const exactDate = new Date(req.body.attendanceDate || req.body.date);
       exactDate.setUTCHours(0, 0, 0, 0);
       req.body.attendanceDate = exactDate;
-      req.body.tenantId = req.body.tenantId || req.collegeId || 'unassigned_college'; // Explicitly inject tenantId
+      req.body.tenantId = req.collegeId || 'unassigned_college'; // Explicitly inject tenantId
 
       const existingCount = await Attendance.countDocuments({
         studentId: req.body.studentId,

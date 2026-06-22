@@ -4,7 +4,7 @@ import {
   LayoutDashboard, CalendarCheck, BookOpenCheck,
   CreditCard, Calendar, FileText, Bell, LogOut, ChevronRight, ChevronDown
 } from 'lucide-react';
-import './ParentSidebar.css';
+import '../../components/layout/Sidebar.css';
 
 const getParentSession = () => {
   return JSON.parse(sessionStorage.getItem('parent_session') || 'null') || {
@@ -14,7 +14,7 @@ const getParentSession = () => {
   };
 };
 
-const ParentSidebar = () => {
+const ParentSidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const parent = getParentSession();
 
@@ -27,20 +27,20 @@ const ParentSidebar = () => {
   const menuGroups = [
     {
       name: 'Child Academics',
-      icon: <BookOpenCheck size={18} />,
+      icon: <BookOpenCheck size={20} />,
       items: [
-        { name: 'Child Attendance', path: '/parent/attendance', icon: <CalendarCheck size={19} /> },
-        { name: 'Child Marks', path: '/parent/marks', icon: <BookOpenCheck size={19} /> },
-        { name: 'Timetable', path: '/parent/timetable', icon: <Calendar size={19} /> }
+        { name: 'Child Attendance', path: '/parent/attendance', icon: <CalendarCheck size={20} /> },
+        { name: 'Child Marks', path: '/parent/marks', icon: <BookOpenCheck size={20} /> },
+        { name: 'Timetable', path: '/parent/timetable', icon: <Calendar size={20} /> }
       ]
     },
     {
       name: 'Administration',
-      icon: <FileText size={18} />,
+      icon: <FileText size={20} />,
       items: [
-        { name: 'Fee Status', path: '/parent/fees', icon: <CreditCard size={19} /> },
-        { name: 'Leave Status', path: '/parent/leaves', icon: <FileText size={19} /> },
-        { name: 'Notifications', path: '/parent/notifications', icon: <Bell size={19} /> }
+        { name: 'Fee Status', path: '/parent/fees', icon: <CreditCard size={20} /> },
+        { name: 'Leave Status', path: '/parent/leaves', icon: <FileText size={20} /> },
+        { name: 'Notifications', path: '/parent/notifications', icon: <Bell size={20} /> }
       ]
     }
   ];
@@ -52,23 +52,23 @@ const ParentSidebar = () => {
   };
 
   return (
-    <aside className="parent-sidebar">
+    <aside className={`sidebar ${isOpen ? 'sidebar-open' : ''}`}>
       {/* Brand */}
-      <div className="parent-sidebar-header" >
-        <img src="/logo.svg" alt="ERPSYS Logo" style={{ height: '28px', objectFit: 'contain' }} />
+      <div className="sidebar-header" >
+        <img src="/logo.svg?v=1782115707239" alt="ERPSYS Logo" style={{ height: '32px', objectFit: 'contain' }} />
       </div>
 
       
 
       {/* Nav links */}
-      <nav className="parent-nav">
+      <nav className="sidebar-nav">
         <ul>
           <li style={{ marginBottom: '0.5rem' }}>
             <NavLink
               to="/parent/dashboard"
-              className={({ isActive }) => isActive ? 'parent-nav-link active' : 'parent-nav-link'}
+              className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
             >
-              <LayoutDashboard size={19} />
+              <LayoutDashboard size={20} />
               <span>Dashboard</span>
             </NavLink>
           </li>
@@ -91,8 +91,8 @@ const ParentSidebar = () => {
                   <li key={i}>
                     <NavLink
                       to={item.path}
-                      className={({ isActive }) => isActive ? 'parent-nav-link active' : 'parent-nav-link'}
-                      style={{ paddingLeft: '3rem' }}
+                      className={({ isActive }) => isActive ? 'nav-link active' : 'nav-link'}
+                      style={{ paddingLeft: '2.8rem' }}
                     >
                       {item.icon}
                       <span>{item.name}</span>
@@ -104,14 +104,14 @@ const ParentSidebar = () => {
           ))}
         </ul>
       </nav>
-      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      <div className="sidebar-footer" style={{ marginTop: 'auto', padding: '1rem', borderTop: '1px solid var(--sidebar-border)' }}>
         <button 
           onClick={handleLogout} 
-          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ef4444', background: 'transparent', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
-          onMouseOver={(e) => e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)'}
-          onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+          style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '12px', padding: '8px 16px', color: '#ffffff', background: '#ef4444', border: 'none', cursor: 'pointer', fontWeight: 500, fontSize: '0.9rem', borderRadius: '8px', transition: 'all 0.2s' }}
+          onMouseOver={(e) => e.currentTarget.style.background = '#dc2626'}
+          onMouseOut={(e) => e.currentTarget.style.background = '#ef4444'}
         >
-          <LogOut size={18} />
+          <LogOut size={20} />
           <span>Logout</span>
         </button>
       </div>

@@ -255,7 +255,7 @@ const StudentHostel = () => {
     <>
       <div className="student-dashboard animate-fade-in" style={{ padding: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
         {/* Premium Header Banner */}
-      <div style={{ background: 'linear-gradient(135deg, #0d9488 0%, #0f766e 100%)', borderRadius: '24px', padding: '3rem', color: 'white', marginBottom: '2.5rem', boxShadow: '0 20px 40px -15px rgba(13, 148, 136, 0.5)', position: 'relative', overflow: 'hidden' }}>
+      <div style={{ background: 'var(--primary)', borderRadius: '24px', padding: '3rem', color: 'white', marginBottom: '2.5rem', boxShadow: '0 20px 40px -15px rgba(13, 148, 136, 0.5)', position: 'relative', overflow: 'hidden' }}>
         <div style={{ position: 'absolute', right: '-10%', top: '-50%', width: '300px', height: '300px', background: 'radial-gradient(circle, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 70%)', borderRadius: '50%' }}></div>
         <div style={{ position: 'relative', zIndex: 1 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
@@ -270,7 +270,7 @@ const StudentHostel = () => {
 
       {!isHosteller ? (
         <div className="glass-card" style={{ padding: '4rem', textAlign: 'center', maxWidth: '600px', margin: '0 auto', borderRadius: '24px' }}>
-          <div style={{ background: 'linear-gradient(135deg, #fecaca 0%, #fca5a5 100%)', color: '#dc2626', display: 'inline-flex', padding: '24px', borderRadius: '50%', marginBottom: '1.5rem', boxShadow: '0 10px 25px -5px rgba(220, 38, 38, 0.4)' }}>
+          <div style={{ background: 'var(--primary)', color: '#dc2626', display: 'inline-flex', padding: '24px', borderRadius: '50%', marginBottom: '1.5rem', boxShadow: '0 10px 25px -5px rgba(220, 38, 38, 0.4)' }}>
             <AlertCircle size={48} />
           </div>
           <h2 style={{ fontSize: '1.8rem', color: 'var(--text-main)', marginBottom: '1rem', fontWeight: 800 }}>Not Registered</h2>
@@ -288,7 +288,7 @@ const StudentHostel = () => {
                 </h2>
                 <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginTop: '6px' }}>Current academic year allocation</p>
               </div>
-              <div style={{ background: 'linear-gradient(135deg, #34d399 0%, #10b981 100%)', color: 'white', padding: '10px 20px', borderRadius: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)' }}>
+              <div style={{ background: 'var(--primary)', color: 'white', padding: '10px 20px', borderRadius: '20px', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', boxShadow: '0 10px 20px -5px rgba(16, 185, 129, 0.4)' }}>
                 <CheckCircle2 size={18} /> Active Hosteller
               </div>
             </div>

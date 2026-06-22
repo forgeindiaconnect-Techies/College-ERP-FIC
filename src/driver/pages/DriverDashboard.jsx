@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Bus, MapPin, Users, Navigation, CheckCircle, Clock } from 'lucide-react';
 import { getTransportDrivers, getTransportRoutes, getTransportStudents, getDriverAttendance } from '../../api/index';
 import './DriverDashboard.css';
-import CollegeInfoCard from '../../components/common/CollegeInfoCard';
-
 const DriverDashboard = () => {
   const [session, setSession] = useState({});
   const [loading, setLoading] = useState(true);
@@ -20,27 +18,48 @@ const DriverDashboard = () => {
         const data = JSON.parse(sessionStorage.getItem('driver_session') || '{}');
         setSession(data);
         
-        const driverId = data.referenceId;
-        if (!driverId) return;
+        const driverId = data.referenceId || data._id;
+        const tenantId = data.tenantId || 'mock_college_id';
+        if (!driverId) { setLoading(false); return; }
 
-        // 1. Fetch drivers to find my assignments
-        const driversRes = await getTransportDrivers();
-        const me = driversRes.data.find(d => d.driverId === driverId || (driverId === 'DRV001' && d.name.includes('Suresh')));
-        if (!me) return;
+        // ── Read from localStorage (admin-saved data) as the primary source ──
+        const localDrivers = JSON.parse(localStorage.getItem(`erp_transport_drivers_${tenantId}`) || '[]');
+        const localRoutes  = JSON.parse(localStorage.getItem(`erp_transport_routes_${tenantId}`)  || '[]');
+        const localStudents = JSON.parse(localStorage.getItem(`erp_transport_students_${tenantId}`) || '[]');
 
-        // Fetch concurrently
-        const [routesRes, studentsRes, attendanceRes] = await Promise.all([
+        // ── Also try the backend API and merge ──
+        const [driversRes, routesRes, studentsRes, attendanceRes] = await Promise.all([
+          getTransportDrivers().catch(() => ({ data: [] })),
           getTransportRoutes().catch(() => ({ data: [] })),
           getTransportStudents().catch(() => ({ data: [] })),
           getDriverAttendance({ driverId }).catch(() => ({ data: [] }))
         ]);
 
-        const myVehicle = { vehicleNumber: me.vehicleId, vehicleId: me.vehicleId };
-        const myRoute = routesRes.data.find(r => r.name === me.routeId || r.routeId === me.routeId);
-        const myStudents = studentsRes.data.filter(s => s.routeId === me.routeId);
+        // Merge local + backend, deduplicate by driverId
+        const allDrivers = [
+          ...localDrivers,
+          ...(driversRes.data || []).filter(d => !localDrivers.find(l => l.driverId === d.driverId))
+        ];
+        const allRoutes = [
+          ...localRoutes,
+          ...(routesRes.data || []).filter(r => !localRoutes.find(l => l.routeId === r.routeId))
+        ];
+        const allStudents = [
+          ...localStudents,
+          ...(studentsRes.data || []).filter(s => !localStudents.find(l => l.studentId === s.studentId))
+        ];
+
+        // Find this driver's record
+        const me = allDrivers.find(d => d.driverId === driverId || d.phone === driverId);
+        if (!me) { setLoading(false); return; }
+
+        const myVehicle = { vehicleNumber: me.vehicleId || me.vehicle, vehicleId: me.vehicleId || me.vehicle };
+        const myRoute = allRoutes.find(r => r.routeId === me.routeId || r.name === me.routeId);
+        const myStudents = allStudents.filter(s => s.routeId === me.routeId);
         
         const todayStr = new Date().toISOString().split('T')[0];
-        const myAttendance = attendanceRes.data.find(a => a.date === todayStr);
+        const attendanceData = Array.isArray(attendanceRes.data) ? attendanceRes.data : [];
+        const myAttendance = attendanceData.find(a => a.date === todayStr);
 
         setDashboardData({
           vehicle: myVehicle,
@@ -69,7 +88,7 @@ const DriverDashboard = () => {
     <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       {/* Premium Header Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
+        background: 'var(--primary-gradient)',
         borderRadius: '16px',
         padding: '1.25rem 1.5rem',
         marginBottom: '1.5rem',
@@ -85,10 +104,10 @@ const DriverDashboard = () => {
         <div style={{ position: 'absolute', top: '-50%', right: '-10%', width: '200px', height: '200px', background: 'rgba(255,255,255,0.1)', borderRadius: '50%', filter: 'blur(30px)' }} />
         
         <div style={{ position: 'relative', zIndex: 1 }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 4px 0' }}>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, margin: '0 0 4px 0', color: '#fff' }}>
             Welcome back, {session.name || 'Driver'}!
           </h1>
-          <p style={{ margin: 0, opacity: 0.9, fontSize: '0.9rem', fontWeight: 500 }}>
+          <p style={{ margin: 0, opacity: 0.9, fontSize: '0.9rem', fontWeight: 500, color: '#fff' }}>
             Here is an overview of your schedule, route, and assignments for today.
           </p>
         </div>

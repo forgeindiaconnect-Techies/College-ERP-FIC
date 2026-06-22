@@ -1,0 +1,54 @@
+/* src/components/layout/MetricCards.css */
+.stat-card, .hod-stat-card, .staff-stat-card, .s-metric-card,
+.stat-card.glass-card, .hod-stat-card.glass-card, .staff-stat-card.glass-card, .s-metric-card.glass-card {
+  border: 1px solid var(--border-color) !important;
+  box-shadow: var(--shadow-sm) !important;
+  border-radius: 12px !important;
+  background: #FFFFFF !important;
+  background-color: #FFFFFF !important;
+  transition: all 0.3s ease !important;
+}
+.stat-card:hover, .hod-stat-card:hover, .staff-stat-card:hover, .s-metric-card:hover {
+  box-shadow: var(--shadow-md) !important;
+  transform: translateY(-2px);
+}
+.stat-card h3, .stat-card p, .stat-card span, .stat-card h2,
+.hod-stat-card h3, .hod-stat-card p, .hod-stat-card span, .hod-stat-card h2,
+.staff-stat-card h3, .staff-stat-card p, .staff-stat-card span, .staff-stat-card h2,
+.s-metric-card h3, .s-metric-card p, .s-metric-card span, .s-metric-card h2 {
+  color: #0F172A !important;
+  text-transform: none !important;
+}
+.stat-card p.stat-change, .stat-card span.stat-change, .stat-change.text-muted,
+.hod-stat-card p.stat-change, .staff-stat-card p.stat-change, .s-metric-card p.stat-change {
+  color: #64748B !important;
+}
+.stat-card .stat-change.positive, .hod-stat-card .text-success, .staff-stat-card .text-success, .s-metric-card .text-success {
+  color: #0F6E56 !important;
+  font-weight: 600 !important;
+}
+.stat-card .stat-change.negative, .hod-stat-card .text-danger, .staff-stat-card .text-danger, .s-metric-card .text-danger {
+  color: #A32D2D !important;
+  font-weight: 600 !important;
+}
+.stat-icon-wrapper.bg-icon-primary,
+.staff-stat-icon.bg-icon-primary,
+.hod-stat-icon.bg-icon-primary,
+.s-metric-icon.bg-icon-primary {
+  background: #EEEDFE !important;
+  color: #3C3489 !important;
+}
+.stat-icon-wrapper.bg-icon-warning,
+.staff-stat-icon.bg-icon-warning,
+.hod-stat-icon.bg-icon-warning,
+.s-metric-icon.bg-icon-warning {
+  background: rgba(133, 79, 11, 0.1) !important;
+  color: #854F0B !important;
+}
+.stat-icon-wrapper.bg-icon-success,
+.staff-stat-icon.bg-icon-success,
+.hod-stat-icon.bg-icon-success,
+.s-metric-icon.bg-icon-success {
+  background: rgba(15, 110, 86, 0.1) !important;
+  color: #0F6E56 !important;
+}

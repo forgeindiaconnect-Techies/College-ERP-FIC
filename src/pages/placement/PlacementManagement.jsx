@@ -267,7 +267,7 @@ const PlacementManagement = () => {
             <div className="glass-card p-6">
               <h3 className="font-bold mb-4">Placement Trends (YTD)</h3>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <AreaChart data={CHART_DATA}>
                     <defs>
                       <linearGradient id="colorPlaced" x1="0" y1="0" x2="0" y2="1">
@@ -288,7 +288,7 @@ const PlacementManagement = () => {
             <div className="glass-card p-6">
               <h3 className="font-bold mb-4">Department-wise Placement %</h3>
               <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height={300}>
                   <BarChart data={[
                     { dept: 'CSE', percentage: 88 },
                     { dept: 'IT', percentage: 82 },

@@ -97,9 +97,16 @@ const StaffAttendance = () => {
       });
       setStudents(combinedStudents);
 
-      if (attRes?.data) {
-        setRawAttendanceList(attRes.data);
-      }
+      let backendAtt = attRes?.data || [];
+      const localAtt = JSON.parse(localStorage.getItem(`erp_attendance_${sessionStorage.getItem('tenantId') || 'mock_college_id'}`) || '[]');
+      
+      const combinedAtt = [...backendAtt];
+      localAtt.forEach(ls => {
+        if (!combinedAtt.find(ca => ca._id === ls._id)) {
+          combinedAtt.push(ls);
+        }
+      });
+      setRawAttendanceList(combinedAtt);
 
       const ttData = ttRes?.data || { times: [], schedule: [] };
       setTimetable(ttData);
@@ -239,7 +246,7 @@ const StaffAttendance = () => {
   const handleMarkStudent = (studentId, status) => {
     setMarkingState(prev => ({
       ...prev,
-      [studentId]: prev[studentId] === status ? '' : status
+      [studentId]: status
     }));
   };
 
@@ -268,20 +275,20 @@ const StaffAttendance = () => {
       return;
     }
 
-    try {
-        const bulkRecords = myClassStudents.map(s => ({
-          tenantId: sessionStorage.getItem('tenantId') || 'mock_college_id',
-          studentId: s.id || s._id,
-          studentName: s.name,
-          department: staffDept,
-          semester: targetSem,
-          attendanceDate: new Date(selectedDate),
-          periodId: selectedPeriod.split(' ')[1],
-          status: markingState[s.id || s._id],
-          subjectId: selectedSubject,
-          markedBy: staffSession.name
-        }));
+    const bulkRecords = myClassStudents.map(s => ({
+      tenantId: sessionStorage.getItem('tenantId') || 'mock_college_id',
+      studentId: s.id || s._id,
+      studentName: s.name,
+      department: staffDept,
+      semester: targetSem,
+      attendanceDate: new Date(selectedDate),
+      periodId: selectedPeriod.split(' ')[1],
+      status: markingState[s.id || s._id],
+      subjectId: selectedSubject,
+      markedBy: staffSession.name
+    }));
 
+    try {
       const res = await createAttendance(bulkRecords);
       if (res?.status === 201 || res?.status === 200) {
         setSaveSuccess(true);
@@ -321,6 +328,30 @@ const StaffAttendance = () => {
         setSaveError(err.response?.data?.message || 'Failed to save attendance locally.');
       }
     }
+  };
+
+  const handleExportCSV = () => {
+    if (filteredRecords.length === 0) {
+      alert("No students to export.");
+      return;
+    }
+    
+    let csvContent = "data:text/csv;charset=utf-8,";
+    csvContent += `Subject: ${selectedSubject}, Date: ${selectedDate}, Period: ${selectedPeriod}, Faculty: ${staffSession.name}\n\n`;
+    csvContent += "Register No,Student Name,Marked Status,Overall Percentage\n";
+    
+    filteredRecords.forEach(r => {
+      const status = markingState[r.id || r._id] || 'Not Marked';
+      csvContent += `${r.id || r._id},${r.name},${status},${r.percent}%\n`;
+    });
+    
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute("download", `Attendance_Report_${selectedSubject}_${selectedDate}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const getColor = (p) => p >= 90 ? 'var(--success)' : p >= 75 ? 'var(--warning)' : 'var(--danger)';
@@ -469,6 +500,9 @@ const StaffAttendance = () => {
           </div>
 
           <div className="bulk-actions-group flex gap-2">
+            <button className="px-4 py-2 bg-blue-500/10 text-blue-600 rounded-lg text-sm font-semibold hover:bg-blue-500/20 transition-colors flex items-center gap-2" onClick={handleExportCSV}>
+              Download CSV
+            </button>
             <button className="px-4 py-2 bg-green-500/10 text-green-600 rounded-lg text-sm font-semibold hover:bg-green-500/20 transition-colors" onClick={() => handleBulkMark('Present')}>
               Mark All Present
             </button>
@@ -540,27 +574,41 @@ const StaffAttendance = () => {
                       </td>
                       <td className="p-4"><span className="font-mono text-sm bg-[var(--bg-secondary)] px-2 py-1 rounded text-[var(--text-main)]">{r.id || r._id}</span></td>
                       <td className="p-4">
-                        {savedStatus ? (
-                          <span className={`text-xs font-semibold px-2 py-1 rounded-md ${
-                            savedStatus === 'Present' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 
-                            savedStatus === 'Absent' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
-                            savedStatus === 'Leave' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
-                            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                          }`}>
+                        {status ? (
+                          <span 
+                            style={{ 
+                              padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold', border: '1px solid',
+                              ...(status === 'Present' ? { backgroundColor: '#dcfce7', color: '#16a34a', borderColor: '#bbf7d0' } :
+                                  status === 'Absent' ? { backgroundColor: '#fee2e2', color: '#dc2626', borderColor: '#fecaca' } :
+                                  status === 'Leave' ? { backgroundColor: '#ffedd5', color: '#ea580c', borderColor: '#fed7aa' } :
+                                  { backgroundColor: '#e0f2fe', color: '#0284c7', borderColor: '#bae6fd' })
+                            }}
+                          >
+                            {status} {status === 'Present' ? '(P)' : status === 'Absent' ? '(A)' : status === 'Leave' ? '(L)' : '(M)'}
+                          </span>
+                        ) : savedStatus ? (
+                          <span 
+                            style={{ 
+                              padding: '4px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 'bold',
+                              ...(savedStatus === 'Present' ? { backgroundColor: '#dcfce7', color: '#16a34a' } :
+                                  savedStatus === 'Absent' ? { backgroundColor: '#fee2e2', color: '#dc2626' } :
+                                  savedStatus === 'Leave' ? { backgroundColor: '#ffedd5', color: '#ea580c' } :
+                                  { backgroundColor: '#e0f2fe', color: '#0284c7' })
+                            }}
+                          >
                             {savedStatus} {savedStatus === 'Present' ? '(P)' : savedStatus === 'Absent' ? '(A)' : savedStatus === 'Leave' ? '(L)' : '(M)'}
                           </span>
                         ) : (
-                          <span className="text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-500 rounded-md dark:bg-gray-800 dark:text-gray-400">
-                            No Records Yet
-                          </span>
+                          <span className="text-xs font-semibold px-2 py-1 bg-gray-100 text-gray-500 rounded-md border border-gray-200">Not Marked</span>
                         )}
                       </td>
                       <td className="p-4">
                         <div className="flex items-center justify-center gap-2">
                           <button
                             type="button"
-                            disabled={disabledRow}
-                            className={`flex items-center justify-center px-3 py-1.5 rounded font-medium text-xs transition-all ${status === 'Present' ? 'bg-green-500 text-white shadow-md' : 'bg-green-500/10 text-green-600 hover:bg-green-500/20'} ${disabledRow ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={disabledRow || !!status}
+                            className={`mark-btn ${status === 'Present' ? 'btn-p-active' : 'btn-p-inactive'}`}
+                            style={status ? { cursor: 'default' } : {}}
                             onClick={() => handleMarkStudent(r.id || r._id, 'Present')}
                             title="Present"
                           >
@@ -568,8 +616,9 @@ const StaffAttendance = () => {
                           </button>
                           <button
                             type="button"
-                            disabled={disabledRow}
-                            className={`flex items-center justify-center px-3 py-1.5 rounded font-medium text-xs transition-all ${status === 'Absent' ? 'bg-red-500 text-white shadow-md' : 'bg-red-500/10 text-red-600 hover:bg-red-500/20'} ${disabledRow ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={disabledRow || !!status}
+                            className={`mark-btn ${status === 'Absent' ? 'btn-a-active' : 'btn-a-inactive'}`}
+                            style={status ? { cursor: 'default' } : {}}
                             onClick={() => handleMarkStudent(r.id || r._id, 'Absent')}
                             title="Absent"
                           >
@@ -577,19 +626,21 @@ const StaffAttendance = () => {
                           </button>
                           <button
                             type="button"
-                            disabled={disabledRow}
-                            className={`flex items-center justify-center px-3 py-1.5 rounded font-medium text-xs transition-all ${status === 'On Leave' ? 'bg-orange-500 text-white shadow-md' : 'bg-orange-500/10 text-orange-600 hover:bg-orange-500/20'} ${disabledRow ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            onClick={() => handleMarkStudent(r.id || r._id, 'On Leave')}
+                            disabled={disabledRow || !!status}
+                            className={`mark-btn ${status === 'Leave' ? 'btn-l-active' : 'btn-l-inactive'}`}
+                            style={status ? { cursor: 'default' } : {}}
+                            onClick={() => handleMarkStudent(r.id || r._id, 'Leave')}
                             title="On Leave"
                           >
                             <UserMinus size={14} className="mr-1" /> L
                           </button>
                           <button
                             type="button"
-                            disabled={disabledRow}
-                            className={`flex items-center justify-center px-3 py-1.5 rounded font-medium text-xs transition-all ${status === 'Medical Leave' ? 'bg-blue-500 text-white shadow-md' : 'bg-blue-500/10 text-blue-600 hover:bg-blue-500/20'} ${disabledRow ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            onClick={() => handleMarkStudent(r.id || r._id, 'Medical Leave')}
-                            title="Medical Leave"
+                            disabled={disabledRow || !!status}
+                            className={`mark-btn ${status === 'Not Marked' ? 'btn-m-active' : 'btn-m-inactive'}`}
+                            style={status ? { cursor: 'default' } : {}}
+                            onClick={() => handleMarkStudent(r.id || r._id, 'Not Marked')}
+                            title="Clear"
                           >
                             <HeartPulse size={14} className="mr-1" /> M
                           </button>

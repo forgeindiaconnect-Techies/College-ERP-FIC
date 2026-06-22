@@ -68,7 +68,7 @@ const AccountsOfficerManagement = () => {
   return (
     <div className="management-page">
       <div className="page-header">
-        <div className="header-left">
+        <div className="title-block">
           <h1>Accounts Management</h1>
           <p className="text-muted">Manage Accounts Officers for your institution.</p>
         </div>

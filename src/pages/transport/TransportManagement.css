@@ -29,6 +29,14 @@
   border: 1px solid var(--border-color);
   margin-bottom: 24px;
   overflow-x: auto;
+  /* Hide scrollbar for IE, Edge and Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.transport-tabs::-webkit-scrollbar {
+  display: none;
 }
 
 .transport-tab {

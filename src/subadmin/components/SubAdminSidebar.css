@@ -1,7 +1,41 @@
-﻿
-.nav-group-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; color: #475569; font-size: 0.85rem; font-weight: 700; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; letter-spacing: 0.05em; }
+
+.nav-group-header { display: flex; align-items: center; justify-content: space-between; padding: 0.75rem 1rem; color: var(--sidebar-text, #475569); font-size: 0.9375rem; font-weight: 500; text-transform: none; letter-spacing: 0.2px; cursor: pointer; transition: all 0.2s; margin-top: 0.25rem; }
 .nav-group-header:hover { color: var(--text-main); }
-.nav-group-items { overflow: hidden; transition: max-height 0.3s ease-in-out; }
-.nav-group-items.collapsed { max-height: 0; }
-.nav-group-items.expanded { max-height: 500px; }
-.dark .nav-group-header { color: #9CA3AF; }
+.nav-group-items { overflow: hidden; transition: max-height 0.3s ease-in-out, opacity 0.3s ease-in-out; opacity: 0; }
+.nav-group-items.collapsed { max-height: 0; opacity: 0; padding: 0 !important; margin: 0 !important; pointer-events: none; }
+.nav-group-items.expanded { max-height: 800px; opacity: 1; padding: 0.2rem 0; pointer-events: auto; }
+.dark .nav-group-header { color: #9CA3AF !important; }
+
+
+
+
+.subadmin-nav-link.active {
+  background: #4F46E5 !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  margin: 0.2rem 1rem !important;
+  border-left: none !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3) !important;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+.subadmin-nav-link.active span, .subadmin-nav-link.active svg {
+  color: #FFFFFF !important;
+}
+
+/* Bulletproof Active State */
+.subadmin-nav-link.active,
+.subadmin-nav-link.active:hover,
+.subadmin-nav-link.active:focus {
+  background: #4F46E5 !important;
+  color: #FFFFFF !important;
+}
+.subadmin-nav-link.active span, .subadmin-nav-link.active svg,
+.subadmin-nav-link.active:hover span, .subadmin-nav-link.active:hover svg {
+  color: #FFFFFF !important;
+}
+.dark .subadmin-nav-link.active,
+.dark .subadmin-nav-link.active:hover {
+  background: #4F46E5 !important;
+  color: #FFFFFF !important;
+}

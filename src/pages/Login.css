@@ -1,12 +1,12 @@
-/* Premium Unified Login Layout CSS - Light Professional Theme */
+﻿/* Premium Unified Login Layout CSS - Light Professional Theme */
 
 .unified-login-container {
   display: flex;
   min-height: 100vh;
   width: 100%;
   font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background-color: #f4f7fb;
-  color: #1e293b;
+  background-color: var(--bg-primary);
+  color: var(--text-main);
   overflow: hidden;
   align-items: center;
   justify-content: center;
@@ -112,7 +112,7 @@
   width: 50%;
   height: calc(100vh - 40px);
   padding: 40px;
-  background-color: #ffffff;
+  background-color: var(--bg-card);
   border-radius: 0 24px 24px 0;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.05);
   overflow-y: auto;
@@ -143,12 +143,12 @@
 .login-card-header h2 {
   font-size: 28px;
   font-weight: 800;
-  color: #1e293b;
+  color: var(--text-main);
   margin-bottom: 8px;
 }
 
 .login-card-header p {
-  color: #64748b;
+  color: var(--text-muted);
   font-size: 15px;
 }
 
@@ -167,7 +167,7 @@
 .input-group label {
   font-size: 13px;
   font-weight: 700;
-  color: #334155;
+  color: var(--text-muted);
 }
 
 .input-wrapper {
@@ -179,7 +179,7 @@
 .form-icon {
   position: absolute;
   left: 16px;
-  color: #94a3b8;
+  color: var(--text-light);
   pointer-events: none;
   transition: color 0.3s;
 }
@@ -187,10 +187,10 @@
 .input-wrapper input, .input-wrapper select {
   width: 100%;
   padding: 14px 48px 14px 48px;
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  color: #1e293b;
+  color: var(--text-main);
   font-size: 15px;
   outline: none;
   transition: all 0.3s ease;
@@ -198,7 +198,7 @@
 }
 
 .input-wrapper input::placeholder {
-  color: #94a3b8;
+  color: var(--text-light);
 }
 
 .input-wrapper input:focus, .input-wrapper select:focus {
@@ -217,7 +217,7 @@
   transform: translateY(-50%);
   background: none;
   border: none;
-  color: #94a3b8;
+  color: var(--text-light);
   cursor: pointer;
   padding: 4px;
   border-radius: 6px;
@@ -265,10 +265,10 @@
 .google-btn {
   margin-top: 16px;
   padding: 12px;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
-  color: #334155;
+  color: var(--text-muted);
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
@@ -289,14 +289,14 @@
   align-items: center;
   text-align: center;
   margin: 16px 0;
-  color: #94a3b8;
+  color: var(--text-light);
   font-size: 12px;
   text-transform: uppercase;
 }
 .divider::before, .divider::after {
   content: '';
   flex: 1;
-  border-bottom: 1px solid #e2e8f0;
+  border-bottom: 1px solid var(--border-color);
 }
 .divider:not(:empty)::before { margin-right: .5em; }
 .divider:not(:empty)::after { margin-left: .5em; }
@@ -305,19 +305,19 @@
 .demo-credentials-section {
   margin-top: 24px;
   padding-top: 24px;
-  border-top: 1px solid #e2e8f0;
+  border-top: 1px solid var(--border-color);
 }
 
 .demo-credentials-section h4 {
   font-size: 14px;
   font-weight: 700;
-  color: #1e293b;
+  color: var(--text-main);
   margin-bottom: 4px;
 }
 
 .demo-credentials-section p {
   font-size: 12px;
-  color: #64748b;
+  color: var(--text-muted);
   margin-bottom: 16px;
 }
 
@@ -328,8 +328,8 @@
 }
 
 .demo-btn {
-  background-color: #ffffff;
-  border: 1px solid #e2e8f0;
+  background-color: var(--bg-card);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 10px 6px;
   display: flex;
@@ -353,8 +353,8 @@
 
 .demo-btn:hover {
   border-color: var(--hover-color, #2563eb);
-  background-color: #f8fafc;
-  color: #1e293b;
+  background-color: var(--sidebar-hover);
+  color: var(--text-main);
 }
 
 @keyframes cardFadeIn {
@@ -381,3 +381,10 @@
     border-radius: 0;
   }
 }
+
+
+input[type="password"]::-ms-reveal,
+input[type="password"]::-ms-clear {
+  display: none;
+}
+

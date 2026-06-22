@@ -91,7 +91,7 @@ const HodSupport = () => {
     <div className="dashboard-container animate-fade-in" style={{ padding: '2rem', minHeight: '100vh', background: 'var(--bg-primary)' }}>
       {/* Header Banner */}
       <div style={{
-        background: 'linear-gradient(135deg, #4f46e5, #ec4899)',
+        background: 'var(--primary)',
         borderRadius: '16px',
         padding: '1.5rem 2rem',
         marginBottom: '1.5rem',

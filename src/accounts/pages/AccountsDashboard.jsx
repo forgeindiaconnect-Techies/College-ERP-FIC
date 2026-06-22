@@ -13,8 +13,6 @@ import {
 import { getAllFees, getSalaries, getExpenses, getStudents } from '../../api/index';
 import useRealtimeSync from '../../hooks/useRealtimeSync';
 import './AccountsDashboard.css';
-import CollegeInfoCard from '../../components/common/CollegeInfoCard';
-
 const AccountsDashboard = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
@@ -158,12 +156,11 @@ const AccountsDashboard = () => {
 
   return (
     <div className="accounts-dashboard animate-fade-in">
-      <CollegeInfoCard />
       {/* Welcome Banner */}
-      <div className="accounts-welcome-banner">
-        <div className="banner-left">
-          <h1>Finance & Accounts Dashboard</h1>
-          <p>Welcome back, {accountsSession?.name}. Live financial summary from database.</p>
+      <div className="accounts-welcome-banner" style={{ background: '#3730A5', padding: '1rem 1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: '#ffffff', borderRadius: '12px' }}>
+        <div className="banner-left" style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+          <h1 style={{ fontSize: '1.35rem', fontWeight: '700', margin: 0, lineHeight: 1.2, color: '#ffffff' }}>Finance & Accounts Dashboard</h1>
+          <p style={{ fontSize: '0.85rem', color: 'rgba(255, 255, 255, 0.9)', margin: 0, lineHeight: 1.4, fontWeight: 500 }}>Welcome back, {accountsSession?.name}. Live financial summary from database.</p>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => fetchAll()} style={{ background: 'rgba(255,255,255,0.2)', border: 'none', borderRadius: '10px', color: 'white', padding: '8px 14px', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontSize: '0.85rem', backdropFilter: 'blur(10px)' }}>
@@ -177,8 +174,8 @@ const AccountsDashboard = () => {
 
       {/* Metrics Row (6 Live Cards) */}
       <div className="accounts-metrics-grid">
-        <div className="glass-card a-metric-card">
-          <div className="metric-icon-a teal"><CreditCard size={22} /></div>
+        <div className="glass-card a-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-a" style={{ background: 'var(--color-primary-tint, #EEEDFE)', color: 'var(--color-primary-text-on-tint, #3730A5)' }}><CreditCard size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Total Fees Collected</span>
             <h2 className="metric-value-a">₹{(feesCollected/100000).toFixed(1)} L</h2>
@@ -186,8 +183,8 @@ const AccountsDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card a-metric-card">
-          <div className="metric-icon-a orange"><AlertCircle size={22} /></div>
+        <div className="glass-card a-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-a" style={{ background: 'rgba(245, 158, 11, 0.12)', color: '#f59e0b' }}><AlertCircle size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Pending Fees</span>
             <h2 className="metric-value-a">₹{(feesPending/100000).toFixed(1)} L</h2>
@@ -195,8 +192,8 @@ const AccountsDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card a-metric-card">
-          <div className="metric-icon-a green"><Activity size={22} /></div>
+        <div className="glass-card a-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-a" style={{ background: 'var(--color-primary-tint, #EEEDFE)', color: 'var(--color-primary-text-on-tint, #3730A5)' }}><Activity size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Today's Collection</span>
             <h2 className="metric-value-a">₹{todayFees > 0 ? (todayFees/1000).toFixed(1)+'K' : '0'}</h2>
@@ -204,8 +201,8 @@ const AccountsDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card a-metric-card">
-          <div className="metric-icon-a red"><PieChartIcon size={22} /></div>
+        <div className="glass-card a-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-a" style={{ background: 'var(--color-primary-tint, #EEEDFE)', color: 'var(--color-primary-text-on-tint, #3730A5)' }}><PieChartIcon size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Total Expenses</span>
             <h2 className="metric-value-a">₹{(totalExpenses/100000).toFixed(1)} L</h2>
@@ -213,8 +210,8 @@ const AccountsDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card a-metric-card">
-          <div className="metric-icon-a blue"><Banknote size={22} /></div>
+        <div className="glass-card a-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-a" style={{ background: 'var(--color-primary-tint, #EEEDFE)', color: 'var(--color-primary-text-on-tint, #3730A5)' }}><Banknote size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Salary Disbursed</span>
             <h2 className="metric-value-a">₹{(salaryPaid/100000).toFixed(1)} L</h2>
@@ -222,8 +219,8 @@ const AccountsDashboard = () => {
           </div>
         </div>
 
-        <div className="glass-card a-metric-card">
-          <div className="metric-icon-a purple"><Users size={22} /></div>
+        <div className="glass-card a-metric-card" style={{ background: '#ffffff', border: '1px solid #e5e7eb' }}>
+          <div className="metric-icon-a" style={{ background: 'rgba(239, 68, 68, 0.12)', color: '#ef4444' }}><Users size={22} /></div>
           <div className="a-metric-details">
             <span className="card-title-a">Defaulters Count</span>
             <h2 className="metric-value-a">{defaulters}</h2>
